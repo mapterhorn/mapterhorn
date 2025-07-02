@@ -3,7 +3,5 @@
     "resolution-m": 0.5,
     "website": "https://www.swisstopo.admin.ch/en/height-model-swissalti3d",
     "license": "Open Government Data",
-    "producer": "Federal Office of Topography swisstopo",
-    "z-index": 0,
-    "max-zoom": 0
+    "producer": "Federal Office of Topography swisstopo"
 }

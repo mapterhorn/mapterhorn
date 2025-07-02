@@ -3,7 +3,5 @@
     "resolution-m": 30,
     "website": "https://dataspace.copernicus.eu/explore-data/data-collections/copernicus-contributing-missions/collections-description/COP-DEM",
     "license": "COPERNICUS full, free and open license",
-    "producer": "DLR e.V. 2010-2014, Airbus Defence and Space GmbH 2014-2018, provided under COPERNICUS by the European Union and ESA",
-    "z-index": 0,
-    "max-zoom": 0
+    "producer": "DLR e.V. 2010-2014, Airbus Defence and Space GmbH 2014-2018, provided under COPERNICUS by the European Union and ESA"
 }
