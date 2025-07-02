@@ -1,8 +1,6 @@
-from glob import glob
-import json
-from datetime import datetime
 import os
 import shutil
+import json
 
 import utils
 import local_config
@@ -17,32 +15,11 @@ def create_new_covering():
 
     utils.run_command(command)
 
-def get_collection_ids():
-    '''
-    returns collection ids ordered from oldest to newest
-    '''
-    paths = glob(f'cogify-store/3857/{local_config.source}/*')
-    collection_ids = [path.split('/')[-1] for path in paths]
-    timestamps = []
-    for collection_id in collection_ids:
-        with open(f'cogify-store/3857/{local_config.source}/{collection_id}/collection.json') as f:
-            collection = json.load(f)
-            time_string = collection['extent']['temporal']['interval'][0][0]
-            time_string = time_string.replace('Z', '+00:00')
-            timestamps.append(datetime.fromisoformat(time_string))
-
-    return [sorted_id for _, sorted_id in sorted(zip(timestamps, collection_ids))]
-
-def get_collection_items(collection_id):
-    paths = glob(f'cogify-store/3857/{local_config.source}/{collection_id}/*.json')
-    filenames = [path.split('/')[-1] for path in paths]
-    return [item for item in filenames if item not in ['collection.json', 'covering.json', 'source.json']]
-
 def get_last_modification(collection_ids):
 
     items_by_collection_id = {}
     for collection_id in collection_ids:
-        items_by_collection_id[collection_id] = get_collection_items(collection_id)
+        items_by_collection_id[collection_id] = utils.get_collection_items(collection_id)
 
     latest_collection_id = collection_ids[-1]
     previous_collection_ids = collection_ids[:-1]
@@ -82,7 +59,7 @@ if __name__ == '__main__':
 
     # compute which items have changes
     changed_items = []
-    collection_ids = get_collection_ids()
+    collection_ids = utils.get_collection_ids()
     last_modification = get_last_modification(collection_ids)
     for item in last_modification.keys():
         if last_modification[item] is None:

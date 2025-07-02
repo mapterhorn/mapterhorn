@@ -16,18 +16,14 @@ def download_from_internet():
         command = f'wget -O {local_config.local_source_store_path}/{local_config.source}/{filename} -c {url}'
         utils.run_command(command)
 
-def upload_to_remote_store():
-    command = f'rsync -avh {local_config.local_source_store_path}/{local_config.source}/ {local_config.remote_source_store_path}/{local_config.source}/'
-    run_command(command)
+if __name__ == '__main__':
+    remote = f'{local_config.remote_source_store_path}/{local_config.source}/'
+    local = f'source-store/{local_config.source}/'
 
-utils.create_local_store(f'{local_config.local_source_store_path}/{local_config.source}/')
+    utils.create_local_store(local)
 
-# copy remote source store to local source store
-remote = f'{local_config.remote_source_store_path}/{local_config.source}/'
-local = f'{local_config.local_source_store_path}/{local_config.source}/'
-utils.rsync(src=remote, dst=local)
+    utils.rsync(src=remote, dst=local)
 
-download_from_internet()
+    download_from_internet()
 
-# copy local source store to remote source store
-utils.rsync(src=local, dst=remote)
+    utils.rsync(src=local, dst=remote)
