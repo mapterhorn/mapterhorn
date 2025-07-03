@@ -8,7 +8,7 @@ import local_config
 def create_new_covering():
     command = f'''docker run -it --user $(id -u):$(id -g) -v $PWD:/mapterhorn/web-mercator-pipeline/ ghcr.io/linz/basemaps/cli:v8 cogify cover \
     --tile-matrix WebMercatorQuad \
-    --preset lerc_10mm \
+    --preset lzw \
     --target /mapterhorn/web-mercator-pipeline/cogify-store/ \
     /mapterhorn/web-mercator-pipeline/source-store/{local_config.source}/
     '''
