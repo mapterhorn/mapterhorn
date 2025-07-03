@@ -1,0 +1,4 @@
+local_config.py
+__pycache__
+source-store/
+cogify-store/
