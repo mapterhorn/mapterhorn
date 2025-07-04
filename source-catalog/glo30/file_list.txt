@@ -609,8 +609,8 @@ https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N05_00_W053_00
 https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N05_00_W054_00_DEM/Copernicus_DSM_COG_10_N05_00_W054_00_DEM.tif
 https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N05_00_W055_00_DEM/Copernicus_DSM_COG_10_N05_00_W055_00_DEM.tif
 https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N05_00_W056_00_DEM/Copernicus_DSM_COG_10_N05_00_W056_00_DEM.tif
-https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N05_00_W057_00_DEM/Copernicus_DSM_COG_10_N05_00_W057_00_DEM.tiiff
-https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N05_00_W058_00_DEM/Copernicus_DSM_COG_10_N05_00_W058_00_DEM.t
+https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N05_00_W057_00_DEM/Copernicus_DSM_COG_10_N05_00_W057_00_DEM.tif
+https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N05_00_W058_00_DEM/Copernicus_DSM_COG_10_N05_00_W058_00_DEM.tif
 https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N05_00_W059_00_DEM/Copernicus_DSM_COG_10_N05_00_W059_00_DEM.tif
 https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N05_00_W060_00_DEM/Copernicus_DSM_COG_10_N05_00_W060_00_DEM.tif
 https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N05_00_W061_00_DEM/Copernicus_DSM_COG_10_N05_00_W061_00_DEM.tif
