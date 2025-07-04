@@ -4,8 +4,8 @@ import local_config
 import utils
 
 def create_item(collection_id, item):
-    command = f'''docker run -it --user $(id -u):$(id -g) -v $PWD:/mapterhorn/web-mercator-pipeline/ ghcr.io/linz/basemaps/cli:v8 cogify create \
-        /mapterhorn/web-mercator-pipeline/cogify-store/3857/{local_config.source}/{collection_id}/{item}
+    command = f'''docker run -it --user $(id -u):$(id -g) -v $PWD:/mapterhorn/pipelines/ ghcr.io/linz/basemaps/cli:v8 cogify create \
+        /mapterhorn/pipelines/cogify-store/3857/{local_config.source}/{collection_id}/{item}
     '''
     utils.run_command(command)
 
@@ -17,8 +17,8 @@ if __name__ == '__main__':
     utils.create_local_store(local_cogify_store)
     utils.rsync(src=remote_cogify_store, dst=local_cogify_store)
 
-    collection_ids = utils.get_collection_ids()
-    items = utils.get_collection_items(collection_ids[-1])
+    collection_ids = utils.get_collection_ids(local_config.source)
+    items = utils.get_collection_items(local_config.source, collection_ids[-1])
 
     for item in items[local_config.machine_i::local_config.machine_count]:
         create_item(collection_ids[-1], item)

@@ -6,11 +6,11 @@ import utils
 import local_config
 
 def create_new_covering():
-    command = f'''docker run -it --user $(id -u):$(id -g) -v $PWD:/mapterhorn/web-mercator-pipeline/ ghcr.io/linz/basemaps/cli:v8 cogify cover \
+    command = f'''docker run -it --user $(id -u):$(id -g) -v $PWD:/mapterhorn/pipelines/ ghcr.io/linz/basemaps/cli:v8 cogify cover \
     --tile-matrix WebMercatorQuad \
-    --preset lzw \
-    --target /mapterhorn/web-mercator-pipeline/cogify-store/ \
-    /mapterhorn/web-mercator-pipeline/source-store/{local_config.source}/
+    --preset lerc_10mm \
+    --target /mapterhorn/pipelines/cogify-store/ \
+    /mapterhorn/pipelines/source-store/{local_config.source}/
     '''
 
     utils.run_command(command)
@@ -19,7 +19,7 @@ def get_last_modification(collection_ids):
 
     items_by_collection_id = {}
     for collection_id in collection_ids:
-        items_by_collection_id[collection_id] = utils.get_collection_items(collection_id)
+        items_by_collection_id[collection_id] = utils.get_collection_items(local_config.source, collection_id)
 
     latest_collection_id = collection_ids[-1]
     previous_collection_ids = collection_ids[:-1]
@@ -59,7 +59,7 @@ if __name__ == '__main__':
 
     # compute which items have changes
     changed_items = []
-    collection_ids = utils.get_collection_ids()
+    collection_ids = utils.get_collection_ids(local_config.source)
     last_modification = get_last_modification(collection_ids)
     for item in last_modification.keys():
         if last_modification[item] is None:
