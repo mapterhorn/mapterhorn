@@ -18,8 +18,10 @@ def create_local_store(path):
     folder_path = Path(path)
     folder_path.mkdir(parents=True, exist_ok=True)
 
-def rsync(src, dst):
+def rsync(src, dst, skip_tiffs=False):
     command = f'rsync -avh {src} {dst}'
+    if skip_tiffs:
+        command += ' --exclude "*.tiff"'
     run_command(command)
 
 def get_collection_ids(source):
