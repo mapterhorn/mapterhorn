@@ -45,14 +45,14 @@ if __name__ == '__main__':
     remote_source_store = f'{local_config.remote_source_store_path}/{local_config.source}/'
     local_source_store = f'source-store/{local_config.source}/'
 
-    utils.create_local_store(local_source_store)
+    utils.create_folder(local_source_store)
     utils.rsync(src=remote_source_store, dst=local_source_store)
 
     # prepare local cogify store
     remote_cogify_store = f'{local_config.remote_cogify_store_path}/3857/{local_config.source}/'
     local_cogify_store = f'cogify-store/3857/{local_config.source}/'
 
-    utils.create_local_store(local_cogify_store)
+    utils.create_folder(local_cogify_store)
     utils.rsync(src=remote_cogify_store, dst=local_cogify_store)
 
     create_new_covering()

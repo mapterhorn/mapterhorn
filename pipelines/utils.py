@@ -14,7 +14,7 @@ def run_command(command):
     print('stdout')
     print(stdout.decode())
 
-def create_local_store(path):
+def create_folder(path):
     folder_path = Path(path)
     folder_path.mkdir(parents=True, exist_ok=True)
 

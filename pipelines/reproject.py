@@ -14,7 +14,7 @@ if __name__ == '__main__':
     remote_cogify_store = f'{local_config.remote_cogify_store_path}/3857/{local_config.source}/'
     local_cogify_store = f'cogify-store/3857/{local_config.source}/'
 
-    utils.create_local_store(local_cogify_store)
+    utils.create_folder(local_cogify_store)
     utils.rsync(src=remote_cogify_store, dst=local_cogify_store)
 
     collection_ids = utils.get_collection_ids(local_config.source)

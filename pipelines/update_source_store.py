@@ -20,7 +20,7 @@ if __name__ == '__main__':
     remote = f'{local_config.remote_source_store_path}/{local_config.source}/'
     local = f'source-store/{local_config.source}/'
 
-    utils.create_local_store(local)
+    utils.create_folder(local)
 
     utils.rsync(src=remote, dst=local)
 

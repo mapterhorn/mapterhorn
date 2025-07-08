@@ -5,6 +5,7 @@ from glob import glob
 
 import mercantile
 from shapely import Polygon
+from ulid import ULID
 
 import utils
 import local_config
@@ -104,13 +105,49 @@ def from_tuple(t):
         'z': t[3],
     }
 
+def get_aggregation_item_string(aggregation_id, x, y, z):
+    filename = f'aggregation-store/{aggregation_id}/{z}/{x}/{y}.json'
+    if not os.path.isfile(filename):
+        return None
+    with open(filename) as f:
+        return f.read()
+
+def serialize_item_in_order(aggregation_id, x, y, z):
+    filename = f'aggregation-store/{aggregation_id}/{z}/{x}/{y}.json'
+    if not os.path.isfile(filename):
+        return None
+    entries = []
+    with open(filename) as f:
+        entries = json.load(f)
+    
+    result = []
+    for entry in entries:
+        lines = []
+        for item in entry['items']:
+            lines.append((entry['source'], item['collection_id'], item['x'], item['y'], item['z']))
+        result.extend([list(l) for l in sorted(lines)])
+    return json.dumps(result)
+
+def get_aggregation_ids():
+    '''
+    returns aggregation ids ordered from oldest to newest
+    '''
+    return list(sorted([path.split('/')[-1] for path in glob(f'aggregation-store/*')]))
+
 if __name__ == '__main__':
     # prepare local cogify store
     remote_cogify_store = f'{local_config.remote_cogify_store_path}/3857/'
     local_cogify_store = f'cogify-store/3857/'
 
-    utils.create_local_store(local_cogify_store)
+    utils.create_folder(local_cogify_store)
     utils.rsync(src=remote_cogify_store, dst=local_cogify_store, skip_tiffs=True)
+
+    # prepare local aggregation store
+    remote_aggregation_store = f'{local_config.remote_aggregation_store_path}/'
+    local_aggregation_store = f'aggregation-store/'
+
+    utils.create_folder(local_aggregation_store)
+    utils.rsync(src=remote_aggregation_store, dst=local_aggregation_store, skip_tiffs=True)
 
     sources = get_sources()
     covering_tiles_by_source = {}
@@ -137,6 +174,8 @@ if __name__ == '__main__':
                     else:
                         macrotile_to_covering_tiles[macrotile] = set([to_tuple(source, covering_tile['tile'])])
 
+    aggregation_id = str(ULID())
+
     for macrotile in macrotiles:
         macrotile_metadata = {}
         for t in macrotile_to_covering_tiles[macrotile]:
@@ -159,22 +198,30 @@ if __name__ == '__main__':
                     'source': source,
                     'items': macrotile_metadata[source]
                 })
-
-        with open(f'aggregation-store/{macrotile.z}-{macrotile.x}-{macrotile.y}.json', 'w') as f:
+        folder = f'aggregation-store/{aggregation_id}/{macrotile.z}/{macrotile.x}'
+        utils.create_folder(folder)
+        with open(f'{folder}/{macrotile.y}.json', 'w') as f:
             json.dump(macrotile_json, f, indent=2)
             
+    aggregation_ids = get_aggregation_ids()
+    if len(aggregation_ids) > 1:
+        new_aggregation_item_paths = glob(f'aggregation-store/{aggregation_id}/{local_config.macrotile_z}/**/*.json')
+        for path in new_aggregation_item_paths:
+            _, __, z, x, y = path.replace('.json', '').split('/')
+            current_aggregation_item_string = serialize_item_in_order(aggregation_id, x, y, z)
+            for previous_aggregation_id in reversed(aggregation_ids[:-1]):
+                previous_aggregation_item_string = serialize_item_in_order(previous_aggregation_id, x, y, z)
+                if previous_aggregation_item_string == current_aggregation_item_string:
+                    os.remove(path)
+                    break
+        
+        y_folders = glob(f'aggregation-store/{aggregation_id}/{local_config.macrotile_z}/*')
+        for y_folder in y_folders:
+            if glob(f'{y_folder}/*.json') == []:
+                os.rmdir(y_folder)
+        
+        if glob(f'aggregation-store/{aggregation_id}/{local_config.macrotile_z}/*') == []:
+            os.rmdir(f'aggregation-store/{aggregation_id}/{local_config.macrotile_z}')
+            os.rmdir(f'aggregation-store/{aggregation_id}')
 
-    # for covering_tile in covering_tiles:
-    #     print(covering_tile['polygon'].intersects(macrotile_poly), covering_tile['tile_id'], covering_tile['polygon'])
-
-    # def is_cogify_done(source, collection_id):
-    #     num_json_items = len(glob(f'cogify-store/3857/{source}/{collection_id}/*-*-*.json'))
-    #     num_tiffs = len(glob(f'cogify-store/3857/{source}/{collection_id}/*-*-*.tiff'))
-    #     return num_json_items == num_tiffs
-
-    # # sources = get_sources()
-    # # for source in sources:
-    # #     print(source)
-    # #     collection_ids = utils.get_collection_ids(source)
-    # #     for i in reversed(range(len(collection_ids))):
-    # #         print(i, is_cogify_done(source, collection_ids[i]))
+    utils.rsync(src=local_aggregation_store, dst=remote_aggregation_store, skip_tiffs=True)
