@@ -44,3 +44,18 @@ def get_collection_items(source, collection_id):
     paths = glob(f'cogify-store/3857/{source}/{collection_id}/*.json')
     filenames = [path.split('/')[-1] for path in paths]
     return [item for item in filenames if item not in ['collection.json', 'covering.json', 'source.json']]
+
+def get_aggregation_ids():
+    '''
+    returns aggregation ids ordered from oldest to newest
+    '''
+    return list(sorted([path.split('/')[-1] for path in glob(f'aggregation-store/*')]))
+
+def get_maxzoom(source, collection_id):
+    '''
+    maxzoom is for 512 pixel tiles such that resolution is roughly 40'000km / 2**maxzoom / 512
+    '''
+    with open(f'cogify-store/3857/{source}/{collection_id}/covering.geojson') as f:
+        covering = json.load(f)
+        # the levels in the json are probably for 256er tiles. we use 512er tiles, so 1 less.
+        return covering['features'][0]['properties']['linz_basemaps:options']['zoomLevel'] - 1

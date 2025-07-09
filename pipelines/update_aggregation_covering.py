@@ -59,20 +59,11 @@ def get_sources():
             continue
         with open(f'cogify-store/3857/{source}/{collection_ids[-1]}/covering.geojson') as f:
             covering = json.load(f)
-            zoom = get_maxzoom(source, collection_ids[-1])
+            zoom = utils.get_maxzoom(source, collection_ids[-1])
             zoom_and_source.append((-zoom, source))
     
     zoom_and_source = list(reversed(sorted(zoom_and_source)))
     return [s for _, s in zoom_and_source]
-
-def get_maxzoom(source, collection_id):
-    '''
-    maxzoom is for 512 pixel tiles such that resolution is roughly 40'000km / 2**maxzoom / 512
-    '''
-    with open(f'cogify-store/3857/{source}/{collection_id}/covering.geojson') as f:
-        covering = json.load(f)
-        # the levels in the json are probably for 256er tiles. we use 512er tiles, so 1 less.
-        return covering['features'][0]['properties']['linz_basemaps:options']['zoomLevel'] - 1
 
 def is_cogify_done_on_collection(source, collection_id):
     filenames = glob(f'cogify-store/3857/{source}/{collection_id}/*-*-*.json')
@@ -128,26 +119,20 @@ def serialize_item_in_order(aggregation_id, x, y, z):
         result.extend([list(l) for l in sorted(lines)])
     return json.dumps(result)
 
-def get_aggregation_ids():
-    '''
-    returns aggregation ids ordered from oldest to newest
-    '''
-    return list(sorted([path.split('/')[-1] for path in glob(f'aggregation-store/*')]))
-
 if __name__ == '__main__':
     # prepare local cogify store
     remote_cogify_store = f'{local_config.remote_cogify_store_path}/3857/'
     local_cogify_store = f'cogify-store/3857/'
 
     utils.create_folder(local_cogify_store)
-    utils.rsync(src=remote_cogify_store, dst=local_cogify_store, skip_tiffs=True)
+    # utils.rsync(src=remote_cogify_store, dst=local_cogify_store, skip_tiffs=True)
 
     # prepare local aggregation store
     remote_aggregation_store = f'{local_config.remote_aggregation_store_path}/'
     local_aggregation_store = f'aggregation-store/'
 
     utils.create_folder(local_aggregation_store)
-    utils.rsync(src=remote_aggregation_store, dst=local_aggregation_store, skip_tiffs=True)
+    # utils.rsync(src=remote_aggregation_store, dst=local_aggregation_store, skip_tiffs=True)
 
     sources = get_sources()
     covering_tiles_by_source = {}
@@ -203,7 +188,7 @@ if __name__ == '__main__':
         with open(f'{folder}/{macrotile.y}.json', 'w') as f:
             json.dump(macrotile_json, f, indent=2)
             
-    aggregation_ids = get_aggregation_ids()
+    aggregation_ids = utils.get_aggregation_ids()
     if len(aggregation_ids) > 1:
         new_aggregation_item_paths = glob(f'aggregation-store/{aggregation_id}/{local_config.macrotile_z}/**/*.json')
         for path in new_aggregation_item_paths:
@@ -224,4 +209,4 @@ if __name__ == '__main__':
             os.rmdir(f'aggregation-store/{aggregation_id}/{local_config.macrotile_z}')
             os.rmdir(f'aggregation-store/{aggregation_id}')
 
-    utils.rsync(src=local_aggregation_store, dst=remote_aggregation_store, skip_tiffs=True)
+    # utils.rsync(src=local_aggregation_store, dst=remote_aggregation_store, skip_tiffs=True)
