@@ -4,14 +4,13 @@ import json
 from glob import glob
 
 import mercantile
-from shapely import Polygon
 from ulid import ULID
 
 import utils
 import local_config
 
 def get_covering_tiles(source, collection_id):
-    result = [] # {polygon: shapely polygon in 3857, tile: mercantile Tile}
+    result = []
     data = {}
     with open(f'cogify-store/3857/{source}/{collection_id}/covering.geojson') as f:
         data = json.load(f)
@@ -22,18 +21,44 @@ def get_covering_tiles(source, collection_id):
     for tile_id in tile_ids:
         z, x, y = [int(a) for a in tile_id.split('-')]
         tile = mercantile.Tile(x=x, y=y, z=z)
-        feature = mercantile.feature(tile, projected='mercator')
-        polygon = Polygon(feature['geometry']['coordinates'][0])
+        bounds = mercantile.xy_bounds(tile)
         result.append({
             'tile': tile,
-            'polygon': polygon
+            'bounds': bounds,
+            'dirty': False
         })
 
     return result
 
+def mark_covering_tiles(covering_tiles_by_source):
+    sources = list(covering_tiles_by_source.keys())
+    for i in range(len(sources)):
+        source = sources[i]
+        for covering_tile in covering_tiles_by_source[source]:
+            tile = covering_tile['tile']
+            for other_source in sources[(i+1):]:
+                for other_covering_tile in covering_tiles_by_source[other_source]:
+                    other_tile = other_covering_tile['tile']
+                    a = None
+                    b = None
+                    if tile.z > other_tile.z:
+                        a = mercantile.parent(tile, zoom=other_tile.z)
+                        b = other_tile
+                    elif tile.z == other_tile.z:
+                        a = tile
+                        b = other_tile
+                    else:
+                        a = tile
+                        b = mercantile.parent(other_tile, zoom=tile.z)
+                    if a == b:
+                        covering_tile['dirty'] = True
+                        other_covering_tile['dirty'] = True
+
 def get_intersecting_macrotiles(covering_tiles):
     result = set({})
     for covering_tile in covering_tiles:
+        if not covering_tile['dirty']:
+            continue
         tile = covering_tile['tile']
         if tile.z < local_config.macrotile_z:
             result.update(mercantile.children(tile, zoom=local_config.macrotile_z))
@@ -53,8 +78,10 @@ def get_sources():
     '''
     zoom_and_source = []
     sources = os.listdir('cogify-store/3857/')
+    print('sources', sources)
     for source in sources:
         collection_ids = get_completed_collection_ids(source)
+        print('collection_ids', collection_ids)
         if len(collection_ids) == 0:
             continue
         with open(f'cogify-store/3857/{source}/{collection_ids[-1]}/covering.geojson') as f:
@@ -70,7 +97,7 @@ def is_cogify_done_on_collection(source, collection_id):
     for filename in filenames:
         with open(filename) as f:
             item = json.load(f)
-            if item['assets'] == {}:
+            if 'linz_basemaps:generated' not in item['properties']:
                 return False
     return True
 
@@ -119,6 +146,14 @@ def serialize_item_in_order(aggregation_id, x, y, z):
         result.extend([list(l) for l in sorted(lines)])
     return json.dumps(result)
 
+def intersects(left, bottom, right, top, bounds):
+    return not (
+        right <= bounds.left or
+        left >= bounds.right or
+        top <= bounds.bottom or
+        bottom >= bounds.top
+    )
+
 if __name__ == '__main__':
     # prepare local cogify store
     remote_cogify_store = f'{local_config.remote_cogify_store_path}/3857/'
@@ -137,23 +172,38 @@ if __name__ == '__main__':
     sources = get_sources()
     covering_tiles_by_source = {}
     collection_ids_by_source = {}
+
+    print('get covering tiles...')
     for source in sources:
         collection_ids = get_completed_collection_ids(source)
         collection_ids_by_source[source] = collection_ids
         covering_tiles_by_source[source] = get_covering_tiles(source, collection_ids[-1])
 
+    print('mark covering tiles...')
+    mark_covering_tiles(covering_tiles_by_source)
+
+    print('get macrotiles...')
     macrotiles = set({})
     for source in sources:
         macrotiles.update(get_intersecting_macrotiles(covering_tiles_by_source[source]))
     
+    print('len(macrotiles)', len(macrotiles))
     macrotile_to_covering_tiles = {}
+    j = 0
     for macrotile in macrotiles:
-        macrotile_feature = mercantile.feature(macrotile, projected='mercator', buffer=local_config.macrotile_buffer)
-        macrotile_poly = Polygon(macrotile_feature['geometry']['coordinates'][0])
-        
+        if j % 100 == 0:
+            print(f'loop 1 working on {j}/{len(macrotiles)}...')
+        j += 1
+
+        macrotile_bounds = mercantile.xy_bounds(macrotile)
+        left = macrotile_bounds.left - local_config.macrotile_buffer_m
+        bottom = macrotile_bounds.bottom - local_config.macrotile_buffer_m
+        right = macrotile_bounds.right + local_config.macrotile_buffer_m
+        top = macrotile_bounds.top + local_config.macrotile_buffer_m
+
         for source in sources:
             for covering_tile in covering_tiles_by_source[source]:
-                if macrotile_poly.intersects(covering_tile['polygon']):
+                if intersects(left, bottom, right, top, covering_tile['bounds']):
                     if macrotile in macrotile_to_covering_tiles:
                         macrotile_to_covering_tiles[macrotile].add(to_tuple(source, covering_tile['tile']))
                     else:
@@ -161,7 +211,12 @@ if __name__ == '__main__':
 
     aggregation_id = str(ULID())
 
+    j = 0
     for macrotile in macrotiles:
+        if j % 100 == 0:
+            print(f'loop 2 working on {j}/{len(macrotiles)}...')
+        j += 1
+
         macrotile_metadata = {}
         for t in macrotile_to_covering_tiles[macrotile]:
             d = from_tuple(t)
