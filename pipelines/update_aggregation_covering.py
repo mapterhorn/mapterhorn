@@ -25,7 +25,8 @@ def get_covering_tiles(source, collection_id):
         result.append({
             'tile': tile,
             'bounds': bounds,
-            'dirty': False
+            'dirty': False,
+            'collection_id': collection_id,
         })
 
     return result
@@ -39,20 +40,23 @@ def mark_covering_tiles(covering_tiles_by_source):
             for other_source in sources[(i+1):]:
                 for other_covering_tile in covering_tiles_by_source[other_source]:
                     other_tile = other_covering_tile['tile']
-                    a = None
-                    b = None
-                    if tile.z > other_tile.z:
-                        a = mercantile.parent(tile, zoom=other_tile.z)
-                        b = other_tile
-                    elif tile.z == other_tile.z:
-                        a = tile
-                        b = other_tile
-                    else:
-                        a = tile
-                        b = mercantile.parent(other_tile, zoom=tile.z)
-                    if a == b:
+                    if utils.are_tiles_overlapping(tile, other_tile):
                         covering_tile['dirty'] = True
                         other_covering_tile['dirty'] = True
+
+def get_clean_covering_tiles(covering_tiles_by_source):
+    clean_covering_tiles = []
+    for source in covering_tiles_by_source.keys():
+        for covering_tile in covering_tiles_by_source[source]:
+            if not covering_tile['dirty']:
+                clean_covering_tiles.append({
+                    'source': source,
+                    'collection_id': collection_id,
+                    'x': covering_tile['tile'].x,
+                    'y': covering_tile['tile'].y,
+                    'z': covering_tile['tile'].z,
+                })
+    return clean_covering_tiles
 
 def get_intersecting_macrotiles(covering_tiles):
     result = set({})
@@ -78,10 +82,8 @@ def get_sources():
     '''
     zoom_and_source = []
     sources = os.listdir('cogify-store/3857/')
-    print('sources', sources)
     for source in sources:
         collection_ids = get_completed_collection_ids(source)
-        print('collection_ids', collection_ids)
         if len(collection_ids) == 0:
             continue
         with open(f'cogify-store/3857/{source}/{collection_ids[-1]}/covering.geojson') as f:
@@ -146,6 +148,20 @@ def serialize_item_in_order(aggregation_id, x, y, z):
         result.extend([list(l) for l in sorted(lines)])
     return json.dumps(result)
 
+def serialize_clean_covering_tiles_in_order(aggregation_id):
+    tuples = []
+    with open(f'aggregation-store/{aggregation_id}/clean_covering_tiles.json') as f:
+        clean_covering_tiles = json.load(f)
+        for tile in clean_covering_tiles:
+            tuples.append((
+                tile['source'],
+                tile['collection_id'],
+                tile['x'],
+                tile['y'],
+                tile['z']
+            ))
+    return json.dumps([list(t) for t in sorted(tuples)])
+
 def intersects(left, bottom, right, top, bounds):
     return not (
         right <= bounds.left or
@@ -160,7 +176,7 @@ if __name__ == '__main__':
     local_cogify_store = f'cogify-store/3857/'
 
     utils.create_folder(local_cogify_store)
-    # utils.rsync(src=remote_cogify_store, dst=local_cogify_store, skip_tiffs=True)
+    utils.rsync(src=remote_cogify_store, dst=local_cogify_store, skip_tiffs=True)
 
     # prepare local aggregation store
     remote_aggregation_store = f'{local_config.remote_aggregation_store_path}/'
@@ -242,7 +258,11 @@ if __name__ == '__main__':
         utils.create_folder(folder)
         with open(f'{folder}/{macrotile.y}.json', 'w') as f:
             json.dump(macrotile_json, f, indent=2)
-            
+    
+    clean_covering_tiles = get_clean_covering_tiles(covering_tiles_by_source)
+    with open(f'aggregation-store/{aggregation_id}/clean_covering_tiles.json', 'w') as f:
+        json.dump(clean_covering_tiles, f, indent=2)
+
     aggregation_ids = utils.get_aggregation_ids()
     if len(aggregation_ids) > 1:
         new_aggregation_item_paths = glob(f'aggregation-store/{aggregation_id}/{local_config.macrotile_z}/**/*.json')
@@ -262,6 +282,12 @@ if __name__ == '__main__':
         
         if glob(f'aggregation-store/{aggregation_id}/{local_config.macrotile_z}/*') == []:
             os.rmdir(f'aggregation-store/{aggregation_id}/{local_config.macrotile_z}')
+        
+        previous_aggregation_id = aggregation_ids[-2]
+        if serialize_clean_covering_tiles_in_order(aggregation_id) == serialize_clean_covering_tiles_in_order(previous_aggregation_id):
+            os.remove(f'aggregation-store/{aggregation_id}/clean_covering_tiles.json')
+
+        if glob(f'aggregation-store/{aggregation_id}/*') == []:
             os.rmdir(f'aggregation-store/{aggregation_id}')
 
     # utils.rsync(src=local_aggregation_store, dst=remote_aggregation_store, skip_tiffs=True)

@@ -3,11 +3,16 @@ from pathlib import Path
 from glob import glob
 import json
 from datetime import datetime
+import time
+
+import mercantile
 
 def run_command(command):
     print(command)
+    tic = time.time()
     p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = p.communicate()
+    print(f'duration {time.time() - tic} s')
     
     print('stderr')
     print(stderr.decode())
@@ -59,3 +64,17 @@ def get_maxzoom(source, collection_id):
         covering = json.load(f)
         # the levels in the json are probably for 256er tiles. we use 512er tiles, so 1 less.
         return covering['features'][0]['properties']['linz_basemaps:options']['zoomLevel'] - 1
+
+def are_tiles_overlapping(tile, other_tile):
+    a = None
+    b = None
+    if tile.z > other_tile.z:
+        a = mercantile.parent(tile, zoom=other_tile.z)
+        b = other_tile
+    elif tile.z == other_tile.z:
+        a = tile
+        b = other_tile
+    else:
+        a = tile
+        b = mercantile.parent(other_tile, zoom=tile.z)
+    return a == b
