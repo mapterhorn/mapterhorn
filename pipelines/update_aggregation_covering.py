@@ -9,61 +9,91 @@ from ulid import ULID
 import utils
 import local_config
 
-def get_covering_tiles(source, collection_id):
+# todo: this function only looks at z-x-y.json files inside the collection_id folder, but some might be in older folders
+# needs to be fixed
+def get_cogify_items(source, collection_id):
     result = []
-    data = {}
-    with open(f'cogify-store/3857/{source}/{collection_id}/covering.geojson') as f:
-        data = json.load(f)
-    
-    # feature['id'] example is '01JZ7Q7RCBK65E68ED6MVBSK65/8-132-92'
-    tile_ids = [feature['id'].split('/')[-1] for feature in data['features']]
-    
-    for tile_id in tile_ids:
-        z, x, y = [int(a) for a in tile_id.split('-')]
+    filenames = glob(f'cogify-store/3857/{source}/{collection_id}/*-*-*.json')
+    filenames.sort()
+
+    for filename in filenames:
+        data = None
+        with open(filename) as f:
+            data = json.load(f)
+        x = data['properties']['linz_basemaps:options']['tile']['x']
+        y = data['properties']['linz_basemaps:options']['tile']['y']
+        z = data['properties']['linz_basemaps:options']['tile']['z']
         tile = mercantile.Tile(x=x, y=y, z=z)
         bounds = mercantile.xy_bounds(tile)
+        contains_nodata_pixels = True
+        if 'mapterhorn:contains_nodata_pixels' in data['properties']:
+            contains_nodata_pixels = data['properties']['mapterhorn:contains_nodata_pixels']
         result.append({
             'tile': tile,
             'bounds': bounds,
-            'dirty': False,
+            'has_overlap': False,
+            'source': source,
             'collection_id': collection_id,
+            'contains_nodata_pixels': contains_nodata_pixels,
+            'hash': f'{source}/{collection_id}/{z}/{x}/{y}',
         })
-
     return result
 
-def mark_covering_tiles(covering_tiles_by_source):
-    sources = list(covering_tiles_by_source.keys())
+def mark_cogify_items_for_overlap(cogify_items_by_source):
+    sources = list(cogify_items_by_source.keys())
     for i in range(len(sources)):
         source = sources[i]
-        for covering_tile in covering_tiles_by_source[source]:
-            tile = covering_tile['tile']
+        for cogify_item in cogify_items_by_source[source]:
+            tile = cogify_item['tile']
             for other_source in sources[(i+1):]:
-                for other_covering_tile in covering_tiles_by_source[other_source]:
-                    other_tile = other_covering_tile['tile']
+                for other_cogify_item in cogify_items_by_source[other_source]:
+                    other_tile = other_cogify_item['tile']
                     if utils.are_tiles_overlapping(tile, other_tile):
-                        covering_tile['dirty'] = True
-                        other_covering_tile['dirty'] = True
+                        cogify_item['has_overlap'] = True
+                        other_cogify_item['has_overlap'] = True
 
-def get_clean_covering_tiles(covering_tiles_by_source):
-    clean_covering_tiles = []
-    for source in covering_tiles_by_source.keys():
-        for covering_tile in covering_tiles_by_source[source]:
-            if not covering_tile['dirty']:
-                clean_covering_tiles.append({
+def write_overlap_free_items(aggregation_id, cogify_items_by_source):
+    source = cogify_items_by_source.items()
+    for source in sources:
+        for cogify_item in cogify_items_by_source[source]:
+            if not cogify_item['has_overlap']:
+                aggregation_item = [{
+                    'source': source,
+                    'items': [{
+                        'collection_id': cogify_item['collection_id'],
+                        'x': cogify_item['tile'].x,
+                        'y': cogify_item['tile'].y,
+                        'z': cogify_item['tile'].z,
+                        'contains_nodata_pixels': cogify_item['contains_nodata_pixels']
+                    }]
+                }]
+                filename = f'aggregation-store/{aggregation_id}/{cogify_item["tile"].z}-{cogify_item["tile"].x}-{cogify_item["tile"].y}.json'
+                with open(filename, 'w') as f:
+                    json.dump(aggregation_item, f, indent=2)
+
+def get_clean_cogify_items(cogify_items_by_source):
+    clean_cogify_items = []
+    for source in cogify_items_by_source.keys():
+        for cogify_item in cogify_items_by_source[source]:
+            if not cogify_item['has_overlap']:
+                clean_cogify_items.append({
                     'source': source,
                     'collection_id': collection_id,
-                    'x': covering_tile['tile'].x,
-                    'y': covering_tile['tile'].y,
-                    'z': covering_tile['tile'].z,
+                    'x': cogify_item['tile'].x,
+                    'y': cogify_item['tile'].y,
+                    'z': cogify_item['tile'].z,
                 })
-    return clean_covering_tiles
+    return clean_cogify_items
 
-def get_intersecting_macrotiles(covering_tiles):
+def get_intersecting_macrotiles(cogify_items):
+    '''
+    returns a list of unique mercantile.Tile s of the macrotiles that intersect the cogify items
+    '''
     result = set({})
-    for covering_tile in covering_tiles:
-        if not covering_tile['dirty']:
+    for cogify_item in cogify_items:
+        if not cogify_item['has_overlap']:
             continue
-        tile = covering_tile['tile']
+        tile = cogify_item['tile']
         if tile.z < local_config.macrotile_z:
             result.update(mercantile.children(tile, zoom=local_config.macrotile_z))
         elif tile.z == local_config.macrotile_z:
@@ -148,11 +178,11 @@ def serialize_item_in_order(aggregation_id, x, y, z):
         result.extend([list(l) for l in sorted(lines)])
     return json.dumps(result)
 
-def serialize_clean_covering_tiles_in_order(aggregation_id):
+def serialize_clean_cogify_items_in_order(aggregation_id):
     tuples = []
-    with open(f'aggregation-store/{aggregation_id}/clean_covering_tiles.json') as f:
-        clean_covering_tiles = json.load(f)
-        for tile in clean_covering_tiles:
+    with open(f'aggregation-store/{aggregation_id}/clean_cogify_items.json') as f:
+        clean_cogify_items = json.load(f)
+        for tile in clean_cogify_items:
             tuples.append((
                 tile['source'],
                 tile['collection_id'],
@@ -170,7 +200,60 @@ def intersects(left, bottom, right, top, bounds):
         bottom >= bounds.top
     )
 
+def group_cogify_items_by_source(cogify_items):
+    result = {}
+    for cogify_item in cogify_items:
+        if cogify_item['source'] not in result:
+            result[cogify_item['source']] = []
+        result[cogify_item['source']].append(cogify_item)
+    return result
+
+def a_multi_neighbor_is_missing(macrotile, cogify_items_by_macrotile):
+    neighbors = mercantile.neighbors(macrotile)
+    for neighbor in neighbors:
+        if neighbor not in cogify_items_by_macrotile:
+            return True
+        if len(cogify_items_by_macrotile[neighbor]) < 2:
+            return True
+    return False
+
+def get_most_important_source(cogify_items, sources):
+    present_sources = []
+    for cogify_item in cogify_items:
+        present_sources.append(cogify_item['source'])
+    for source in reversed(sources):
+        if source in present_sources:
+            return source
+
+def all_neighbors_share_most_important_source(macrotile, cogify_items_by_macrotile, sources):
+    most_important_source = get_most_important_source(cogify_items_by_macrotile[macrotile], sources)
+    neighbors = mercantile.neighbors(macrotile)
+    for neighbor in neighbors:
+        other_most_important_source = get_most_important_source(cogify_items_by_macrotile[neighbor], sources)
+        if most_important_source != other_most_important_source:
+            return False
+    return True
+
+def is_neighborhood_filled(macrotile, cogify_items_by_macrotile, sources):
+    most_important_source = get_most_important_source(cogify_items_by_macrotile[macrotile], sources)
+    neighbors = mercantile.neighbors(macrotile)
+    neighbors.append(macrotile) # also check for self
+    for neighbor in neighbors:
+        neighbor_cogify_items = cogify_items_by_macrotile[neighbor]
+        neighbor_cogify_items_by_source = group_cogify_items_by_source(neighbor_cogify_items)
+        if len(neighbor_cogify_items_by_source[most_important_source]) != 1:
+            return False
+        cogify_item = neighbor_cogify_items_by_source[most_important_source][0]
+        if cogify_item['contains_nodata_pixels']:
+            return False
+        if cogify_item['tile'].z < macrotile.z:
+            return False
+    return True
+
 if __name__ == '__main__':
+    aggregation_id = str(ULID())
+    utils.create_folder(f'aggregation-store/{aggregation_id}')
+
     # prepare local cogify store
     remote_cogify_store = f'{local_config.remote_cogify_store_path}/3857/'
     local_cogify_store = f'cogify-store/3857/'
@@ -186,108 +269,148 @@ if __name__ == '__main__':
     # utils.rsync(src=remote_aggregation_store, dst=local_aggregation_store, skip_tiffs=True)
 
     sources = get_sources()
-    covering_tiles_by_source = {}
+    cogify_items_by_source = {}
     collection_ids_by_source = {}
 
-    print('get covering tiles...')
+    print('get cogify items...')
     for source in sources:
         collection_ids = get_completed_collection_ids(source)
         collection_ids_by_source[source] = collection_ids
-        covering_tiles_by_source[source] = get_covering_tiles(source, collection_ids[-1])
+        cogify_items_by_source[source] = get_cogify_items(source, collection_ids[-1])
 
-    print('mark covering tiles...')
-    mark_covering_tiles(covering_tiles_by_source)
+    print('mark cogify items for overlap with other cogify items...')
+    mark_cogify_items_for_overlap(cogify_items_by_source)
 
-    print('get macrotiles...')
-    macrotiles = set({})
+    print('write aggregation items for cogify items without overlap...')
+    write_overlap_free_items(aggregation_id, cogify_items_by_source)
+
+    print('get cogify items by macrotile...')
+    cogify_items_by_macrotile = {}
     for source in sources:
-        macrotiles.update(get_intersecting_macrotiles(covering_tiles_by_source[source]))
+        for cogify_item in cogify_items_by_source[source]:
+            if not cogify_item['has_overlap']:
+                continue
+            macrotiles = []
+            if cogify_item['tile'].z < local_config.macrotile_z:
+                macrotiles = mercantile.children(cogify_item['tile'], zoom=local_config.macrotile_z)
+            elif cogify_item['tile'].z == local_config.macrotile_z:
+                macrotiles = [cogify_item['tile']]
+            else:
+                macrotiles = [mercantile.parent(cogify_item['tile'], zoom=local_config.macrotile_z)]
+            for macrotile in macrotiles:
+                if macrotile not in cogify_items_by_macrotile:
+                    cogify_items_by_macrotile[macrotile] = []
+                if cogify_item['hash'] not in [other['hash'] for other in cogify_items_by_macrotile[macrotile]]:
+                    cogify_items_by_macrotile[macrotile].append(cogify_item)
+
+    print('find macrotiles that have only one cogify item...')      
+    singles = []
+    for macrotile, cogify_items in cogify_items_by_macrotile.items():
+        if len(cogify_items) == 1:
+            singles.append(macrotile)
     
-    print('len(macrotiles)', len(macrotiles))
-    macrotile_to_covering_tiles = {}
-    j = 0
-    for macrotile in macrotiles:
-        if j % 100 == 0:
-            print(f'loop 1 working on {j}/{len(macrotiles)}...')
-        j += 1
+    print('group singles by cogify item...')
+    singles_by_cogify_item_hash = {}
+    for macrotile in singles:
+        cogify_item = cogify_items_by_macrotile[macrotile][0]
+        if cogify_item['hash'] not in singles_by_cogify_item_hash:
+            singles_by_cogify_item_hash[cogify_item['hash']] = []
+        singles_by_cogify_item_hash[cogify_item['hash']].append(macrotile)
 
-        macrotile_bounds = mercantile.xy_bounds(macrotile)
-        left = macrotile_bounds.left - local_config.macrotile_buffer_m
-        bottom = macrotile_bounds.bottom - local_config.macrotile_buffer_m
-        right = macrotile_bounds.right + local_config.macrotile_buffer_m
-        top = macrotile_bounds.top + local_config.macrotile_buffer_m
+    singles_grouped = []
+    for _, macrotile_group in singles_by_cogify_item_hash.items():
+        singles_grouped.append(macrotile_group)
+    
+    print('simplify singles and write...')
+    for group in singles_grouped:
+        first_macrotile = group[0]
+        first_cogify_item = cogify_items_by_macrotile[first_macrotile][0]
+        for tile in mercantile.simplify(group):
+            aggregation_item = [
+                {
+                    'source': first_cogify_item['source'],
+                    'items': [{
+                        'collection_id': first_cogify_item['collection_id'],
+                        'x': first_cogify_item['tile'].x,
+                        'y': first_cogify_item['tile'].y,
+                        'z': first_cogify_item['tile'].z,
+                        'contains_nodata_pixels': first_cogify_item['contains_nodata_pixels']
+                    }]
+                }
+            ]
+            filename = f'aggregation-store/{aggregation_id}/{tile.z}-{tile.x}-{tile.y}.json'
+            with open(filename, 'w') as f:
+                json.dump(aggregation_item, f, indent=2)
 
+    finished_macrotiles = list(singles)
+
+    print('find completely filled multis that are fully inside and write them...')
+    for macrotile, cogify_items in cogify_items_by_macrotile.items():
+        if len(cogify_items) < 2:
+            continue
+        if a_multi_neighbor_is_missing(macrotile, cogify_items_by_macrotile):
+            continue
+        if not all_neighbors_share_most_important_source(macrotile, cogify_items_by_macrotile, sources):
+            continue
+        if not is_neighborhood_filled(macrotile, cogify_items_by_macrotile, sources):
+            continue
+
+        cogify_items = cogify_items_by_macrotile[macrotile]
+        cogify_items_by_source = group_cogify_items_by_source(cogify_items)
+        most_important_source = get_most_important_source(cogify_items, sources)
+        assert(len(cogify_items_by_source[most_important_source]) == 1)
+        cogify_item = cogify_items_by_source[most_important_source][0]
+        aggregation_item = [{
+            'source': most_important_source,
+            'items': [{
+                'collection_id': cogify_item['collection_id'],
+                'x': cogify_item['tile'].x,
+                'y': cogify_item['tile'].y,
+                'z': cogify_item['tile'].z,
+                'contains_nodata_pixels': cogify_item['contains_nodata_pixels']
+            }]
+        }]
+        with open(f'aggregation-store/{aggregation_id}/{macrotile.z}-{macrotile.x}-{macrotile.y}.json', 'w') as f:
+            json.dump(aggregation_item, f, indent=2)
+        finished_macrotiles.append(macrotile)
+
+    print('write edge macrotiles...')
+    for macrotile, cogify_items in cogify_items_by_macrotile.items():
+        if macrotile in finished_macrotiles:
+            continue
+        
+        all_cogify_items = list(cogify_items)
+        neighbors = mercantile.neighbors(macrotile)
+        for neighbor in neighbors:
+            if neighbor in cogify_items_by_macrotile:
+                all_cogify_items += cogify_items_by_macrotile[neighbor]
+        
+        unique_cogify_items = []
+        hashes = []
+        for cogify_item in all_cogify_items:
+            if cogify_item['hash'] not in hashes:
+                unique_cogify_items.append(cogify_item)
+                hashes.append(cogify_item['hash'])
+        
+        cogify_items_by_source = group_cogify_items_by_source(unique_cogify_items)
+        aggregation_item = []
         for source in sources:
-            for covering_tile in covering_tiles_by_source[source]:
-                if intersects(left, bottom, right, top, covering_tile['bounds']):
-                    if macrotile in macrotile_to_covering_tiles:
-                        macrotile_to_covering_tiles[macrotile].add(to_tuple(source, covering_tile['tile']))
-                    else:
-                        macrotile_to_covering_tiles[macrotile] = set([to_tuple(source, covering_tile['tile'])])
-
-    aggregation_id = str(ULID())
-
-    j = 0
-    for macrotile in macrotiles:
-        if j % 100 == 0:
-            print(f'loop 2 working on {j}/{len(macrotiles)}...')
-        j += 1
-
-        macrotile_metadata = {}
-        for t in macrotile_to_covering_tiles[macrotile]:
-            d = from_tuple(t)
-            for collection_id in reversed(collection_ids_by_source[d['source']]):
-                if is_cogify_item_present(d['source'], collection_id, d['x'], d['y'], d['z']):
-                    if d['source'] not in macrotile_metadata:
-                        macrotile_metadata[d['source']] = []
-                    macrotile_metadata[d['source']].append({
-                        'collection_id': collection_id,
-                        'x': d['x'],
-                        'y': d['y'],
-                        'z': d['z'],
+            if source in cogify_items_by_source:
+                items = []
+                for cogify_item in cogify_items_by_source[source]:
+                    items.append({
+                        'collection_id': cogify_item['collection_id'],
+                        'x': cogify_item['tile'].x,
+                        'y': cogify_item['tile'].y,
+                        'z': cogify_item['tile'].z,
+                        'contains_nodata_pixels': cogify_item['contains_nodata_pixels'],
                     })
-                    break
-        macrotile_json = []
-        for source in sources:
-            if source in macrotile_metadata:
-                macrotile_json.append({
+                aggregation_item.append({
                     'source': source,
-                    'items': macrotile_metadata[source]
+                    'items': items,
                 })
-        folder = f'aggregation-store/{aggregation_id}/{macrotile.z}/{macrotile.x}'
-        utils.create_folder(folder)
-        with open(f'{folder}/{macrotile.y}.json', 'w') as f:
-            json.dump(macrotile_json, f, indent=2)
-    
-    clean_covering_tiles = get_clean_covering_tiles(covering_tiles_by_source)
-    with open(f'aggregation-store/{aggregation_id}/clean_covering_tiles.json', 'w') as f:
-        json.dump(clean_covering_tiles, f, indent=2)
-
-    aggregation_ids = utils.get_aggregation_ids()
-    if len(aggregation_ids) > 1:
-        new_aggregation_item_paths = glob(f'aggregation-store/{aggregation_id}/{local_config.macrotile_z}/**/*.json')
-        for path in new_aggregation_item_paths:
-            _, __, z, x, y = path.replace('.json', '').split('/')
-            current_aggregation_item_string = serialize_item_in_order(aggregation_id, x, y, z)
-            for previous_aggregation_id in reversed(aggregation_ids[:-1]):
-                previous_aggregation_item_string = serialize_item_in_order(previous_aggregation_id, x, y, z)
-                if previous_aggregation_item_string == current_aggregation_item_string:
-                    os.remove(path)
-                    break
-        
-        y_folders = glob(f'aggregation-store/{aggregation_id}/{local_config.macrotile_z}/*')
-        for y_folder in y_folders:
-            if glob(f'{y_folder}/*.json') == []:
-                os.rmdir(y_folder)
-        
-        if glob(f'aggregation-store/{aggregation_id}/{local_config.macrotile_z}/*') == []:
-            os.rmdir(f'aggregation-store/{aggregation_id}/{local_config.macrotile_z}')
-        
-        previous_aggregation_id = aggregation_ids[-2]
-        if serialize_clean_covering_tiles_in_order(aggregation_id) == serialize_clean_covering_tiles_in_order(previous_aggregation_id):
-            os.remove(f'aggregation-store/{aggregation_id}/clean_covering_tiles.json')
-
-        if glob(f'aggregation-store/{aggregation_id}/*') == []:
-            os.rmdir(f'aggregation-store/{aggregation_id}')
+        with open(f'aggregation-store/{aggregation_id}/{macrotile.z}-{macrotile.x}-{macrotile.y}.json', 'w') as f:
+            json.dump(aggregation_item, f, indent=2)
+        finished_macrotiles.append(macrotile)
 
     # utils.rsync(src=local_aggregation_store, dst=remote_aggregation_store, skip_tiffs=True)
