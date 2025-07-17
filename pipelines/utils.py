@@ -4,6 +4,7 @@ from glob import glob
 import json
 from datetime import datetime
 import time
+import shutil
 
 import mercantile
 
