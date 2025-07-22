@@ -189,10 +189,11 @@ for aggregation_item_path in aggregation_item_paths:
     with open(aggregation_item_path) as f:
         aggregation_item = json.load(f)
 
-    if can_copy_directly(aggregation_tile, aggregation_item):
+    if can_copy_directly(aggregation_tile, aggregation_item) and z == 12:
         print(f'can copy aggregation tile {aggregation_tile} directly...')
-        # copy_directly(aggregation_tile, aggregation_item, aggregation_id)
+        copy_directly(aggregation_tile, aggregation_item, aggregation_id)
         continue
+    continue
 
     zoom = get_maxzoom_from_aggregation_item(aggregation_item)
     da_merged = None
