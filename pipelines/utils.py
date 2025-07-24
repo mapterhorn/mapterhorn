@@ -10,24 +10,25 @@ import mercantile
 
 def run_command(command):
     print(command)
-    tic = time.time()
     p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = p.communicate()
-    print(f'duration {time.time() - tic} s')
-    
-    print('stderr')
-    print(stderr.decode())
-    print('stdout')
-    print(stdout.decode())
+    err = stderr.decode()
+    if err != '':
+        print(err)
+    out = stdout.decode()
+    if out != '':
+        print(out)
 
 def create_folder(path):
     folder_path = Path(path)
     folder_path.mkdir(parents=True, exist_ok=True)
 
-def rsync(src, dst, skip_tiffs=False):
+def rsync(src, dst, skip_data_files=False):
     command = f'rsync -avh {src} {dst}'
-    if skip_tiffs:
+    if skip_data_files:
         command += ' --exclude "*.tiff"'
+        command += ' --exclude "*.tif"'
+        command += ' --exclude "*.pmtiles"'
     run_command(command)
 
 def get_collection_ids(source):

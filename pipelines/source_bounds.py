@@ -13,7 +13,7 @@ if __name__ == '__main__':
 
     utils.create_folder(local)
 
-    utils.rsync(src=remote, dst=local)
+    # utils.rsync(src=remote, dst=local)
 
     filepaths = sorted(glob(f'source-store/{local_config.source}/*'))
 
@@ -32,4 +32,4 @@ if __name__ == '__main__':
     with open(f'source-store/{local_config.source}/bounds.csv', 'w') as f:
         f.writelines(bounds_file_lines)
 
-    utils.rsync(src=local, dst=remote)
+    # utils.rsync(src=local, dst=remote)
