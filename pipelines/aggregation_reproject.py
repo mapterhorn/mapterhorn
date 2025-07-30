@@ -1,15 +1,10 @@
 from glob import glob
-import math
 from multiprocessing import Pool
-import shutil
-import os
-import time
 import json
+import os
 
 import rasterio
-import numpy as np
 import mercantile
-from scipy import ndimage
 
 import local_config
 import utils
@@ -45,6 +40,7 @@ def get_grouped_source_items(filepath):
         if current_group_signature != last_group_signature:
             grouped_source_items.append(current_group)
             current_group = []
+            last_group_signature = current_group_signature
         current_group.append({
             'maxzoom': -line_tuple[0],
             'source': line_tuple[1],
@@ -113,89 +109,15 @@ def contains_nodata_pixels(filepath):
                         return True
     return False
 
-
-# def reproject(tmp_folder, aggregation_tile, grouped_source_items):
-#     maxzoom = grouped_source_items[0][0]['maxzoom']
-#     resolution = get_resolution(maxzoom)
-#     buffer_pixels = int(local_config.macrotile_buffer_3857 / resolution)
-#     buffer_3857_rounded = buffer_pixels * resolution
-
-#     for source_items in grouped_source_items:
-#         create_virtual_raster(tmp_folder, source_items)
-#         source = source_items[0]['source']
-#         crs = source_items[0]['crs']
-#         zoom = maxzoom
-#         create_warp(tmp_folder, source, crs, zoom, aggregation_tile, buffer_3857_rounded)
-#         in_filepath = f'{tmp_folder}/{source}-3857.vrt'
-#         out_filepath = f'{tmp_folder}/{source}-3857.tiff'
-#         translate(in_filepath, out_filepath)
-
-#         if len(grouped_source_items) > 1 and not contains_nodata_pixels(out_filepath):
-#             break
-        
-        # current = None
-        # with rasterio.env.Env(GDAL_CACHEMAX=256):
-        #     with rasterio.open(out_filepath) as src: 
-        #         current = src.read(1)
-
-        # if merged is None:
-        #     merged = current
-        #     continue
-        
-        # t1 = time.time()
-        # binary_mask = (merged != -9999).astype('int32')
-        # print(f'binary_mask done in {time.time() - t1} s...')
-
-        # max_pixel_distance = int(0.5 * buffer_3857_rounded / resolution)
-        # print('max_pixel_distance', max_pixel_distance)
-
-        # t1 = time.time()
-        # reduced = ndimage.binary_erosion(binary_mask, iterations=max_pixel_distance)
-        # print(f'binary erosion done in {time.time() - t1} s...')
-
-        # t1 = time.time()
-        # alpha_mask = ndimage.uniform_filter(reduced.astype('float32'), int(1.25 * max_pixel_distance), mode='nearest')
-        # alpha_mask = 3 * alpha_mask ** 2 - 2 * alpha_mask ** 3 # smoothstep with zero derivative at 0 and 1
-        # alpha_mask = np.where((1 - binary_mask), 0.0, alpha_mask)
-        # print(f'alpha_mask done in {time.time() - t1} s...')
-
-        # t1 = time.time()
-        # merged = current * (1 - alpha_mask) + merged * alpha_mask
-        # print(f'merging done in {time.time() - t1} s...')
-
-    # print(f'reading {out_filepath}...')
-    # merged = None
-    # with rasterio.env.Env(GDAL_CACHEMAX=256):
-    #     with rasterio.open(out_filepath) as src: 
-    #         window = rasterio.windows.Window(
-    #             col_off=buffer_pixels,
-    #             row_off=buffer_pixels,
-    #             width=src.width - 2 * buffer_pixels,
-    #             height=src.height - 2 * buffer_pixels
-    #         )
-    #         merged = src.read(1, window=window)
-
-    #         print(f'writing merged.tiff...')
-    #         with rasterio.open(
-    #             f'{tmp_folder}/merged.tiff',
-    #             'w',
-    #             driver='GTiff',
-    #             height=merged.shape[0],
-    #             width=merged.shape[1],
-    #             count=1,
-    #             dtype='float32',
-    #         ) as dst:
-    #             dst.write(merged, 1)
-
-
 def reproject(filepath, aggregation_id):
+    print(f'reprojecting {filepath}...')
     filename = filepath.split('/')[-1]
 
-    z, x, y = [int(a) for a in filename.replace('.csv', '').split('-')]
+    z, x, y, child_z = [int(a) for a in filename.replace('-aggregation.csv', '').split('-')]
     
     aggregation_tile = mercantile.Tile(x=x, y=y, z=z)
 
-    tmp_folder = f'aggregation-store/{aggregation_id}/{aggregation_tile.z}-{aggregation_tile.x}-{aggregation_tile.y}-tmp'
+    tmp_folder = f'aggregation-store/{aggregation_id}/{aggregation_tile.z}-{aggregation_tile.x}-{aggregation_tile.y}-{child_z}-tmp'
     utils.create_folder(tmp_folder)
 
     metadata_filepath = f'{tmp_folder}/reprojection.json'
@@ -232,7 +154,7 @@ def reproject(filepath, aggregation_id):
     with open(metadata_filepath, 'w') as f:
         json.dump(metadata, f, indent=2)
 
-def main():
+def main(filepaths):
     remote_source_store = f'{local_config.remote_source_store_path}/'
     local_source_store = f'source-store/'
     utils.create_folder(local_source_store)
@@ -246,21 +168,24 @@ def main():
     aggregation_ids = utils.get_aggregation_ids()
     aggregation_id = aggregation_ids[-1]
 
-    filepaths = sorted(glob(f'aggregation-store/{aggregation_id}/*.csv'))
 
     argument_tuples = []
     for filepath in filepaths:
-        grouped_source_items = get_grouped_source_items(filepath)
-        for source_items in grouped_source_items:
-            for source_item in source_items:
-                fetch_source_image(source_item['source'], source_item['filename'])
+        # grouped_source_items = get_grouped_source_items(filepath)
+        # for source_items in grouped_source_items:
+        #     for source_item in source_items:
+        #         fetch_source_image(source_item['source'], source_item['filename'])
 
         argument_tuples.append((filepath, aggregation_id))
     
-    with Pool() as pool:
-        pool.starmap(reproject, argument_tuples)
+    # with Pool() as pool:
+    #     pool.starmap(reproject, argument_tuples)
 
-    # for argument_tuple in argument_tuples:
-    #     reproject(*argument_tuple)
-        
-main()
+    for argument_tuple in argument_tuples:
+        reproject(*argument_tuple)
+
+
+# filepaths = sorted(glob(f'aggregation-store/{aggregation_id}/*.csv'))
+# if local_config.from_filepath is not None and local_config.to_filepath is not None:
+#     filepaths = filepaths[local_config.from_filepath:local_config.to_filepath]
+# main(filepaths)

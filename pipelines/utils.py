@@ -8,15 +8,16 @@ import shutil
 
 import mercantile
 
-def run_command(command):
-    print(command)
+def run_command(command, silent=True):
+    if not silent:
+        print(command)
     p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = p.communicate()
     err = stderr.decode()
-    if err != '':
+    if err != '' and not silent:
         print(err)
     out = stdout.decode()
-    if out != '':
+    if out != '' and not silent:
         print(out)
 
 def create_folder(path):
