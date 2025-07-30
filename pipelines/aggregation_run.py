@@ -11,7 +11,7 @@ import utils
 aggregation_ids = utils.get_aggregation_ids()
 aggregation_id = aggregation_ids[-1]
 
-filepaths = sorted(glob(f'aggregation-store/{aggregation_id}/11-1069-715-17-aggregation.csv'))
+filepaths = sorted(glob(f'aggregation-store/{aggregation_id}/*-aggregation.csv'))
 
 batch_size = 128
 starts = range(0, len(filepaths), batch_size)

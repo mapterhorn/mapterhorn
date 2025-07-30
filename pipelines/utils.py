@@ -3,10 +3,14 @@ from pathlib import Path
 from glob import glob
 import json
 from datetime import datetime
-import time
-import shutil
+import math
+
+import numpy as np
 
 import mercantile
+import imagecodecs
+from pmtiles.tile import zxy_to_tileid, TileType, Compression
+from pmtiles.writer import Writer
 
 def run_command(command, silent=True):
     if not silent:
@@ -81,3 +85,61 @@ def are_tiles_overlapping(tile, other_tile):
         a = tile
         b = mercantile.parent(other_tile, zoom=tile.z)
     return a == b
+
+def save_terrarium_tile(data, filepath):
+    data += 32768
+    rgb = np.zeros((512, 512, 3), dtype=np.uint8)
+    rgb[:, :, 0] = data // 256
+    rgb[:, :, 1] = data % 256
+    rgb[:, :, 2] = (data - np.floor(data)) * 256
+    with open(filepath, 'wb') as f:
+        f.write(imagecodecs.png_encode(rgb))
+
+def create_archive(tmp_folder, out_filepath):
+    with open(out_filepath, 'wb') as f1:
+        writer = Writer(f1)
+        min_z = math.inf
+        max_z = 0
+        min_lon = math.inf
+        min_lat = math.inf
+        max_lon = -math.inf
+        max_lat = -math.inf
+        for filepath in glob(f'{tmp_folder}/*.png'):
+            filename = filepath.split('/')[-1]
+            z, x, y = [int(a) for a in filename.replace('.png', '').split('-')]
+            
+            tile_id = zxy_to_tileid(z=z, x=x, y=y)
+            with open(filepath, 'rb') as f2:
+                writer.write_tile(tile_id, f2.read())
+
+            max_z = max(max_z, z)
+            min_z = min(min_z, z)
+            west, south, east, north = mercantile.bounds(x, y, z)
+            min_lon = min(min_lon, west)
+            min_lat = min(min_lat, south)
+            max_lon = max(max_lon, east)
+            max_lat = max(max_lat, north)
+
+        min_lon_e7 = int(min_lon * 1e7)
+        min_lat_e7 = int(min_lat * 1e7)
+        max_lon_e7 = int(max_lon * 1e7)
+        max_lat_e7 = int(max_lat * 1e7)
+
+        writer.finalize(
+            {
+                'tile_type': TileType.PNG,
+                'tile_compression': Compression.NONE,
+                'min_zoom': min_z,
+                'max_zoom': max_z,
+                'min_lon_e7': min_lon_e7,
+                'min_lat_e7': min_lat_e7,
+                'max_lon_e7': max_lon_e7,
+                'max_lat_e7': max_lat_e7,
+                'center_zoom': int(0.5 * (min_z + max_z)),
+                'center_lon_e7': int(0.5 * (min_lon_e7 + max_lon_e7)),
+                'center_lat_e7': int(0.5 * (min_lat_e7 + max_lat_e7)),
+            },
+            {
+                'attribution': '<a href="https://github.com/mapterhorn/mapterhorn">© Mapterhorn</a>'
+            },
+        )

@@ -1,5 +1,4 @@
 from glob import glob
-import math
 
 import mercantile
 from ulid import ULID
@@ -144,6 +143,7 @@ def write_aggregation_items(macrotile_map, aggregation_tiles, aggregation_id):
         macrotiles = list(mercantile.children(aggregation_tile, zoom=local_config.macrotile_z))
         lines = ['source,filename,crs,maxzoom\n']
         line_tuples = set({})
+        child_z = 0
         for macrotile in macrotiles:
             tile_tuple = (macrotile.x, macrotile.y)
             if tile_tuple not in macrotile_map:
@@ -156,10 +156,11 @@ def write_aggregation_items(macrotile_map, aggregation_tiles, aggregation_id):
                         source_item['crs'], 
                         str(source_item['maxzoom']
                     )))
+                    child_z = max(child_z, source_item['maxzoom'])
         line_tuples = sorted(list(line_tuples))
         for line_tuple in line_tuples:
             lines.append(f'{",".join(line_tuple)}\n')
-        with open(f'{folder}/{aggregation_tile.z}-{aggregation_tile.x}-{aggregation_tile.y}.csv', 'w') as f:
+        with open(f'{folder}/{aggregation_tile.z}-{aggregation_tile.x}-{aggregation_tile.y}-{child_z}-aggregation.csv', 'w') as f:
             f.writelines(lines)
 
 def main():
@@ -168,7 +169,7 @@ def main():
     local_source_store = f'source-store/'
 
     utils.create_folder(local_source_store)
-    # utils.rsync(src=remote_source_store, dst=local_source_store, skip_data_files=True)
+    utils.rsync(src=remote_source_store, dst=local_source_store, skip_data_files=True)
 
     print('get_macrotile_map...')
     macrotile_map = get_macrotile_map()
@@ -182,12 +183,13 @@ def main():
     remote_aggregation_store = f'{local_config.remote_aggregation_store_path}/'
     local_aggregation_store = 'aggregation-store/'
     utils.create_folder(local_aggregation_store)
-    # utils.rsync(src=remote_aggregation_store, dst=local_aggregation_store, skip_data_files=True)
+    utils.rsync(src=remote_aggregation_store, dst=local_aggregation_store, skip_data_files=True)
 
     aggregation_id = str(ULID())
     print('write aggregation items...')
     write_aggregation_items(macrotile_map, aggregation_tiles, aggregation_id)
 
-    # utils.rsync(src=local_aggregation_store, dst=remote_aggregation_store, skip_data_files=True)
+    utils.rsync(src=local_aggregation_store, dst=remote_aggregation_store, skip_data_files=True)
 
-main()
+if __name__ == '__main__':
+    main()

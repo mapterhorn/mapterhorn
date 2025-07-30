@@ -1,17 +1,13 @@
 from glob import glob
-import math
 from multiprocessing import Pool
-import shutil
 import os
 import time
 import json
 
 import rasterio
 import numpy as np
-import mercantile
 from scipy import ndimage
 
-import local_config
 import utils
 
 def merge(filepath):
@@ -100,20 +96,7 @@ def merge(filepath):
     utils.run_command(command)
     
 def main(filepaths):
-    remote_aggregation_store = f'{local_config.remote_aggregation_store_path}/'
-    local_aggregation_store = f'aggregation-store/'
-    utils.create_folder(local_aggregation_store)
-    # utils.rsync(src=remote_aggregation_store, dst=local_aggregation_store)
-
     # needs ~30 GB per thread
     pool_size = 2
     with Pool(pool_size) as pool:
         pool.starmap(merge, [(filepath,) for filepath in filepaths])
-
-    # for filepath in filepaths:
-    #     merge(filepath)
-        
-# filepaths = sorted(glob(f'aggregation-store/{aggregation_id}/*.csv'))
-# if local_config.from_filepath is not None and local_config.to_filepath is not None:
-#     filepaths = filepaths[local_config.from_filepath:local_config.to_filepath]
-# main(filepaths)

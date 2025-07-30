@@ -50,7 +50,9 @@ def get_grouped_source_items(filepath):
     grouped_source_items.append(current_group)
     return grouped_source_items
 
-def fetch_source_image(source, filename):    
+def fetch_source_image(source, filename):
+    print(f'fetching {source} {filename}...')
+    return   
     remote_file = f'{local_config.remote_source_store_path}/{source}/{filename}'
     local_file = f'source-store/{source}/{filename}'
     command = f'rsync -ahv {remote_file} {local_file}'
@@ -155,37 +157,17 @@ def reproject(filepath, aggregation_id):
         json.dump(metadata, f, indent=2)
 
 def main(filepaths):
-    remote_source_store = f'{local_config.remote_source_store_path}/'
-    local_source_store = f'source-store/'
-    utils.create_folder(local_source_store)
-    # utils.rsync(src=remote_source_store, dst=local_source_store, skip_data_files=True)
-
-    remote_aggregation_store = f'{local_config.remote_aggregation_store_path}/'
-    local_aggregation_store = f'aggregation-store/'
-    utils.create_folder(local_aggregation_store)
-    # utils.rsync(src=remote_aggregation_store, dst=local_aggregation_store)
-
     aggregation_ids = utils.get_aggregation_ids()
     aggregation_id = aggregation_ids[-1]
 
-
     argument_tuples = []
     for filepath in filepaths:
-        # grouped_source_items = get_grouped_source_items(filepath)
-        # for source_items in grouped_source_items:
-        #     for source_item in source_items:
-        #         fetch_source_image(source_item['source'], source_item['filename'])
+        grouped_source_items = get_grouped_source_items(filepath)
+        for source_items in grouped_source_items:
+            for source_item in source_items:
+                fetch_source_image(source_item['source'], source_item['filename'])
 
         argument_tuples.append((filepath, aggregation_id))
     
-    # with Pool() as pool:
-    #     pool.starmap(reproject, argument_tuples)
-
-    for argument_tuple in argument_tuples:
-        reproject(*argument_tuple)
-
-
-# filepaths = sorted(glob(f'aggregation-store/{aggregation_id}/*.csv'))
-# if local_config.from_filepath is not None and local_config.to_filepath is not None:
-#     filepaths = filepaths[local_config.from_filepath:local_config.to_filepath]
-# main(filepaths)
+    with Pool() as pool:
+        pool.starmap(reproject, argument_tuples)

@@ -1,19 +1,18 @@
 from glob import glob
 
-import math
 import rasterio
 from rasterio.warp import transform_bounds
 
 import local_config
 import utils
     
-if __name__ == '__main__':
+def main():
     remote = f'{local_config.remote_source_store_path}/{local_config.source}/'
     local = f'source-store/{local_config.source}/'
 
     utils.create_folder(local)
 
-    # utils.rsync(src=remote, dst=local)
+    utils.rsync(src=remote, dst=local)
 
     filepaths = sorted(glob(f'source-store/{local_config.source}/*'))
 
@@ -32,4 +31,7 @@ if __name__ == '__main__':
     with open(f'source-store/{local_config.source}/bounds.csv', 'w') as f:
         f.writelines(bounds_file_lines)
 
-    # utils.rsync(src=local, dst=remote)
+    utils.rsync(src=local, dst=remote)
+
+if __name__ == '__main__':
+    main()

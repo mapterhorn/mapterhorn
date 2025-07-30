@@ -75,5 +75,5 @@ def main():
             with open(out_filepath, 'w') as f:
                 f.writelines(lines)
 
-
-main()
+if __name__ == '__main__':
+    main()

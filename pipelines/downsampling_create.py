@@ -1,70 +1,17 @@
 from glob import glob
 import io
 from multiprocessing import Pool
-import math
 import shutil
 import os
 from datetime import datetime
 
 import numpy as np
 from PIL import Image
-import cv2
 import imagecodecs
 import mercantile
 from pmtiles.reader import Reader, MmapSource
-from pmtiles.tile import zxy_to_tileid, TileType, Compression
-from pmtiles.writer import Writer
 
 import utils
-
-def create_archive(tmp_folder, out_filepath):
-    with open(out_filepath, 'wb') as f1:
-        writer = Writer(f1)
-        min_z = math.inf
-        max_z = 0
-        min_lon = math.inf
-        min_lat = math.inf
-        max_lon = -math.inf
-        max_lat = -math.inf
-        for filepath in glob(f'{tmp_folder}/*.png'):
-            filename = filepath.split('/')[-1]
-            z, x, y = [int(a) for a in filename.replace('.png', '').split('-')]
-            
-            tile_id = zxy_to_tileid(z=z, x=x, y=y)
-            with open(filepath, 'rb') as f2:
-                writer.write_tile(tile_id, f2.read())
-
-            max_z = max(max_z, z)
-            min_z = min(min_z, z)
-            west, south, east, north = mercantile.bounds(x, y, z)
-            min_lon = min(min_lon, west)
-            min_lat = min(min_lat, south)
-            max_lon = max(max_lon, east)
-            max_lat = max(max_lat, north)
-
-        min_lon_e7 = int(min_lon * 1e7)
-        min_lat_e7 = int(min_lat * 1e7)
-        max_lon_e7 = int(max_lon * 1e7)
-        max_lat_e7 = int(max_lat * 1e7)
-
-        writer.finalize(
-            {
-                'tile_type': TileType.PNG,
-                'tile_compression': Compression.NONE,
-                'min_zoom': min_z,
-                'max_zoom': max_z,
-                'min_lon_e7': min_lon_e7,
-                'min_lat_e7': min_lat_e7,
-                'max_lon_e7': max_lon_e7,
-                'max_lat_e7': max_lat_e7,
-                'center_zoom': int(0.5 * (min_z + max_z)),
-                'center_lon_e7': int(0.5 * (min_lon_e7 + max_lon_e7)),
-                'center_lat_e7': int(0.5 * (min_lat_e7 + max_lat_e7)),
-            },
-            {
-                'attribution': '<a href="https://github.com/mapterhorn/mapterhorn">© Mapterhorn</a>'
-            },
-        )
 
 def create_tile(parent_x, parent_y, parent_z, aggregation_id, tmp_folder, pmtiles_filenames):
     tile_to_pmtiles_filename = get_tile_to_pmtiles_filename(pmtiles_filenames)
@@ -78,7 +25,7 @@ def create_tile(parent_x, parent_y, parent_z, aggregation_id, tmp_folder, pmtile
             if child not in tile_to_pmtiles_filename:
                 continue
             child_bytes = None
-            with open(f'aggregation-store/{aggregation_id}/{tile_to_pmtiles_filename[child]}' , 'r+b') as f:
+            with open(f'pmtiles-store/{tile_to_pmtiles_filename[child]}' , 'r+b') as f:
                 reader = Reader(MmapSource(f))
                 child_bytes = reader.get(child_z, child_x, child_y)
             child_rgb = np.array(Image.open(io.BytesIO(child_bytes)), dtype=np.float32)
@@ -118,14 +65,17 @@ def get_tile_to_pmtiles_filename(pmtiles_filenames):
 def main(filepaths):
     for j, filepath in enumerate(filepaths):
         print(f'downsampling {filepath}. {datetime.now()}. {j + 1} / {len(filepaths)}.')
-        out_filepath = filepath.replace('-downsampling.csv', '.pmtiles')
-        if os.path.isfile(out_filepath):
-            print('already done...')
-            continue
+
 
         _, aggregation_id, filename = filepath.split('/')
         parts = filename.split('-')
         extent_z, extent_x, extent_y, parent_zoom = [int(a) for a in parts[:4]]
+
+        out_filepath = f'pmtiles-store/{extent_z}-{extent_x}-{extent_y}-{parent_zoom}.pmtiles'
+        if os.path.isfile(out_filepath):
+            print('already done...')
+            continue
+
         extent = mercantile.Tile(x=extent_x, y=extent_y, z=extent_z)
         tmp_folder = filepath.replace('-downsampling.csv', '-tmp')
         utils.create_folder(tmp_folder)
@@ -149,26 +99,17 @@ def main(filepaths):
         with Pool() as pool:
             pool.starmap(create_tile, argument_tuples)
         
-        create_archive(tmp_folder, out_filepath)
+        utils.create_archive(tmp_folder, out_filepath)
 
         shutil.rmtree(tmp_folder)
 
 if __name__ == '__main__':
     child_zoom_to_filepaths = {}
-    for filepath in sorted(glob(f'aggregation-store/01K0YBQDR8DD963PF74AJXGHZ3/*-downsampling.csv')):
+    aggregation_ids = utils.get_aggregation_ids()
+    aggregation_id = aggregation_ids[-1]
+    for filepath in sorted(glob(f'aggregation-store/{aggregation_id}/*-downsampling.csv')):
         filename = filepath.split('/')[-1]
-        extent_z, extent_x, extent_y, child_zoom = [int(a) for a in filename.replace('-downsampling.csv', '').split('-')]
-        tile = mercantile.Tile(x=extent_x, y=extent_y, z=extent_z)
-        filter_tile = mercantile.Tile(x=4, y=2, z=3)
-        if child_zoom > 11:
-            continue
-        if extent_z < filter_tile.z:
-            continue
-        elif extent_z == filter_tile.z:
-            if tile != filter_tile:
-                continue
-        elif mercantile.parent(tile, zoom=filter_tile.z) != filter_tile:
-            continue
+        _, __, ___, child_zoom = [int(a) for a in filename.replace('-downsampling.csv', '').split('-')]
         if child_zoom not in child_zoom_to_filepaths:
             child_zoom_to_filepaths[child_zoom] = []
         child_zoom_to_filepaths[child_zoom].append(filepath)
