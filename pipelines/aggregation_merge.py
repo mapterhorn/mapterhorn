@@ -20,7 +20,7 @@ def merge(filepath):
 
     done_filepath = f'{tmp_folder}/merge-done'
     if os.path.isfile(done_filepath):
-        print(f'{filepath} already done...')
+        print(f'merge {filename} already done...')
         return
 
     metadata_filepath = f'{tmp_folder}/reprojection.json'

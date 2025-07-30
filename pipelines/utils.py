@@ -4,6 +4,7 @@ from glob import glob
 import json
 from datetime import datetime
 import math
+import os
 
 import numpy as np
 
@@ -89,9 +90,9 @@ def are_tiles_overlapping(tile, other_tile):
 def save_terrarium_tile(data, filepath):
     data += 32768
     rgb = np.zeros((512, 512, 3), dtype=np.uint8)
-    rgb[:, :, 0] = data // 256
-    rgb[:, :, 1] = data % 256
-    rgb[:, :, 2] = (data - np.floor(data)) * 256
+    rgb[..., 0] = data // 256
+    rgb[..., 1] = data % 256
+    rgb[..., 2] = (data - np.floor(data)) * 256
     with open(filepath, 'wb') as f:
         f.write(imagecodecs.png_encode(rgb))
 
@@ -143,3 +144,23 @@ def create_archive(tmp_folder, out_filepath):
                 'attribution': '<a href="https://github.com/mapterhorn/mapterhorn">© Mapterhorn</a>'
             },
         )
+
+def get_aggregation_item_string(aggregation_id, filename):
+    filepath = f'aggregation-store/{aggregation_id}/{filename}'
+    if not os.path.isfile(filepath):
+        return None
+    
+    with open(filepath) as f:
+        return ''.join(f.readlines())
+
+def get_dirty_aggregation_filenames(current_aggregation_id, last_aggregation_id):
+    filepaths = sorted(glob(f'aggregation-store/{current_aggregation_id}/*-aggregation.csv'))
+
+    dirty_filenames = []
+    for filepath in filepaths:
+        filename = filepath.split('/')[-1]
+        current = get_aggregation_item_string(current_aggregation_id, filename)
+        last = get_aggregation_item_string(last_aggregation_id, filename)
+        if current != last:
+            dirty_filenames.append(filename)
+    return dirty_filenames

@@ -61,10 +61,7 @@ def main():
                 print(f'{j} / {len(simplified_extents)}')
             involved_extents = set({})
             children = list(mercantile.children(simplified_extent, zoom=child_zoom))
-            children_with_neighbors = set({})
             for child in children:
-                children_with_neighbors.update(mercantile.neighbors(child))
-            for child in children_with_neighbors:
                 if child in tile_to_extent_map:
                     involved_extents.add(tile_to_extent_map[child])
             lines = ['filename\n']

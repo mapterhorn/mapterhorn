@@ -124,7 +124,7 @@ def reproject(filepath, aggregation_id):
 
     metadata_filepath = f'{tmp_folder}/reprojection.json'
     if os.path.isfile(metadata_filepath):
-        print(f'{filepath} already done...')
+        print(f'reproject {filename} already done...')
         return
 
     grouped_source_items = get_grouped_source_items(filepath)

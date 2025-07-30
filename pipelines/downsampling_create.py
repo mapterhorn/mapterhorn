@@ -64,17 +64,12 @@ def get_tile_to_pmtiles_filename(pmtiles_filenames):
 
 def main(filepaths):
     for j, filepath in enumerate(filepaths):
-        print(f'downsampling {filepath}. {datetime.now()}. {j + 1} / {len(filepaths)}.')
-
-
         _, aggregation_id, filename = filepath.split('/')
+        print(f'downsampling {filename}. {datetime.now()}. {j + 1} / {len(filepaths)}.')
         parts = filename.split('-')
         extent_z, extent_x, extent_y, parent_zoom = [int(a) for a in parts[:4]]
 
         out_filepath = f'pmtiles-store/{extent_z}-{extent_x}-{extent_y}-{parent_zoom}.pmtiles'
-        if os.path.isfile(out_filepath):
-            print('already done...')
-            continue
 
         extent = mercantile.Tile(x=extent_x, y=extent_y, z=extent_z)
         tmp_folder = filepath.replace('-downsampling.csv', '-tmp')
@@ -103,16 +98,41 @@ def main(filepaths):
 
         shutil.rmtree(tmp_folder)
 
+def tiles_intersect(a, b):
+    if a == b:
+        return True
+    if a.z < b.z and mercantile.parent(b, zoom=a.z) == a:
+        return True
+    if b.z < a.z and mercantile.parent(a, zoom=b.z) == b:
+        return True
+    return False
+
+def is_parent_of_dirty_aggregation_tile(tile, dirty_aggregation_tiles):
+    for dirty_aggregation_tile in dirty_aggregation_tiles:
+        if tiles_intersect(dirty_aggregation_tile, tile):
+            return True
+    return False
+
 if __name__ == '__main__':
     child_zoom_to_filepaths = {}
     aggregation_ids = utils.get_aggregation_ids()
     aggregation_id = aggregation_ids[-1]
+
+    dirty_aggregation_tiles = []
+    if len(aggregation_ids) >= 2:
+        dirty_aggregation_filenames = utils.get_dirty_aggregation_filenames(aggregation_id, aggregation_ids[-2])
+        for filename in dirty_aggregation_filenames:
+            z, x, y, _ = [int(a) for a in filename.replace('-aggregation.csv', '').split('-')]
+            dirty_aggregation_tiles.append(mercantile.Tile(x=x, y=y, z=z))
+
     for filepath in sorted(glob(f'aggregation-store/{aggregation_id}/*-downsampling.csv')):
         filename = filepath.split('/')[-1]
-        _, __, ___, child_zoom = [int(a) for a in filename.replace('-downsampling.csv', '').split('-')]
-        if child_zoom not in child_zoom_to_filepaths:
-            child_zoom_to_filepaths[child_zoom] = []
-        child_zoom_to_filepaths[child_zoom].append(filepath)
+        z, x, y, child_zoom = [int(a) for a in filename.replace('-downsampling.csv', '').split('-')]
+
+        if len(aggregation_ids) < 2 or is_parent_of_dirty_aggregation_tile(mercantile.Tile(x=x, y=y, z=z), dirty_aggregation_tiles):
+            if child_zoom not in child_zoom_to_filepaths:
+                child_zoom_to_filepaths[child_zoom] = []
+            child_zoom_to_filepaths[child_zoom].append(filepath)
 
     child_zooms = list(reversed(sorted(list(child_zoom_to_filepaths.keys()))))
     for child_zoom in child_zooms:

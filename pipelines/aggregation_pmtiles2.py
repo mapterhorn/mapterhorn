@@ -66,8 +66,9 @@ def main(filepaths):
         utils.create_folder('pmtiles-store/')
         out_filepath = f'pmtiles-store/{z}-{x}-{y}-{child_z}.pmtiles'
 
-        if os.path.isfile(out_filepath):
-            print(f'{filepath} already done...')
+        pmtiles_done_filepath = f'{tmp_folder}/pmtiles-done'
+        if os.path.isfile(pmtiles_done_filepath):
+            print(f'tiling {filename} already done...')
             continue
 
         merge_done = os.path.isfile(f'{tmp_folder}/merge-done')
@@ -84,3 +85,4 @@ def main(filepaths):
         tiff_filepath = f'{tmp_folder}/{num_tiff_files - 1}-3857.tiff'
         create_tiles(tmp_folder, aggregation_tile, tiff_filepath, buffer_pixels)
         utils.create_archive(tmp_folder, out_filepath)
+        utils.run_command(f'touch {pmtiles_done_filepath}')
