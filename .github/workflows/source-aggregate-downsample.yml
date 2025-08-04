@@ -21,3 +21,9 @@ jobs:
 
       - name: Set up Python
         run: uv python install
+      
+      - name: Download sources
+        run: |
+          uv run python source_download.py debug-glo30 
+          uv run python source_download.py debug-swissalti3d
+        working-directory: pipelines
