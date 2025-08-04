@@ -22,6 +22,11 @@ jobs:
       - name: Set up Python
         run: uv python install
       
+      - name: Install wget
+        run: |
+          apt-get update
+          apt-get install -y wget
+      
       - name: Download sources
         run: |
           uv run python source_download.py debug-glo30 
