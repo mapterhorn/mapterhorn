@@ -1,5 +1,6 @@
-local_config.py
 __pycache__
-source-store/
-cogify-store/
-aggregation-store/
+.venv
+source-store
+aggregation-store
+pmtiles-store
+index.pmtiles

@@ -11,6 +11,10 @@ import imagecodecs
 from pmtiles.tile import zxy_to_tileid, TileType, Compression
 from pmtiles.writer import Writer
 
+macrotile_z = 12
+macrotile_buffer_3857 = 250
+num_overviews = 6
+
 def run_command(command, silent=True):
     if not silent:
         print(command)
@@ -53,7 +57,7 @@ def save_terrarium_tile(data, filepath):
     rgb[..., 1] = data % 256
     rgb[..., 2] = (data - np.floor(data)) * 256
     with open(filepath, 'wb') as f:
-        f.write(imagecodecs.png_encode(rgb))
+        f.write(imagecodecs.webp_encode(rgb, lossless=True))
 
 def create_archive(tmp_folder, out_filepath):
     with open(out_filepath, 'wb') as f1:
@@ -64,9 +68,9 @@ def create_archive(tmp_folder, out_filepath):
         min_lat = math.inf
         max_lon = -math.inf
         max_lat = -math.inf
-        for filepath in glob(f'{tmp_folder}/*.png'):
+        for filepath in glob(f'{tmp_folder}/*.webp'):
             filename = filepath.split('/')[-1]
-            z, x, y = [int(a) for a in filename.replace('.png', '').split('-')]
+            z, x, y = [int(a) for a in filename.replace('.webp', '').split('-')]
             
             tile_id = zxy_to_tileid(z=z, x=x, y=y)
             with open(filepath, 'rb') as f2:
@@ -87,7 +91,7 @@ def create_archive(tmp_folder, out_filepath):
 
         writer.finalize(
             {
-                'tile_type': TileType.PNG,
+                'tile_type': TileType.WEBP,
                 'tile_compression': Compression.NONE,
                 'min_zoom': min_z,
                 'max_zoom': max_z,
@@ -123,3 +127,12 @@ def get_dirty_aggregation_filenames(current_aggregation_id, last_aggregation_id)
         if current != last:
             dirty_filenames.append(filename)
     return dirty_filenames
+
+def get_pmtiles_folder(x, y, z):
+    if z < 7:
+        return f'pmtiles-store'
+    if z == 7:
+        return f'pmtiles-store/{z}-{x}-{y}'
+    else:
+        parent = mercantile.parent(mercantile.Tile(x=x, y=y, z=z), zoom=7)
+        return f'pmtiles-store/{parent.z}-{parent.x}-{parent.y}'

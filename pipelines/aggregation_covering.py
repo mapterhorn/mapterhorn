@@ -3,7 +3,6 @@ from glob import glob
 import mercantile
 from ulid import ULID
 
-import local_config
 import utils
 
 def get_mercator_resolutions(minzoom, maxzoom):
@@ -51,7 +50,7 @@ def get_macrotile_map():
                 left, bottom, right, top = [float(a) for a in [left, bottom, right, top]]
 
                 multiplier = 2
-                buffer = multiplier * local_config.macrotile_buffer_3857
+                buffer = multiplier * utils.macrotile_buffer_3857
                 buffered_bounds = (
                     left - buffer,
                     bottom - buffer,
@@ -59,7 +58,7 @@ def get_macrotile_map():
                     top + buffer
                 )
 
-                tiles = get_intersecting_tiles_dfs(buffered_bounds, mercantile.Tile(x=0, y=0, z=0), local_config.macrotile_z)
+                tiles = get_intersecting_tiles_dfs(buffered_bounds, mercantile.Tile(x=0, y=0, z=0), utils.macrotile_z)
                 
                 maxzoom = get_smallest_overzoom(left, bottom, right, top, width, height, mercator_resolutions)
 
@@ -70,7 +69,7 @@ def get_macrotile_map():
                 # N50 native maxzoom 11
                 # N49 native maxzoom 12 (group has only ~30 percent of total macrotiles)
                 # Use gdal warp with cubicspline when maxzoom is 12
-                maxzoom = max(maxzoom, local_config.macrotile_z)
+                maxzoom = max(maxzoom, utils.macrotile_z)
 
                 for tile in tiles:
                     if (tile.x, tile.y) not in macrotile_map:
@@ -105,9 +104,9 @@ def add_group_ids(macrotile_map):
         macrotile_map[tile_tuple]['group_id'] = group_id
 
 def get_aggregation_tiles_dfs(candidate, macrotile_map):
-    if candidate.z == local_config.macrotile_z:
+    if candidate.z == utils.macrotile_z:
         return [candidate]
-    macrotiles = list(mercantile.children(candidate, zoom=local_config.macrotile_z))
+    macrotiles = list(mercantile.children(candidate, zoom=utils.macrotile_z))
     group_ids = set({})
     for macrotile in macrotiles:
         tile_tuple = (macrotile.x, macrotile.y)
@@ -120,7 +119,7 @@ def get_aggregation_tiles_dfs(candidate, macrotile_map):
         maxzoom = 0
         for part in group_id:
             maxzoom = max(maxzoom, part[1])
-        if candidate.z >= maxzoom - local_config.num_overviews:
+        if candidate.z >= maxzoom - utils.num_overviews:
             return [candidate]
     result = []
     for child in mercantile.children(candidate, zoom=candidate.z + 1):
@@ -130,7 +129,7 @@ def get_aggregation_tiles_dfs(candidate, macrotile_map):
 def get_aggregation_tiles(macrotile_map):
     candidates = set({})
     for tile_tuple in macrotile_map.keys():
-        candidates.add(mercantile.parent(mercantile.Tile(x=tile_tuple[0], y=tile_tuple[1], z=local_config.macrotile_z), zoom=local_config.macrotile_z - local_config.num_overviews))
+        candidates.add(mercantile.parent(mercantile.Tile(x=tile_tuple[0], y=tile_tuple[1], z=utils.macrotile_z), zoom=utils.macrotile_z - utils.num_overviews))
     aggregation_tiles = []
     for candidate in candidates:
         aggregation_tiles += get_aggregation_tiles_dfs(candidate, macrotile_map)
@@ -140,7 +139,7 @@ def write_aggregation_items(macrotile_map, aggregation_tiles, aggregation_id):
     folder = f'aggregation-store/{aggregation_id}'
     utils.create_folder(folder)
     for aggregation_tile in aggregation_tiles:
-        macrotiles = list(mercantile.children(aggregation_tile, zoom=local_config.macrotile_z))
+        macrotiles = list(mercantile.children(aggregation_tile, zoom=utils.macrotile_z))
         lines = ['source,filename,crs,maxzoom\n']
         line_tuples = set({})
         child_z = 0
@@ -165,12 +164,6 @@ def write_aggregation_items(macrotile_map, aggregation_tiles, aggregation_id):
 
 def main():
 
-    remote_source_store = f'{local_config.remote_source_store_path}/'
-    local_source_store = f'source-store/'
-
-    utils.create_folder(local_source_store)
-    utils.rsync(src=remote_source_store, dst=local_source_store, skip_data_files=True)
-
     print('get_macrotile_map...')
     macrotile_map = get_macrotile_map()
 
@@ -180,16 +173,11 @@ def main():
     print('get aggregation tiles...')
     aggregation_tiles = get_aggregation_tiles(macrotile_map)
 
-    remote_aggregation_store = f'{local_config.remote_aggregation_store_path}/'
-    local_aggregation_store = 'aggregation-store/'
-    utils.create_folder(local_aggregation_store)
-    utils.rsync(src=remote_aggregation_store, dst=local_aggregation_store, skip_data_files=True)
-
     aggregation_id = str(ULID())
+    utils.create_folder(f'aggregation-store/{aggregation_id}')
+
     print('write aggregation items...')
     write_aggregation_items(macrotile_map, aggregation_tiles, aggregation_id)
-
-    utils.rsync(src=local_aggregation_store, dst=remote_aggregation_store, skip_data_files=True)
 
 if __name__ == '__main__':
     main()

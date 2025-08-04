@@ -6,7 +6,6 @@ import os
 import rasterio
 import mercantile
 
-import local_config
 import utils
 
 def get_grouped_source_items(filepath):
@@ -49,14 +48,6 @@ def get_grouped_source_items(filepath):
         })
     grouped_source_items.append(current_group)
     return grouped_source_items
-
-def fetch_source_image(source, filename):
-    print(f'fetching {source} {filename}...')
-    return   
-    remote_file = f'{local_config.remote_source_store_path}/{source}/{filename}'
-    local_file = f'source-store/{source}/{filename}'
-    command = f'rsync -ahv {remote_file} {local_file}'
-    utils.run_command(command)
 
 def create_virtual_raster(filepath, source_items):
     source = source_items[0]['source']
@@ -134,7 +125,7 @@ def reproject(filepath, aggregation_id):
     buffer_pixels = 0
     buffer_3857_rounded = 0
     if len(grouped_source_items) > 1:
-        buffer_pixels = int(local_config.macrotile_buffer_3857 / resolution)
+        buffer_pixels = int(utils.macrotile_buffer_3857 / resolution)
         buffer_3857_rounded = buffer_pixels * resolution
 
     for i, source_items in enumerate(grouped_source_items):
@@ -162,11 +153,6 @@ def main(filepaths):
 
     argument_tuples = []
     for filepath in filepaths:
-        grouped_source_items = get_grouped_source_items(filepath)
-        for source_items in grouped_source_items:
-            for source_item in source_items:
-                fetch_source_image(source_item['source'], source_item['filename'])
-
         argument_tuples.append((filepath, aggregation_id))
     
     with Pool() as pool:

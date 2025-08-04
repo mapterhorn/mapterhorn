@@ -3,7 +3,6 @@ from glob import glob
 import mercantile
 
 import utils
-import local_config
 
 def get_extents_from_coverings(aggregation_id, zoom):
     extents = []
@@ -28,10 +27,10 @@ def get_simplified_extents(extents, zoom):
     for unlimited in simplified_extents_unlimited:
         if unlimited.z == zoom:
             simplified_extents.append(mercantile.parent(unlimited, zoom=zoom - 1))
-        elif unlimited.z >= zoom - local_config.num_overviews:
+        elif unlimited.z >= zoom - utils.num_overviews:
             simplified_extents.append(unlimited)
         else:
-            simplified_extents += list(mercantile.children(unlimited, zoom=zoom - local_config.num_overviews))
+            simplified_extents += list(mercantile.children(unlimited, zoom=zoom - utils.num_overviews))
     return simplified_extents
 
 def main():

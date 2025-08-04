@@ -2,11 +2,10 @@ from glob import glob
 import shutil
 import time
 import datetime
-import os
 
 import aggregation_reproject
 import aggregation_merge
-import aggregation_pmtiles2
+import aggregation_tile
 import utils
 
 
@@ -43,7 +42,7 @@ def main():
         print(f't_merge: {int(time.time() - t1)} s. {datetime.datetime.now()}.')
 
         t1 = time.time()
-        aggregation_pmtiles2.main(filepath_batch)
+        aggregation_tile.main(filepath_batch)
         print(f't_pmtiles: {int(time.time() - t1)} s. {datetime.datetime.now()}.')
 
         for filepath in filepath_batch:

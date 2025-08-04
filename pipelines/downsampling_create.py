@@ -2,7 +2,6 @@ from glob import glob
 import io
 from multiprocessing import Pool
 import shutil
-import os
 from datetime import datetime
 
 import numpy as np
@@ -25,7 +24,10 @@ def create_tile(parent_x, parent_y, parent_z, aggregation_id, tmp_folder, pmtile
             if child not in tile_to_pmtiles_filename:
                 continue
             child_bytes = None
-            with open(f'pmtiles-store/{tile_to_pmtiles_filename[child]}' , 'r+b') as f:
+            filename = tile_to_pmtiles_filename[child]
+            file_z, file_x, file_y, _ = [int(a) for a in filename.replace('.pmtiles', '').split('-')]
+            pmtiles_folder = utils.get_pmtiles_folder(file_x, file_y, file_z)
+            with open(f'{pmtiles_folder}/{filename}' , 'r+b') as f:
                 reader = Reader(MmapSource(f))
                 child_bytes = reader.get(child_z, child_x, child_y)
             child_rgb = np.array(Image.open(io.BytesIO(child_bytes)), dtype=np.float32)
@@ -44,8 +46,8 @@ def create_tile(parent_x, parent_y, parent_z, aggregation_id, tmp_folder, pmtile
     parent_rgb[:, :, 1] = np.floor(parent_data % 256)
     parent_rgb[:, :, 2] = np.floor((parent_data - np.floor(parent_data)) * 256)
 
-    parent_bytes = imagecodecs.png_encode(parent_rgb)
-    parent_filepath = f'{tmp_folder}/{parent_z}-{parent_x}-{parent_y}.png'
+    parent_bytes = imagecodecs.webp_encode(parent_rgb, lossless=True)
+    parent_filepath = f'{tmp_folder}/{parent_z}-{parent_x}-{parent_y}.webp'
     with open(parent_filepath, 'wb') as f:
         f.write(parent_bytes)
 
@@ -69,7 +71,9 @@ def main(filepaths):
         parts = filename.split('-')
         extent_z, extent_x, extent_y, parent_zoom = [int(a) for a in parts[:4]]
 
-        out_filepath = f'pmtiles-store/{extent_z}-{extent_x}-{extent_y}-{parent_zoom}.pmtiles'
+        out_folder = utils.get_pmtiles_folder(extent_x, extent_y, extent_z)
+        utils.create_folder(out_folder)
+        out_filepath = f'{out_folder}/{extent_z}-{extent_x}-{extent_y}-{parent_zoom}.pmtiles'
 
         extent = mercantile.Tile(x=extent_x, y=extent_y, z=extent_z)
         tmp_folder = filepath.replace('-downsampling.csv', '-tmp')

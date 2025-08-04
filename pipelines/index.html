@@ -1,0 +1,87 @@
+<html>
+
+<head>
+    <title>Mapterhorn Example</title>
+    <meta charset="utf-8" />
+    <!-- <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.3.0/dist/maplibre-gl.css" crossorigin="anonymous">
+    <script src="https://unpkg.com/maplibre-gl@4.3.0/dist/maplibre-gl.js" crossorigin="anonymous"></script> -->
+
+
+    <script src="https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.js"></script>
+    <link href="https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.css" rel="stylesheet" />
+
+    <script src="https://unpkg.com/pmtiles@4.3.0/dist/pmtiles.js"></script>
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+
+    <style>
+        body {
+            margin: 0;
+        }
+
+        #map {
+            height: 100%;
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map"></div>
+    <script type="text/javascript">
+        const protocol = new pmtiles.Protocol({ metadata: true, errorOnMissingTile: true });
+
+        maplibregl.addProtocol('mapterhorn', async (params, abortController) => {
+            const parts = params.url.replace('mapterhorn://', '').split('/');
+            const x = parseInt(parts[1]);
+            const y = parseInt(parts[2]);
+            const z = parseInt(parts[0]);
+            const p = new pmtiles.PMTiles('index.pmtiles');
+            const indexTile = await p.getZxy(z, x, y);
+            if (indexTile === undefined) {
+                 throw new Error(`tile ${z}/${x}/${y} not found`);
+            }
+            const decoder = new TextDecoder('utf-8')
+            const filename = decoder.decode(indexTile.data);
+            const url = `pmtiles://pmtiles-store/${filename}/${z}/${x}/${y}.webp`;
+            const newParams = { ...params, url };
+            return await protocol.tile(newParams, abortController);
+        });
+
+
+        const map = new maplibregl.Map({
+            container: "map",
+            hash: 'map',
+            zoom: 12,
+            center: [7.96531, 47.54627],
+            style: {
+                version: 8,
+                sources: {
+                    demSource: {
+                        type: "raster-dem",
+                        tiles: ["mapterhorn://{z}/{x}/{y}"],
+                        encoding: 'terrarium',
+                        tileSize: 512,
+                    },
+                },
+                layers: [
+                    {
+                        id: 'hillshade',
+                        type: 'hillshade',
+                        source: 'demSource',
+                        paint: {
+                            'hillshade-method': 'igor',
+                            'hillshade-illumination-altitude': 45,
+                            'hillshade-illumination-direction': 315,
+                            'hillshade-shadow-color': '#000000',
+                            'hillshade-highlight-color': '#FFFFFF',
+                            'hillshade-accent-color': '#000000',
+                        },
+                    }
+                ]
+            }
+        });
+        map.addControl(new maplibregl.NavigationControl());
+    </script>
+</body>
+
+</html>

@@ -27,7 +27,7 @@ def create_tiles(tmp_folder, aggregation_tile, tiff_filepath, buffer_pixels):
     y_min = base_y * 2 ** (z - base_z)
     for i, x in enumerate(range(x_min, x_min + 2 ** (z - base_z))):
         for j, y in enumerate(range(y_min, y_min + 2 ** (z - base_z))):
-            out_filepath = f'{tmp_folder}/{z}-{x}-{y}.png'
+            out_filepath = f'{tmp_folder}/{z}-{x}-{y}.webp'
             argument_tuples.append((i, j, tiff_filepath, out_filepath, buffer_pixels))
     
     with Pool() as pool:
@@ -62,9 +62,6 @@ def main(filepaths):
 
         tmp_folder = f'aggregation-store/{aggregation_id}/{z}-{x}-{y}-{child_z}-tmp'
 
-        aggregation_tile = mercantile.Tile(x=x, y=y, z=z)
-        utils.create_folder('pmtiles-store/')
-        out_filepath = f'pmtiles-store/{z}-{x}-{y}-{child_z}.pmtiles'
 
         pmtiles_done_filepath = f'{tmp_folder}/pmtiles-done'
         if os.path.isfile(pmtiles_done_filepath):
@@ -83,6 +80,11 @@ def main(filepaths):
 
         num_tiff_files = len(glob(f'{tmp_folder}/*.tiff'))
         tiff_filepath = f'{tmp_folder}/{num_tiff_files - 1}-3857.tiff'
+
+        aggregation_tile = mercantile.Tile(x=x, y=y, z=z)
+        out_folder = utils.get_pmtiles_folder(x, y, z)
+        utils.create_folder(out_folder)
+        out_filepath = f'{out_folder}/{z}-{x}-{y}-{child_z}.pmtiles'
         create_tiles(tmp_folder, aggregation_tile, tiff_filepath, buffer_pixels)
         utils.create_archive(tmp_folder, out_filepath)
         utils.run_command(f'touch {pmtiles_done_filepath}')
