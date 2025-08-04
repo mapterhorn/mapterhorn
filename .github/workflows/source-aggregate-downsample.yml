@@ -44,6 +44,17 @@ jobs:
         run: uv run python aggregation_covering.py
         working-directory: pipelines
 
-      - name: Aggregation run
-        run: uv run python aggregation_run.py
+      - name: Downsampling covering
+        run: uv run python downsampling_covering.py
         working-directory: pipelines
+
+      # github runner out-of-memory for the following steps:
+
+      # - name: Aggregation run
+      #   run: uv run python aggregation_run.py
+      #   working-directory: pipelines
+
+      # - name: Downsampling create
+      #   run: uv run python downsampling_create.py
+      #   working-directory: pipelines
+
