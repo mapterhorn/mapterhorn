@@ -43,3 +43,7 @@ jobs:
       - name: Aggregation covering
         run: uv run python aggregation_covering.py
         working-directory: pipelines
+
+      - name: Aggregation run
+        run: uv run python aggregation_run.py
+        working-directory: pipelines
