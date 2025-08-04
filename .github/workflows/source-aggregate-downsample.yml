@@ -39,3 +39,7 @@ jobs:
           uv run python source_bounds.py debug-glo30 
           uv run python source_bounds.py debug-swissalti3d
         working-directory: pipelines
+
+      - name: Aggregation covering
+        run: uv run python aggregation_covering.py
+        working-directory: pipelines
