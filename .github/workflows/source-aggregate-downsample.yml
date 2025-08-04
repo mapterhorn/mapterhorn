@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  test:
+  source-aggregate-downsample:
     runs-on: ubuntu-latest
 
     container:
@@ -15,20 +15,27 @@ jobs:
     
     steps:
       - uses: actions/checkout@v4
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v6
-
-      - name: Set up Python
-        run: uv python install
       
       - name: Install wget
         run: |
           apt-get update
           apt-get install -y wget
       
-      - name: Download sources
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Set up Python
+        run: uv python install
+        working-directory: pipelines
+
+      - name: Source download
         run: |
           uv run python source_download.py debug-glo30 
           uv run python source_download.py debug-swissalti3d
+        working-directory: pipelines
+      
+      - name: Source bounds
+        run: |
+          uv run python source_bounds.py debug-glo30 
+          uv run python source_bounds.py debug-swissalti3d
         working-directory: pipelines
