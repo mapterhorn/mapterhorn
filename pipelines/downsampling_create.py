@@ -3,6 +3,7 @@ import io
 from multiprocessing import Pool
 import shutil
 from datetime import datetime
+import os
 
 import numpy as np
 from PIL import Image
@@ -68,6 +69,9 @@ def main(filepaths):
     for j, filepath in enumerate(filepaths):
         _, aggregation_id, filename = filepath.split('/')
         print(f'downsampling {filename}. {datetime.now()}. {j + 1} / {len(filepaths)}.')
+        if os.path.isfile(filepath.replace("-downsampling.csv", "-downsampling.done")):
+            print('already done...')
+            continue
         parts = filename.split('-')
         extent_z, extent_x, extent_y, parent_zoom = [int(a) for a in parts[:4]]
 
@@ -101,6 +105,7 @@ def main(filepaths):
         utils.create_archive(tmp_folder, out_filepath)
 
         shutil.rmtree(tmp_folder)
+        utils.run_command(f'touch {filepath.replace("-downsampling.csv", "-downsampling.done")}')
 
 def tiles_intersect(a, b):
     if a == b:

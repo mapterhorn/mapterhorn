@@ -2,6 +2,7 @@ from glob import glob
 import shutil
 import time
 import datetime
+import os
 
 import aggregation_reproject
 import aggregation_merge
@@ -21,6 +22,7 @@ def main():
         last_aggregation_id = aggregation_ids[-2]
         dirty_filepaths = [f'aggregation-store/{aggregation_id}/{filename}' for filename in utils.get_dirty_aggregation_filenames(aggregation_id, last_aggregation_id)]
     
+    dirty_filepaths = [filepath for filepath in dirty_filepaths if not os.path.isfile(filepath.replace('-aggregation.csv', '-aggregation.done'))]
     if len(dirty_filepaths) == 0:
         print('nothing to do.')
     else:
@@ -48,6 +50,7 @@ def main():
         for filepath in filepath_batch:
             tmp_folder = filepath.replace('-aggregation.csv', '-tmp')
             shutil.rmtree(tmp_folder)
+            utils.run_command(f'touch {filepath.replace("-aggregation.csv", "-aggregation.done")}')
 
 if __name__ == '__main__':
     main()
