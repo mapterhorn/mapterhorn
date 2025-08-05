@@ -136,3 +136,44 @@ def get_pmtiles_folder(x, y, z):
     else:
         parent = mercantile.parent(mercantile.Tile(x=x, y=y, z=z), zoom=7)
         return f'pmtiles-store/{parent.z}-{parent.x}-{parent.y}'
+
+def get_grouped_source_items(filepath):
+    lines = []
+    with open(filepath) as f:
+        lines = f.readlines()
+    lines = lines[1:] # skip header
+    line_tuples = []
+    for line in lines:
+        source, filename, crs, maxzoom = line.strip().split(',')
+        maxzoom = int(maxzoom)
+        line_tuples.append((
+            -maxzoom,
+            source,
+            crs,
+            filename
+        ))
+    line_tuples = sorted(line_tuples)
+    grouped_source_items = []
+
+    first_line_tuple = line_tuples[0]
+    last_group_signature = (first_line_tuple[0], first_line_tuple[1], first_line_tuple[2])
+    current_group = [{
+        'maxzoom': -first_line_tuple[0],
+        'source': first_line_tuple[1],
+        'crs': first_line_tuple[2],
+        'filename': first_line_tuple[3],
+    }]
+    for line_tuple in line_tuples[1:]:
+        current_group_signature = (line_tuple[0], line_tuple[1], line_tuple[2])
+        if current_group_signature != last_group_signature:
+            grouped_source_items.append(current_group)
+            current_group = []
+            last_group_signature = current_group_signature
+        current_group.append({
+            'maxzoom': -line_tuple[0],
+            'source': line_tuple[1],
+            'crs': line_tuple[2],
+            'filename': line_tuple[3],
+        })
+    grouped_source_items.append(current_group)
+    return grouped_source_items

@@ -1,4 +1,3 @@
-from glob import glob
 from multiprocessing import Pool
 import json
 import os
@@ -8,52 +7,11 @@ import mercantile
 
 import utils
 
-def get_grouped_source_items(filepath):
-    lines = []
-    with open(filepath) as f:
-        lines = f.readlines()
-    lines = lines[1:] # skip header
-    line_tuples = []
-    for line in lines:
-        source, filename, crs, maxzoom = line.strip().split(',')
-        maxzoom = int(maxzoom)
-        line_tuples.append((
-            -maxzoom,
-            source,
-            crs,
-            filename
-        ))
-    line_tuples = sorted(line_tuples)
-    grouped_source_items = []
-
-    first_line_tuple = line_tuples[0]
-    last_group_signature = (first_line_tuple[0], first_line_tuple[1], first_line_tuple[2])
-    current_group = [{
-        'maxzoom': -first_line_tuple[0],
-        'source': first_line_tuple[1],
-        'crs': first_line_tuple[2],
-        'filename': first_line_tuple[3],
-    }]
-    for line_tuple in line_tuples[1:]:
-        current_group_signature = (line_tuple[0], line_tuple[1], line_tuple[2])
-        if current_group_signature != last_group_signature:
-            grouped_source_items.append(current_group)
-            current_group = []
-            last_group_signature = current_group_signature
-        current_group.append({
-            'maxzoom': -line_tuple[0],
-            'source': line_tuple[1],
-            'crs': line_tuple[2],
-            'filename': line_tuple[3],
-        })
-    grouped_source_items.append(current_group)
-    return grouped_source_items
-
-def create_virtual_raster(filepath, source_items):
+def create_virtual_raster(filepath, source_items, tmp_source_folder):
     source = source_items[0]['source']
     command = f'gdalbuildvrt -overwrite {filepath}'
     for source_item in source_items:
-        command += f' source-store/{source}/{source_item["filename"]}'
+        command += f' {tmp_source_folder}/{source}/{source_item["filename"]}'
     utils.run_command(command)
 
 def get_resolution(zoom):
@@ -118,7 +76,7 @@ def reproject(filepath, aggregation_id):
         print(f'reproject {filename} already done...')
         return
 
-    grouped_source_items = get_grouped_source_items(filepath)
+    grouped_source_items = utils.get_grouped_source_items(filepath)
     maxzoom = grouped_source_items[0][0]['maxzoom']
     resolution = get_resolution(maxzoom)
 
@@ -128,9 +86,10 @@ def reproject(filepath, aggregation_id):
         buffer_pixels = int(utils.macrotile_buffer_3857 / resolution)
         buffer_3857_rounded = buffer_pixels * resolution
 
+    tmp_source_folder = f'aggregation-store/{aggregation_id}/tmp-sources'
     for i, source_items in enumerate(grouped_source_items):
         vrt_filepath = f'{tmp_folder}/{i}.vrt'
-        create_virtual_raster(vrt_filepath, source_items)
+        create_virtual_raster(vrt_filepath, source_items, tmp_source_folder)
         crs = source_items[0]['crs']
         zoom = maxzoom
         vrt_3857_filepath = f'{tmp_folder}/{i}-3857.vrt'

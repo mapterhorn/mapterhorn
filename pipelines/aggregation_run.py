@@ -4,6 +4,7 @@ import time
 import datetime
 import os
 
+import aggregation_copy
 import aggregation_reproject
 import aggregation_merge
 import aggregation_tile
@@ -34,6 +35,10 @@ def main():
     for start in starts:
         print(f'batch {start}:{start + batch_size}. {datetime.datetime.now()}.')
         filepath_batch = dirty_filepaths[start:start + batch_size]
+
+        t1 = time.time()
+        aggregation_copy.main(filepath_batch)
+        print(f't_copy: {int(time.time() - t1)} s. {datetime.datetime.now()}.')
 
         t1 = time.time()
         aggregation_reproject.main(filepath_batch)
