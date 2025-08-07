@@ -3,4 +3,4 @@ __pycache__
 source-store
 aggregation-store
 pmtiles-store
-index.pmtiles
+bundle-store

@@ -26,6 +26,7 @@ def run_command(command, silent=True):
     out = stdout.decode()
     if out != '' and not silent:
         print(out)
+    return out, err
 
 def create_folder(path):
     folder_path = Path(path)
