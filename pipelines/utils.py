@@ -8,7 +8,7 @@ import numpy as np
 
 import mercantile
 import imagecodecs
-from pmtiles.tile import zxy_to_tileid, TileType, Compression
+from pmtiles.tile import zxy_to_tileid, tileid_to_zxy, TileType, Compression
 from pmtiles.writer import Writer
 
 macrotile_z = 12
@@ -69,11 +69,17 @@ def create_archive(tmp_folder, out_filepath):
         min_lat = math.inf
         max_lon = -math.inf
         max_lat = -math.inf
+
+        tile_ids = []
         for filepath in glob(f'{tmp_folder}/*.webp'):
             filename = filepath.split('/')[-1]
             z, x, y = [int(a) for a in filename.replace('.webp', '').split('-')]
-            
-            tile_id = zxy_to_tileid(z=z, x=x, y=y)
+            tile_ids.append(zxy_to_tileid(z=z, x=x, y=y))
+        tile_ids = sorted(tile_ids)
+
+        for tile_id in tile_ids:
+            z, x, y = tileid_to_zxy(tile_id)
+            filepath = f'{tmp_folder}/{z}-{x}-{y}.webp'
             with open(filepath, 'rb') as f2:
                 writer.write_tile(tile_id, f2.read())
 
