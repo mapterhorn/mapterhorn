@@ -47,7 +47,7 @@ def create_tile(i, j, tiff_filepath, out_filepath, buffer_pixels):
     subdata = None
     with rasterio.open(tiff_filepath) as src: 
         subdata = src.read(1, window=window, out_shape=(512, 512))
-    subdata[subdata == -9999] = 0    
+    subdata[subdata == -9999] = 0
     utils.save_terrarium_tile(subdata, out_filepath)
 
 def main(filepaths):
