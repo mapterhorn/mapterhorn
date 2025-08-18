@@ -52,6 +52,15 @@ def get_aggregation_ids():
     return list(sorted([path.split('/')[-1] for path in glob(f'aggregation-store/*')]))
 
 def save_terrarium_tile(data, filepath):
+    filename = filepath.split('/')[-1]
+    z = int(filename.split('-')[0])
+
+    # full terrarium resolution of 1/256 at `full_resolution_zoom`
+    # multiples of 2 of full terrarium resolution at lower zooms
+    full_resolution_zoom = 20
+    factor = 2 ** (full_resolution_zoom - z) / 256 
+    data = np.round(data / factor) * factor
+
     data += 32768
     rgb = np.zeros((512, 512, 3), dtype=np.uint8)
     rgb[..., 0] = data // 256
