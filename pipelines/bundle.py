@@ -1,13 +1,10 @@
 from glob import glob
 import math
-import os
-import json
-import tempfile
-import gzip
-import shutil
+import time
+# import os
 
 import mercantile
-from pmtiles.tile import zxy_to_tileid, tileid_to_zxy, TileType, Compression, Entry, serialize_directory, serialize_header
+from pmtiles.tile import zxy_to_tileid, TileType, Compression
 from pmtiles.reader import Reader, MmapSource, all_tiles
 from pmtiles.writer import Writer
 
@@ -60,6 +57,7 @@ def create_archive(filepaths, out_filepath):
 
         tile_ids_and_filepaths = []
 
+        j = 0
         for filepath in filepaths:
             filename = filepath.split('/')[-1]
             z, x, y, child_z = [int(a) for a in filename.replace('.pmtiles', '').split('-')]
@@ -80,6 +78,9 @@ def create_archive(filepaths, out_filepath):
             min_lat = min(min_lat, south)
             max_lon = max(max_lon, east)
             max_lat = max(max_lat, north)
+            j += 1
+            if j % 1000 == 0:
+                print(f'prepared {j:_} / {len(filepaths):_} filepaths...')
 
         tile_ids_and_filepaths = sorted(tile_ids_and_filepaths)
         
@@ -87,6 +88,7 @@ def create_archive(filepaths, out_filepath):
         tile_id_to_bytes = None
 
         j = 0
+        start = time.time()
         for tile_id, filepath in tile_ids_and_filepaths:
             if filepath != last_filepath:
                 last_filepath = filepath
@@ -94,8 +96,12 @@ def create_archive(filepaths, out_filepath):
             writer.write_tile(tile_id, tile_id_to_bytes[tile_id])
 
             j += 1
-            if j % 10000 == 0:
-                print(f'processed {j} / {len(tile_ids_and_filepaths)} tiles...')
+            if j % 10_000 == 0:
+                tic = time.time()
+                time_so_far = tic - start
+                expected_duration = time_so_far * len(tile_ids_and_filepaths) / j
+                finishes_in = expected_duration - time_so_far
+                print(f'Processed {j:_} / {len(tile_ids_and_filepaths):_} tiles in {int(time_so_far / 60)} min {int(time_so_far) % 60} s. Finishes in {int(finishes_in / 3600)} h {int(finishes_in / 60) % 60} min...')
 
         min_lon_e7 = int(min_lon * 1e7)
         min_lat_e7 = int(min_lat * 1e7)
@@ -121,29 +127,30 @@ def create_archive(filepaths, out_filepath):
             },
         )
 
-def get_md5sum(filepath):
-    out, _ = utils.run_command(f'md5sum {filepath}')
-    return out.strip().split('  ')[0]    
+# def get_md5sum(filepath):
+#     out, _ = utils.run_command(f'md5sum {filepath}')
+#     return out.strip().split('  ')[0]    
 
 def main():
     parent_to_filepaths = get_parent_to_filepaths()
-    utils.create_folder('bundle-store')
-    lines = ['filename,md5sum,size_gigabytes\n']
+    # lines = ['filename,md5sum,size_gigabytes\n']
     for parent in parent_to_filepaths:
-        filename = None
+        name = None
         if parent == mercantile.Tile(x=0, y=0, z=0):
-            filename = 'planet.pmtiles'
+            name = 'planet'
         else:
-            filename = f'{parent.z}-{parent.x}-{parent.y}.pmtiles'
-        out_filepath = f'bundle-store/{filename}'
-        print(filename)
+            name = f'{parent.z}-{parent.x}-{parent.y}'
+        print(name)
+        folder = f'bundle-store/{name}'
+        utils.create_folder(folder)
+        out_filepath = f'{folder}/{name}.pmtiles'
         create_archive(parent_to_filepaths[parent], out_filepath)
         # md5sum = get_md5sum(out_filepath)
         # size = os.path.getsize(out_filepath)
-        # lines.append(f'{filename},{md5sum[:8]},{int(size/1024**3 * 100)/100}\n')
+        # lines.append(f'{name},{md5sum[:8]},{int(size/1024**3 * 100)/100}\n')
 
-    with open('bundle-store/index.csv', 'w') as f:
-        f.writelines(lines)
+    # with open('bundle-store/index.csv', 'w') as f:
+    #     f.writelines(lines)
 
 if __name__ == '__main__':
     main()

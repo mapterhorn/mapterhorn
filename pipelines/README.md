@@ -144,4 +144,15 @@ We now bundle these files by creating tile pyramids with multiple zoom levels. I
 
 **6-{x}-{y}.pmtiles** contains all zoom level 13+ children of tile 6-{x}-{y}.
 
-With this convention we can limit the total file size to roughly 1 terabyte assuming that we have a maxzoom of 17 which corresponds to about 0.5 m resolution.\
+With this convention we can limit the total file size to roughly 1 terabyte assuming that we have a maxzoom of 17 which corresponds to about 0.5 m resolution.
+
+## Requirements
+
+- uv: `curl -LsSf https://astral.sh/uv/install.sh | sh`
+- tippecanoe: https://github.com/felt/tippecanoe?tab=readme-ov-file#installation
+- gdal: https://mothergeo-py.readthedocs.io/en/latest/development/how-to/gdal-ubuntu-pkg.html#install-gdal-ogr
+
+## Debug
+
+Run `./debug.sh`. This should download one image of swissalti3d and one of glo30, reproject them to web mercator, aggregate and downsample, and bundle them in two pmtiles files in the bundle store.
+
