@@ -4,7 +4,6 @@ https://opentopography.s3.sdsc.edu/raster/COP30/COP30_hh/Copernicus_DSM_10_N41_0
 https://opentopography.s3.sdsc.edu/raster/COP30/COP30_hh/Copernicus_DSM_10_N39_00_E044_00_DEM.tif
 https://opentopography.s3.sdsc.edu/raster/COP30/COP30_hh/Copernicus_DSM_10_N41_00_E047_00_DEM.tif
 https://opentopography.s3.sdsc.edu/raster/COP30/COP30_hh/Copernicus_DSM_10_N41_00_E045_00_DEM.tif
-https://opentopography.s3.sdsc.edu/raster/COP30/COP30_hh/Copernicus_DSM_10_N44_00_E005_00_DEM.tif
 https://opentopography.s3.sdsc.edu/raster/COP30/COP30_hh/Copernicus_DSM_10_N39_00_E046_00_DEM.tif
 https://opentopography.s3.sdsc.edu/raster/COP30/COP30_hh/Copernicus_DSM_10_N40_00_E048_00_DEM.tif
 https://opentopography.s3.sdsc.edu/raster/COP30/COP30_hh/Copernicus_DSM_10_N40_00_E043_00_DEM.tif
