@@ -6,7 +6,6 @@ download source:
     cd pipelines && uv run python source_download.py {{source}}
 
 # Download debug sources
-[group('debug')]
 download-debug-sources: (download "debug-glo30") (download "debug-swissalti3d")
 
 # Create bounds for source
@@ -14,7 +13,6 @@ bounds source:
     cd pipelines && uv run python source_bounds.py {{source}}
 
 # Create bounds for debug sources
-[group('debug')]
 bounds-debug-sources: (bounds "debug-glo30") (bounds "debug-swissalti3d")
 
 # Aggregation covering
