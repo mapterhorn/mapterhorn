@@ -39,14 +39,13 @@ Contains a copy of the original source license in PDF format. This can be a prin
 
 ### `metadata.json`
 
-Contains information about the source data producer, the source license, and the spatial resolution.
+Contains information about the source data producer and the source license.
 
 Example `swissalti3d/metadata.json`:
 
 ```
 {
     "name": "swissALTI3D",
-    "resolution-m": 0.5,
     "website": "https://www.swisstopo.admin.ch/en/height-model-swissalti3d",
     "license": "Open Government Data",
     "producer": "Federal Office of Topography swisstopo"

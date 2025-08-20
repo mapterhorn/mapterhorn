@@ -32,19 +32,6 @@ def create_folder(path):
     folder_path = Path(path)
     folder_path.mkdir(parents=True, exist_ok=True)
 
-def rsync(src, dst, skip_data_files=False):
-    command = f'rsync -avh {src} {dst}'
-    if skip_data_files:
-        command += ' --exclude "*.tiff"'
-        command += ' --exclude "*.tif"'
-        command += ' --exclude "*.pmtiles"'
-    run_command(command)
-
-def get_collection_items(source, collection_id):
-    paths = glob(f'cogify-store/3857/{source}/{collection_id}/*.json')
-    filenames = [path.split('/')[-1] for path in paths]
-    return [item for item in filenames if item not in ['collection.json', 'covering.json', 'source.json']]
-
 def get_aggregation_ids():
     '''
     returns aggregation ids ordered from oldest to newest

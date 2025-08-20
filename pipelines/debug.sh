@@ -16,3 +16,4 @@ uv run python remove_dangling_pmtiles.py
 TMPDIR=/tmp uv run python bundle.py 0.0.0
 
 uv run python download_urls.py 0.0.0
+uv run python attribution.py
