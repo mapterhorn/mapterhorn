@@ -13,4 +13,6 @@ uv run python downsampling_run.py
 
 uv run python remove_dangling_pmtiles.py
 
-TMPDIR=/tmp uv run python bundle.py
+TMPDIR=/tmp uv run python bundle.py 0.0.0
+
+uv run python download_urls.py 0.0.0

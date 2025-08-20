@@ -8,7 +8,11 @@ def download_from_internet(source):
         while line != '':
             urls.append(line)
             line = f.readline().strip()
+    j = 0
     for url in urls:
+        j += 1
+        if j % 100 == 0:
+            print(f'downloaded {j} / {len(urls)}')
         filename = url.split('/')[-1]
         command = f'wget --no-verbose -O source-store/{source}/{filename} -c {url}'
         utils.run_command(command, silent=False)

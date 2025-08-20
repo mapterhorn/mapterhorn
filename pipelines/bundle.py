@@ -1,7 +1,7 @@
 from glob import glob
 import math
 import time
-# import os
+import sys
 
 import mercantile
 from pmtiles.tile import zxy_to_tileid, TileType, Compression
@@ -45,7 +45,7 @@ def read_full_archive(filepath):
             tile_id_to_bytes[tile_id] = tile_bytes
     return tile_id_to_bytes
 
-def create_archive(filepaths, out_filepath):
+def create_archive(filepaths, out_filepath, version):
     with open(out_filepath, 'wb') as f1:
         writer = Writer(f1)
         min_z = math.inf
@@ -123,17 +123,21 @@ def create_archive(filepaths, out_filepath):
                 'center_lat_e7': int(0.5 * (min_lat_e7 + max_lat_e7)),
             },
             {
-                'attribution': '<a href="https://github.com/mapterhorn/mapterhorn">© Mapterhorn</a>'
+                'attribution': '<a href="https://github.com/mapterhorn/mapterhorn">© Mapterhorn</a>',
+                'version': version,
             },
         )
 
-# def get_md5sum(filepath):
-#     out, _ = utils.run_command(f'md5sum {filepath}')
-#     return out.strip().split('  ')[0]    
-
 def main():
+    version = None
+    if len(sys.argv) > 1:
+        version = sys.argv[1]
+        print(f'start bundling version {version}...')
+    else:
+        print('version argument missing...')
+        exit()
+
     parent_to_filepaths = get_parent_to_filepaths()
-    # lines = ['filename,md5sum,size_gigabytes\n']
     for parent in parent_to_filepaths:
         name = None
         if parent == mercantile.Tile(x=0, y=0, z=0):
@@ -144,13 +148,7 @@ def main():
         folder = f'bundle-store/{name}'
         utils.create_folder(folder)
         out_filepath = f'{folder}/{name}.pmtiles'
-        create_archive(parent_to_filepaths[parent], out_filepath)
-        # md5sum = get_md5sum(out_filepath)
-        # size = os.path.getsize(out_filepath)
-        # lines.append(f'{name},{md5sum[:8]},{int(size/1024**3 * 100)/100}\n')
-
-    # with open('bundle-store/index.csv', 'w') as f:
-    #     f.writelines(lines)
+        create_archive(parent_to_filepaths[parent], out_filepath, version)
 
 if __name__ == '__main__':
     main()
