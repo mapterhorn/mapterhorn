@@ -19,8 +19,8 @@ Public terrain tiles for interactive web map visualizations
 
 Tiled to web mercator 512 pixel tiles. Terrarium elevation encoding. Webp image format.
 
-- [planet.pmtiles](https://download.mapterhorn.com/planet.pmtiles): 1.43 TB, global coverage, zoom 0 to 12
-- [6-33-22.pmtiles](https://download.mapterhorn.com/6-33-22.pmtiles): 246.2 GB, high resolution coverage in Switzerland zoom 13 to 17
+- [planet.pmtiles](https://download.mapterhorn.com/planet.pmtiles): 352 GiB, global coverage, zoom 0 to 12
+- [6-33-22.pmtiles](https://download.mapterhorn.com/6-33-22.pmtiles): 154 GiB, high resolution coverage in Switzerland zoom 13 to 17
 
 ## Roadmap
 
@@ -30,10 +30,10 @@ Tiled to web mercator 512 pixel tiles. Terrarium elevation encoding. Webp image 
 - ✅ Write a pipeline to aggregate digital elevation models with different resolutions (v0.0.1)
 - ✅ Apply the pipepline to a global low-resolution and a local high-resolution dataset (v0.0.1)
 - ✅ Distribute the aggregated digital elevation model as PMTiles (v0.0.1)
+- ✅ Write documentation for contributors explaining the pipeline
 
 ### Planned and Funded
 
-- ◻️ Write documentation for contributors explaining the pipeline
 - ◻️ Write documentation for end-users with examples 
 - ◻️ Create a website with download area selection and metadata
 - ◻️ High-resolution coverage accross the European Union
