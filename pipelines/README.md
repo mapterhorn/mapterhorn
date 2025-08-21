@@ -99,6 +99,34 @@ In practice, the above method means that we paint better quality data on top of 
 
 After having reprojected and merged the source data, we now have a tif that contains the aggregated data. What remains to be done in the aggregation pipeline is to store it as PMTiles. We use terrarium encoding since it has a finer resolution than mapbox encoding. Data is stored as webp RGB images which are  25 to 35 percent smaller than PNGs but they take longer to encode.
 
+Tiles are optimized in size by limiting the vertical resolution depending on the zoom level. Terrarium has a maximal resolution of `1/256 m ~ 3.9 mm`. This is used at zoom level 20. At lower zoom levels, the vertical data is rounded to powers of 2 of this maximal resolution:
+
+| z | Pixel Size 3857 | Vertical Resolution |
+|----------|----------|----------|
+| 0 | 78.3 km | 4096 m |
+| 1 | 39.1 km | 2048 m |
+| 2 | 19.6 km | 1024 m |
+| 3 | 9.78 km | 512 m |
+| 4 | 4.89 km | 256 m |
+| 5 | 2.45 km | 128 m |
+| 6 | 1.22 km | 64 m |
+| 7 | 611 m | 32 m |
+| 8 | 306 m | 16 m |
+| 9 | 153 m | 8 m |
+| 10 | 76.4 m | 4 m |
+| 11 | 38.2 m | 2 m |
+| 12 | 19.1 m | 1 m |
+| 13 | 9.55 m | 0.5 m |
+| 14 | 4.78 m | 0.25 m |
+| 15 | 2.39 m | 0.125 m |
+| 16 | 1.19 m | 0.0625 m |
+| 17 | 0.597 m | 0.03125 m |
+| 18 | 0.299 m | 0.015625 m |
+| 19 | 0.149 m | 0.0078125 m |
+| 20 | 0.0746 m | 0.00390625 m |
+
+As a consequence of the vertical rounding, the minimal angle between neighboring pixels is the same on all zoom levels and is given by `min_angle = atan(1 / 19.1) ~ 3 deg`. The pixel size in the above table is given in the projected Web Mercator coordinate system EPSG:3857.
+
 We store the PMTiles data in the pmtiles-store folder using the same filename convention as the aggregation csv but just without the "-aggregation".
 
 If the aggregation item has z &lt; 7, it is stored directly in the pmtiles-store folder. Else it is placed in a subfolder where the subfolder name is given by the zoom 7 parent of the aggregation item. Example: `pmtiles-store/7-67-44/12-2144-1434-17.pmtiles`
