@@ -14,17 +14,20 @@ def main():
             for source_item in source_items:
                 sources.add(source_item['source'])
 
-    csv = ['"name","website","license","producer","license_pdf"\n']
+    data = []
     for source in sources:
         with open(f'../source-catalog/{source}/metadata.json') as f:
             metadata = json.load(f)
-            line = [metadata['name'], metadata['website'], metadata['license'], metadata['producer'], f'https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/{source}/LICENSE.pdf']
-            line = [entry.replace('"', '""') for entry in line]
-            line = [f'"{entry}"' for entry in line]
-            csv.append(','.join(line) + '\n')
+            data.append({
+                'name': metadata['name'],
+                'website': metadata['website'],
+                'license': metadata['license'],
+                'producer': metadata['producer'],
+                'license_pdf': f'https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/{source}/LICENSE.pdf',
+            })
 
-    with open('bundle-store/attribution.csv', 'w') as f:
-        f.writelines(csv)
+    with open('bundle-store/attribution.json', 'w') as f:
+        json.dump(data, f)
 
 if __name__ == '__main__':
     main()

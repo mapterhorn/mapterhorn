@@ -1,19 +1,24 @@
-<html>
+<!DOCTYPE html>
+<html lang='en'>
 
 <head>
-    <title>Mapterhorn Viewer</title>
+    <title>Viewer | Mapterhorn</title>
     <meta charset="utf-8" />
     <script src="https://unpkg.com/maplibre-gl@5.6.0/dist/maplibre-gl.js"></script>
     <link href="https://unpkg.com/maplibre-gl@5.6.0/dist/maplibre-gl.css" rel="stylesheet" />
     <script src="https://unpkg.com/pmtiles@4.3.0/dist/pmtiles.js"></script>
     <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <link rel="icon" href="https://mapterhorn.github.io/.github/brand/screen/mapterhorn-icon.png">
     <style>
         body {
             margin: 0;
+            padding: 0;
         }
 
         #map {
-            height: 100%;
+            position: absolute;
+            top: 0;
+            bottom: 0;
             width: 100%;
         }
     </style>
@@ -46,7 +51,7 @@
                         tiles: ['mapterhorn://{z}/{x}/{y}'],
                         encoding: 'terrarium',
                         tileSize: 512,
-                        attribution: '<a href="https://github.com/mapterhorn/mapterhorn">© Mapterhorn</a>'
+                        attribution: '<a href="https://mapterhorn.com/attribution">© Mapterhorn</a>'
                     },
                 },
                 layers: [
@@ -58,6 +63,23 @@
                 ],
             },
         });
+
+        class LogoControl {
+            onAdd(map) {
+                this._map = map;
+                this._container = document.createElement('div');
+                this._container.className = 'maplibregl-ctrl';
+                this._container.innerHTML = '<a href="/"><img width=240 src="https://mapterhorn.github.io/.github/brand/screen/mapterhorn-logo.png"/></a>';
+                this._container.style.marginBottom = '-11px';
+                this._container.style.marginLeft = '-5px';
+                return this._container;
+            }
+            onRemove() {
+                this._container.parentNode.removeChild(this._container);
+                this._map = undefined;
+            }
+        }
+        map.addControl(new LogoControl(), 'bottom-left');
     </script>
 </body>
 

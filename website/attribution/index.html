@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang='en'>
+
+<head>
+    <title>Attribution | Mapterhorn</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <link rel="stylesheet" href="/style.css" type="text/css">
+    <link rel="icon" href="https://mapterhorn.github.io/.github/brand/screen/mapterhorn-icon.png">
+</head>
+
+<body>
+    <header class="header">
+        <a href="/"><img class="logo" src="https://mapterhorn.github.io/.github/brand/screen/mapterhorn-logo.png"></a>
+        <nav class="nav-links">
+            <a href="/viewer">Viewer</a>
+            <a href="/data-access">Data Access</a>
+            <a href="/coverage">Coverage</a>
+            <a href="/attribution" class="selected">Attribution</a>
+        </nav>
+        <hr />
+    </header>
+
+    <h1>Attribution</h1>
+
+    Mapterhorn uses the following open-data sources to build its terrain tiles. For a full list in JSON format see
+    <a href="https://download.mapterhorn.com/attribution.json">attribution.json</a>.
+
+    <div id="attribution">
+    </div>
+
+    <div class="footer">
+        <hr>
+        <div class="footer-content">
+            <span>Copyright 2025 &middot; Mapterhorn</span>
+            <a href="https://www.linkedin.com/company/mapterhorn/">LinkedIn</a>
+            <a href="https://bsky.app/profile/mapterhorn.com">Bluesky</a>
+            <a href="https://mastodon.social/@mapterhorn">Mastodon</a>
+            <a href="https://github.com/mapterhorn/mapterhorn">GitHub</a>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+
+        const buildList = async () => {
+            const request = await fetch('https://download.mapterhorn.com/attribution.json');
+            const entries = await request.json();
+            const attribution = document.getElementById('attribution');
+            for (const entry of entries) {
+                const nameTitle = document.createElement('h4');
+                nameTitle.textContent = entry['name'];
+                attribution.appendChild(nameTitle);
+
+                const ul = document.createElement('ul');
+                const producerLi = document.createElement('li');
+                producerLi.textContent = entry['producer'];
+                ul.appendChild(producerLi);
+
+                const licenseLi = document.createElement('li');
+                licenseLi.textContent = entry['license'];
+                ul.appendChild(licenseLi);
+
+                const licensePdfLi = document.createElement('li');
+                const licensePdfA = document.createElement('a');
+                licensePdfA.href = entry['license_pdf'];
+                licensePdfA.textContent = 'LICENSE.pdf';
+                licensePdfLi.appendChild(licensePdfA);
+                ul.appendChild(licensePdfLi);
+
+                const websiteLi = document.createElement('li');
+                const websiteA = document.createElement('a');
+                websiteA.href = entry['website'];
+                websiteA.textContent = 'website';
+                websiteLi.appendChild(websiteA);
+                ul.appendChild(websiteLi);
+
+                attribution.appendChild(ul);
+            }
+        }
+        buildList();
+    </script>
+</body>
+
+</html>

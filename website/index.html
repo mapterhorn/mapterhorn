@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang='en'>
+
+<head>
+    <title>Mapterhorn</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <link rel="stylesheet" href="/style.css" type="text/css">
+    <link rel="icon" href="https://mapterhorn.github.io/.github/brand/screen/mapterhorn-icon.png">
+</head>
+
+<body>
+    <header class="header">
+        <a href="/"><img class="logo" src="https://mapterhorn.github.io/.github/brand/screen/mapterhorn-logo.png"></a>
+        <nav class="nav-links">
+            <a href="/viewer">Viewer</a>
+            <a href="/data-access">Data Access</a>
+            <a href="/coverage">Coverage</a>
+            <a href="/attribution">Attribution</a>
+        </nav>
+        <hr />
+    </header>
+
+    <img width="100%" src="https://mapterhorn.github.io/.github/brand/screen/mapterhorn-logo.png">
+    <p>Public terrain tiles for interactive web map visualizations</p>
+
+    <h3>Viewer</h3>
+    <p>Explore the Mapterhorn terrain tiles at <a href="/viewer">https://mapterhorn.com/viewer</a>.</p>
+
+    <h3>Roadmap</h3>
+    <h4>Released</h4>
+    <ul>
+        <li>✅ Create a source catalog that lists available open digital elevation models and their licenses (v0.0.1)
+        </li>
+        <li>✅ Write a pipeline to aggregate digital elevation models with different resolutions (v0.0.1)</li>
+        <li>✅ Apply the pipepline to a global low-resolution and a local high-resolution dataset (v0.0.1)</li>
+        <li>✅ Distribute the aggregated digital elevation model as PMTiles (v0.0.1)</li>
+        <li>✅ Write documentation for contributors explaining the pipeline</li>
+    </ul>
+    <h4>Planned and Funded</h4>
+    <ul>
+        <li>◻️ Write documentation for end-users with examples </li>
+        <li>◻️ Create a website with download area selection and metadata</li>
+        <li>◻️ High-resolution coverage accross the European Union</li>
+        <ul>
+            <li>◻️ Austria, country-wide, 10 m</li>
+            <li>◻️ Austria, Burgenland, 5 m</li>
+            <li>◻️ Austria, Salzburg, 1 m</li>
+            <li>◻️ Austria, Oberösterreich, 0.5 m</li>
+            <li>◻️ Austria, Wien, 1 m</li>
+            <li>◻️ Austria, Kärnten, 5 m</li>
+            <li>◻️ Austria, Salzburg, 1 m</li>
+            <li>◻️ Belgium, Flanders, 1 m</li>
+            <li>◻️ Belgium, Wallonie, 1 m</li>
+            <li>◻️ Czech Republic, country-wide, 1 m</li>
+            <li>◻️ Denmark, country-wide, 0.5 m</li>
+            <li>◻️ Estonia, country-wide, 1 m</li>
+            <li>◻️ Finland, country-wide, 2 m</li>
+            <li>◻️ France, partial, 1 m</li>
+            <li>◻️ France, country-wide, 5 m</li>
+            <li>◻️ Ireland, country-wide, 2 m</li>
+            <li>◻️ Italy, country-wide, 10 m</li>
+            <li>◻️ Italy, Sardegna, 1 m</li>
+            <li>◻️ Italy, Sicily, 2 m</li>
+            <li>◻️ Italy, Bozen, 2.5 m</li>
+            <li>◻️ Italy, Aosta, 0.5 m</li>
+            <li>◻️ Latvia, country-wide, 1 m</li>
+            <li>◻️ Lithuania, country-wide, 1 m</li>
+            <li>◻️ Luxembourg, country-wide, 0.5 m</li>
+            <li>◻️ Netherlands, country-wide, 0.5 m</li>
+            <li>◻️ Poland, country-wide, 1 m</li>
+            <li>◻️ Romania, country-wide, 5 m</li>
+            <li>◻️ Slovakia, country-wide, 5 m</li>
+            <li>◻️ Slovenia, country-wide, 5 m</li>
+            <li>◻️ Spain, country-wide, 5 m</li>
+            <li>◻️ Sweden, country-wide, 1 m</li>
+            <li>◻️ Germany, Baden-Württemberg, 1 m</li>
+            <li>◻️ Germany, Bayern, 1 m</li>
+            <li>◻️ Germany, Berlin, 1 m</li>
+            <li>◻️ Germany, Brandenburg, 1 m</li>
+            <li>◻️ Germany, Bremen, 1 m</li>
+            <li>◻️ Germany, Hamburg, 1 m</li>
+            <li>◻️ Germany, Hessen, 1 m</li>
+            <li>◻️ Germany, Mecklenburg-Vorpommern, 1 m</li>
+            <li>◻️ Germany, Niedersachsen, 1 m</li>
+            <li>◻️ Germany, Nordrhein-Westfalen, 1 m</li>
+            <li>◻️ Germany, Rheinland-Pfalz, 1 m</li>
+            <li>◻️ Germany, Saarland, 1 m</li>
+            <li>◻️ Germany, Sachsen, 1 m</li>
+            <li>◻️ Germany, Sachsen-Anhalt, 1 m</li>
+            <li>◻️ Germany, Schleswig-Holstein, 1 m</li>
+            <li>◻️ Germany, Thüringen, 1 m</li>
+        </ul>
+    </ul>
+
+
+    <h4>Under Consideration</h4>
+
+    <ul>
+        <li>◻️ Add more sources from countries with high-resolution open terrain data (not funded yet).</li>
+    </ul>
+
+    <h3>Code</h3>
+
+    <p>Mapterhorn is fully open-source, find the source code at <a href="https://github.com/mapterhorn/mapterhorn">https://github.com/mapterhorn/mapterhorn</a>.</p>
+    
+    <h3>License</h3>
+
+    <p>Code: BSD-3, see <a href="https://github.com/mapterhorn/mapterhorn/blob/main/LICENSE">LICENSE</a>.</p>
+
+    <p>Terrain data: various open-data sources, for a full list see <a href="/attribution">https://mapterhorn.com/attribution</a>.</p>
+
+    <h3>About</h3>
+
+    <p>Mapterhorn is an open-data project of <a href="https://leichteralsluft.ch/">Leichter als Luft GmbH</a> that was made possible
+    thanks to support from the NGI0 Core Fund, a fund established by <a href="https://nlnet.nl/">NLnet</a> with financial support
+    from the European Commission's <a href="https://ngi.eu/">Next Generation Internet</a> programme.</p>
+
+    <div class="footer">
+        <hr>
+        <div class="footer-content">
+            <span>Copyright 2025 &middot; Mapterhorn</span>
+            <a href="https://www.linkedin.com/company/mapterhorn/">LinkedIn</a>
+            <a href="https://bsky.app/profile/mapterhorn.com">Bluesky</a>
+            <a href="https://mastodon.social/@mapterhorn">Mastodon</a>
+            <a href="https://github.com/mapterhorn/mapterhorn">GitHub</a>
+        </div>
+    </div>
+
+</body>
+
+</html>

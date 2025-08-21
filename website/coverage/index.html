@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang='en'>
+
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>Coverage | Mapterhorn</title>
+    <script src='https://unpkg.com/maplibre-gl@5.6.2/dist/maplibre-gl.js'></script>
+    <link href='https://unpkg.com/maplibre-gl@5.6.2/dist/maplibre-gl.css' rel='stylesheet' />
+    <script src='https://unpkg.com/pmtiles@4.3.0/dist/pmtiles.js'></script>
+    <link rel="icon" href="https://mapterhorn.github.io/.github/brand/screen/mapterhorn-icon.png">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        #map {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div id='map'></div>
+
+    <script>
+        const protocol = new pmtiles.Protocol();
+        maplibregl.addProtocol('pmtiles', protocol.tile);
+        const map = new maplibregl.Map({
+            container: 'map',
+            hash: 'map',
+            style: 'style.json',
+            center: [0, 0],
+            zoom: 0,
+        });
+        map.setMaxZoom(7.9);
+
+        class LogoControl {
+            onAdd(map) {
+                this._map = map;
+                this._container = document.createElement('div');
+                this._container.className = 'maplibregl-ctrl';
+                this._container.innerHTML = '<a href="/"><img width=240 src="https://mapterhorn.github.io/.github/brand/screen/mapterhorn-logo.png"/></a>';
+                this._container.style.marginBottom = '-11px';
+                this._container.style.marginLeft = '-5px';
+                return this._container;
+            }
+            onRemove() {
+                this._container.parentNode.removeChild(this._container);
+                this._map = undefined;
+            }
+        }
+        map.addControl(new LogoControl(), 'bottom-left');
+
+        const addOverlay = async () => {
+            const request = await fetch('https://download.mapterhorn.com/download_urls.json');
+            const data = await request.json();
+            const items = data['items'].filter(item => item['name'] !== 'planet.pmtiles');
+
+            const features = [];
+            for (const item of items) {
+                const coordinates = [[
+                    [item['min_lon'], item['min_lat']],
+                    [item['max_lon'], item['min_lat']],
+                    [item['max_lon'], item['max_lat']],
+                    [item['min_lon'], item['max_lat']],
+                    [item['min_lon'], item['min_lat']],
+                ]];
+                const geometry = { 'type': 'Polygon', coordinates };
+                const properties = {
+                    'label': `${item['name']}\nz${item['min_zoom']}-z${item['max_zoom']}`,
+                    'popup': `${item['name']}<br/>z${item['min_zoom']}-z${item['max_zoom']} (${Math.round(item['size'] / Math.pow(1024, 3))} GiB)<br/><a href="${item['url']}">Download...</a>`,
+                    'url': item['url'],
+                }
+                features.push({ 'type': 'Feature', geometry, properties });
+            }
+            map.addSource('overlay', {
+                'type': 'geojson',
+                'data': { 'type': 'FeatureCollection', features }
+            });
+            map.addLayer({
+                'id': 'overlay-fill',
+                'type': 'fill',
+                'source': 'overlay',
+                'paint': {
+                    'fill-color': 'rgba(255, 0, 255, 0.3)'
+                }
+            });
+            map.addLayer({
+                'id': 'overlay-line',
+                'type': 'line',
+                'source': 'overlay',
+                'paint': {
+                    'line-width': 2,
+                    'line-color': 'rgba(255, 0, 255, 0.9)'
+                }
+            });
+            map.addLayer({
+                'id': 'overlay-label',
+                'type': 'symbol',
+                'source': 'overlay',
+                'minzoom': 4,
+                'layout': {
+                    'text-field': ['get', 'label'],
+                    'text-font': ['Noto Sans Regular'],
+                },
+                'paint': {
+                    'text-halo-color': 'white',
+                    'text-halo-width': 1,
+                    'text-halo-blur': 1,
+                }
+            });
+            map.on('click', 'overlay-fill', e => {
+                const popup = new maplibregl.Popup()
+                    .setLngLat(e.lngLat)
+                    .setHTML(e.features[0].properties['popup'])
+                    .addTo(map);
+            });
+            map.on('mouseenter', 'overlay-fill', e => {
+                map.getCanvas().style.cursor = 'pointer';
+            });
+            map.on('mouseleave', 'overlay-fill', () => {
+                map.getCanvas().style.cursor = '';
+            });
+        };
+
+        const addBbox = () => {
+            const params = new URLSearchParams(window.location.search);
+            if (!params.has('bbox')) {
+                return;
+            }
+            const [minLon, minLat, maxLon, maxLat] = params.get('bbox').split(',').map(value => Number(value));
+            const coordinates = [[
+                [minLon, minLat],
+                [maxLon, minLat],
+                [maxLon, maxLat],
+                [minLon, maxLat],
+                [minLon, minLat],
+            ]];
+            const geometry = { 'type': 'Polygon', coordinates };
+            map.addSource('bbox', {
+                'type': 'geojson',
+                'data': geometry,
+            });
+            map.addLayer({
+                'id': 'bbox-fill',
+                'source': 'bbox',
+                'type': 'fill',
+                'paint': {
+                    'fill-color': 'rgba(255, 0, 255, 0.3)'
+                }
+            })
+        };
+
+        map.on('load', async () => {
+            addBbox();
+            addOverlay();
+        });
+
+    </script>
+</body>
+
+</html>

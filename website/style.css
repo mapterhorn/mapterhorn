@@ -1,0 +1,104 @@
+@import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,200..900;1,8..60,200..900&display=swap');
+
+@font-face {
+  font-family: 'GeneralSans-Variable';
+  src: url('https://mapterhorn.github.io/.github/fonts/GeneralSans-Variable.woff2') format('woff2'),
+    url('https://mapterhorn.github.io/.github/fonts/GeneralSans-Variable.woff') format('woff'),
+    url('https://mapterhorn.github.io/.github/fonts/GeneralSans-Variable.ttf') format('truetype');
+  font-weight: 200 700;
+  font-display: swap;
+  font-style: normal;
+}
+
+body {
+  padding-top: 2.5em;
+  padding-bottom: 500px;
+  max-width: 44em;
+  margin: 0 auto;
+  font-family: "Source Serif 4", serif;
+  font-optical-sizing: auto;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: "GeneralSans-Variable", sans;
+}
+
+.header {
+  font-family: "GeneralSans-Variable", sans-serif;
+}
+
+.header .logo {
+  width: 240px;
+  margin-top: -25px;
+  margin-left: -15px;
+}
+
+hr {
+  color: #d3d7cf;
+  background: #d3d7cf;
+  border: none 0px;
+  height: 1px;
+  clear: both;
+  margin: 2.0em 0em 2.0em 0em;
+}
+
+ul {
+  padding-left: 1.5rem;
+}
+
+.nav-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5em;
+}
+
+.nav-links a {
+  text-decoration: none;
+  color: #333;
+  font-weight: 500;
+}
+
+.nav-links .selected {
+  font-weight: 700;
+}
+
+.nav-links a:hover {
+  color: #0070f3;
+}
+
+.footer {
+  padding-top: 3.5em;
+  color: #babdb6;
+  text-align: center;
+  font-size: 90%;
+  font-family: "GeneralSans-Variable", sans-serif;
+  font-weight: 500;
+}
+
+.footer .footer-content {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.5em;
+  justify-content: center;
+}
+
+.footer a {
+  text-decoration: none;
+  color: #babdb6;
+}
+
+@media screen and (max-width: 49em) {
+  body {
+    width: 90%;
+  }
+}
+
+@media screen and (max-width: 400px) {
+  body {
+    width: 95%;
+  }
+}

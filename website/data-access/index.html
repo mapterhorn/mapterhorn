@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang='en'>
+
+<head>
+    <title>Data Access | Mapterhorn</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <link rel="icon" href="https://mapterhorn.github.io/.github/brand/screen/mapterhorn-icon.png">
+    <link rel="stylesheet" href="/style.css" type="text/css">
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead th {
+            text-align: left;
+            border-bottom: 2px solid #ddd;
+            padding: .6rem .5rem;
+            font-family: "GeneralSans-Variable", sans;
+        }
+
+        tbody td {
+            border-bottom: 1px solid #eee;
+            padding: .55rem .5rem;
+            vertical-align: top;
+        }
+
+        tr:hover td {
+            background: #fafafa;
+        }
+
+        @media (max-width: 768px) {
+            .hide-mobile {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <a href="/"><img class="logo" src="https://mapterhorn.github.io/.github/brand/screen/mapterhorn-logo.png"></a>
+        <nav class="nav-links">
+            <a href="/viewer">Viewer</a>
+            <a href="/data-access" class="selected">Data Access</a>
+            <a href="/coverage">Coverage</a>
+            <a href="/attribution">Attribution</a>
+        </nav>
+        <hr />
+    </header>
+
+    <h1>Data Access</h1>
+
+    <div>
+        Mapterhorn <span id="version"></span> distributes Terrarium-encoded terrain
+        rgb tiles as webp images with 512 pixel width. The tiles are bundled into multiple PMTiles archives listed
+        below.
+    </div>
+
+    <h4>Bulk Download</h4>
+    <div> For a full list of download URLs in JSON format see <a
+            href="https://download.mapterhorn.com/download_urls.json">download_urls.json</a>.
+    </div>
+
+    <h4>File List</h4>
+    <table>
+        <thead>
+            <tr>
+                <th>name</th>
+                <th>zoom</th>
+                <th>size</th>
+                <th class="hide-mobile">md5sum</th>
+                <th>coverage</th>
+            </tr>
+        </thead>
+        <tbody id="table-body">
+        </tbody>
+    </table>
+
+    <div class="footer">
+        <hr>
+        <div class="footer-content">
+            <span>Copyright 2025 &middot; Mapterhorn</span>
+            <a href="https://www.linkedin.com/company/mapterhorn/">LinkedIn</a>
+            <a href="https://bsky.app/profile/mapterhorn.com">Bluesky</a>
+            <a href="https://mastodon.social/@mapterhorn">Mastodon</a>
+            <a href="https://github.com/mapterhorn/mapterhorn">GitHub</a>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        const buildList = async () => {
+            const request = await fetch('https://download.mapterhorn.com/download_urls.json');
+            const data = await request.json();
+            const version = `v${data['version']}`;
+            const items = [
+                ...data['items'].filter(item => item['name'] === 'planet.pmtiles'),
+                ...data['items'].filter(item => item['name'] !== 'planet.pmtiles')
+            ];
+
+            const versionSpan = document.getElementById('version');
+            versionSpan.textContent = version;
+
+            const tableBody = document.getElementById('table-body');
+
+            for (const item of items) {
+                const tr = document.createElement('tr');
+
+                const nameTd = document.createElement('td');
+                const nameA = document.createElement('a');
+                nameA.href = item['url'];
+                nameA.textContent = item['name'];
+                nameTd.appendChild(nameA);
+                tr.appendChild(nameTd);
+
+                const zoomTd = document.createElement('td');
+                zoomTd.textContent = `z${item['min_zoom']}-z${item['max_zoom']}`;
+                tr.appendChild(zoomTd);
+
+                const sizeTd = document.createElement('td');
+                sizeTd.textContent = `${Math.round(item['size'] / Math.pow(1024, 3))} GiB`;
+                tr.appendChild(sizeTd);
+
+                const md5Td = document.createElement('td');
+                md5Td.classList.add('hide-mobile');
+                md5Td.textContent = item['md5sum'];
+                tr.appendChild(md5Td);
+
+                const coverageTd = document.createElement('td');
+                if (item['name'] === 'planet.pmtiles') {
+                    coverageTd.textContent = 'global';
+                }
+                else {
+                    const coverageA = document.createElement('a');
+                    const mapLon = 0.5 * (item['min_lon'] + item['max_lon']);
+                    const mapLat = 0.5 * (item['min_lat'] + item['max_lat'])
+                    coverageA.href = `/coverage?bbox=${item['min_lon']},${item['min_lat']},${item['max_lon']},${item['max_lat']}#map=5/${mapLat}/${mapLon}`;
+                    coverageA.textContent = 'partial';
+                    coverageTd.appendChild(coverageA);
+                }
+                tr.appendChild(coverageTd);
+
+                tableBody.appendChild(tr);
+            }
+        }
+        buildList();
+    </script>
+</body>
+
+</html>
