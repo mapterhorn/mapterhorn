@@ -58,12 +58,12 @@
         below.
     </div>
 
-    <h4>Bulk Download</h4>
+    <h2 id="bulk-download">Bulk Download</h2>
     <div> For a full list of download URLs in JSON format see <a
             href="https://download.mapterhorn.com/download_urls.json">download_urls.json</a>.
     </div>
 
-    <h4>File List</h4>
+    <h2 id="file-list">File List</h2>
     <table>
         <thead>
             <tr>
@@ -77,6 +77,66 @@
         <tbody id="table-body">
         </tbody>
     </table>
+
+    <h2 id="area-extracts">Area Extracts</h2>
+    <p>
+        Download Mapterhorn data extracts for a limited area.
+    </p>
+
+    <h3>1. Bounding Box</h3>
+    <p>Define a bounding box for the area of interest in the format:</p>
+    <p><code>bbox = min_lon,min_lat,max_lon,max_lat</code></p>
+    <p>A good online tool to draw bounding boxes is
+        <a href="https://boundingbox.klokantech.com/">https://boundingbox.klokantech.com/</a>, select the "CSV" option
+        to get the right formatting.
+    </p>
+    <p>
+        Example Interlaken:
+    </p>
+    <p>
+        <code>bbox=7.74,46.60,7.96,46.75</code>
+    </p>
+
+    <h3>2. Install the PMTiles CLI</h3>
+    <p>
+        The <code>pmtiles</code> CLI is a stand-alone binary tool to extract subsets of PMTiles files, show metadata,
+        and serve individual tiles.
+    </p>
+    <ul>
+        <li>Download the version for your OS and architecture from <a
+                href="https://github.com/protomaps/go-pmtiles/releases">protomaps/go-pmtiles</a></li>
+        <li>Unpack the tar or zip archive</li>
+        <li>Run <code>pmtiles --help</code> to get a list of available commands</li>
+    </ul>
+
+    <h3>3. Download Extracts</h3>
+    <p>
+        Download extracts from the PMTiles files that intersect your bounding box. For a map of available zoom 13+
+        PMTiles files, see <a href="/coverage">coverage</a>.
+    </p>
+    <p>
+        Example Interlaken planet.pmtiles (z0-z12)
+        extract:
+    </p>
+    <p>
+        <pre><code>pmtiles extract \
+  --bbox=7.74,46.60,7.96,46.75 \
+  https://download.mapterhorn.com/planet.pmtiles \
+  planet.pmtiles</code></pre>
+    </p>
+    <p>
+        Example Interlaken 6-33-22.pmtiles (z13-z17) extract:
+    </p>
+    <p>
+        <pre><code>pmtiles extract \
+  --bbox=7.74,46.60,7.96,46.75 \
+  https://download.mapterhorn.com/6-33-22.pmtiles \
+  6-33-22.pmtiles</code></pre>
+    </p>
+
+    <p>
+        Tip: Add the flag <code>--dry-run</code> to get the total extract size before starting the actual download.
+    </p>
 
     <div class="footer">
         <hr>
