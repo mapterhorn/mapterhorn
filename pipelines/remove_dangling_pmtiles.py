@@ -12,7 +12,10 @@ for filepath in filepaths:
     filename = filepath.split('/')[-1]
     expected_pmtiles_filenames.append(filename.replace('-aggregation.csv', '.pmtiles').replace('-downsampling.csv', '.pmtiles'))
 
-pmtiles_filepaths = glob(f'pmtiles-store/*.pmtiles')
+pmtiles_filepaths = glob(f'pmtiles-store/*.pmtiles') + glob(f'pmtiles-store/*/*.pmtiles')
+
+print(len(expected_pmtiles_filenames))
+print(len(pmtiles_filepaths))
 for pmtiles_filepath in pmtiles_filepaths:
     pmtiles_filename = pmtiles_filepath.split('/')[-1]
     if pmtiles_filename not in expected_pmtiles_filenames:

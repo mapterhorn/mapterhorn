@@ -19,7 +19,7 @@ def get_resolution(zoom):
     bounds = mercantile.xy_bounds(tile)
     return (bounds.right - bounds.left) / 512
 
-def create_warp(vrt_filepath, vrt_3857_filepath, crs, zoom, aggregation_tile, buffer):
+def create_warp(vrt_filepath, vrt_3857_filepath, zoom, aggregation_tile, buffer):
     left, bottom, right, top = mercantile.xy_bounds(aggregation_tile)
     left -= buffer
     bottom -= buffer
@@ -27,12 +27,15 @@ def create_warp(vrt_filepath, vrt_3857_filepath, crs, zoom, aggregation_tile, bu
     top += buffer
     resolution = get_resolution(zoom)
     command = f'gdalwarp -of vrt -multi -wo NUM_THREADS=ALL_CPUS -overwrite '
-    command += f'-s_srs {crs} -t_srs EPSG:3857 '
+    command += f'-t_srs EPSG:3857 '
     command += f'-tr {resolution} {resolution} '
     command += f'-te {left} {bottom} {right} {top} '
     command += f'-r cubicspline '
+    command += f'-dstnodata -9999 '
     command += f'{vrt_filepath} {vrt_3857_filepath}'
-    utils.run_command(command)
+    out, err = utils.run_command(command)
+    if err.strip() != '':
+        raise Exception(f'gdalwarp failed for {vrt_filepath}:\n{out}\n{err}')
 
 def translate(in_filepath, out_filepath):
     command = f'GDAL_CACHEMAX=512 gdal_translate -of COG -co NUM_THREADS=ALL_CPUS '
@@ -41,7 +44,9 @@ def translate(in_filepath, out_filepath):
     command += f'-co SPARSE_OK=YES -co BLOCKSIZE=512 -co COMPRESS=NONE '
     command += f'{in_filepath} '
     command += f'{out_filepath}'
-    utils.run_command(command)
+    out, err = utils.run_command(command)
+    if err.strip() != '':
+        raise Exception(f'gdal_translate failed for {in_filepath}:\n{out}\n{err}')
 
 def contains_nodata_pixels(filepath):
     with rasterio.env.Env(GDAL_CACHEMAX=64):
@@ -90,10 +95,9 @@ def reproject(filepath, aggregation_id):
     for i, source_items in enumerate(grouped_source_items):
         vrt_filepath = f'{tmp_folder}/{i}.vrt'
         create_virtual_raster(vrt_filepath, source_items, tmp_source_folder)
-        crs = source_items[0]['crs']
         zoom = maxzoom
         vrt_3857_filepath = f'{tmp_folder}/{i}-3857.vrt'
-        create_warp(vrt_filepath, vrt_3857_filepath, crs, zoom, aggregation_tile, buffer_3857_rounded)
+        create_warp(vrt_filepath, vrt_3857_filepath, zoom, aggregation_tile, buffer_3857_rounded)
         out_filepath = f'{tmp_folder}/{i}-3857.tiff'
         translate(vrt_3857_filepath, out_filepath)
 

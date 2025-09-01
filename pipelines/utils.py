@@ -38,13 +38,16 @@ def get_aggregation_ids():
     '''
     return list(sorted([path.split('/')[-1] for path in glob(f'aggregation-store/*')]))
 
+def get_vertical_rounding_multiplier(z):
+    return int(2 ** ((10 - z) / 2) / (1 / 256))
+
 def save_terrarium_tile(data, filepath):
     filename = filepath.split('/')[-1]
     z = int(filename.split('-')[0])
 
     # full terrarium resolution of 1/256 at `full_resolution_zoom`
     # multiples of 2 of full terrarium resolution at lower zooms
-    full_resolution_zoom = 20
+    full_resolution_zoom = 19
     factor = 2 ** (full_resolution_zoom - z) / 256 
     data = np.round(data / factor) * factor
 
@@ -112,12 +115,15 @@ def create_archive(tmp_folder, out_filepath):
         )
 
 def get_aggregation_item_string(aggregation_id, filename):
+    result = ''
     filepath = f'aggregation-store/{aggregation_id}/{filename}'
     if not os.path.isfile(filepath):
         return None
     
     with open(filepath) as f:
-        return ''.join(f.readlines())
+        result = ''.join([l.strip() for l in f.readlines()])
+    
+    return result.strip()
 
 def get_dirty_aggregation_filenames(current_aggregation_id, last_aggregation_id):
     filepaths = sorted(glob(f'aggregation-store/{current_aggregation_id}/*-aggregation.csv'))
@@ -140,6 +146,7 @@ def get_pmtiles_folder(x, y, z):
         parent = mercantile.parent(mercantile.Tile(x=x, y=y, z=z), zoom=7)
         return f'pmtiles-store/{parent.z}-{parent.x}-{parent.y}'
 
+# group source items by maxzoom and source
 def get_grouped_source_items(filepath):
     lines = []
     with open(filepath) as f:
@@ -147,27 +154,25 @@ def get_grouped_source_items(filepath):
     lines = lines[1:] # skip header
     line_tuples = []
     for line in lines:
-        source, filename, crs, maxzoom = line.strip().split(',')
+        source, filename, maxzoom = line.strip().split(',')
         maxzoom = int(maxzoom)
         line_tuples.append((
             -maxzoom,
             source,
-            crs,
             filename
         ))
     line_tuples = sorted(line_tuples)
     grouped_source_items = []
 
     first_line_tuple = line_tuples[0]
-    last_group_signature = (first_line_tuple[0], first_line_tuple[1], first_line_tuple[2])
+    last_group_signature = (first_line_tuple[0], first_line_tuple[1])
     current_group = [{
         'maxzoom': -first_line_tuple[0],
         'source': first_line_tuple[1],
-        'crs': first_line_tuple[2],
-        'filename': first_line_tuple[3],
+        'filename': first_line_tuple[2],
     }]
     for line_tuple in line_tuples[1:]:
-        current_group_signature = (line_tuple[0], line_tuple[1], line_tuple[2])
+        current_group_signature = (line_tuple[0], line_tuple[1])
         if current_group_signature != last_group_signature:
             grouped_source_items.append(current_group)
             current_group = []
@@ -175,8 +180,7 @@ def get_grouped_source_items(filepath):
         current_group.append({
             'maxzoom': -line_tuple[0],
             'source': line_tuple[1],
-            'crs': line_tuple[2],
-            'filename': line_tuple[3],
+            'filename': line_tuple[2],
         })
     grouped_source_items.append(current_group)
     return grouped_source_items

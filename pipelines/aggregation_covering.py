@@ -45,7 +45,7 @@ def get_macrotile_map():
             f.readline() # skip header
             line = f.readline().strip()
             while line != '':
-                filename, left, bottom, right, top, width, height, crs = line.split(',')
+                filename, left, bottom, right, top, width, height = line.split(',')
                 width, height = [int(a) for a in [width, height]]
                 left, bottom, right, top = [float(a) for a in [left, bottom, right, top]]
 
@@ -78,7 +78,6 @@ def get_macrotile_map():
                         macrotile_map[(tile.x, tile.y)]['sources'][source] = []
                     macrotile_map[(tile.x, tile.y)]['sources'][source].append({
                         'filename': filename,
-                        'crs': crs,
                         'maxzoom': maxzoom,
                     })
                 line = f.readline().strip()
@@ -88,7 +87,7 @@ def get_macrotile_map():
 def get_smallest_overzoom(left, bottom, right, top, width, height, mercator_resolutions):
     horizontal_resolution = (right - left) / width
     vertical_resolution = (top - bottom) / height
-    
+
     for z in range(len(mercator_resolutions)):
         if mercator_resolutions[z] < horizontal_resolution and mercator_resolutions[z] < vertical_resolution:
             return z
@@ -99,7 +98,7 @@ def add_group_ids(macrotile_map):
         group_id_parts = set({})
         for source in macrotile_map[tile_tuple]['sources']:
             for source_item in macrotile_map[tile_tuple]['sources'][source]:
-                group_id_parts.add((source, source_item['maxzoom'], source_item['crs']))
+                group_id_parts.add((source, source_item['maxzoom']))
         group_id = tuple(sorted(list(group_id_parts)))
         macrotile_map[tile_tuple]['group_id'] = group_id
 
@@ -140,7 +139,7 @@ def write_aggregation_items(macrotile_map, aggregation_tiles, aggregation_id):
     utils.create_folder(folder)
     for aggregation_tile in aggregation_tiles:
         macrotiles = list(mercantile.children(aggregation_tile, zoom=utils.macrotile_z))
-        lines = ['source,filename,crs,maxzoom\n']
+        lines = ['source,filename,maxzoom\n']
         line_tuples = set({})
         child_z = 0
         for macrotile in macrotiles:
@@ -152,10 +151,11 @@ def write_aggregation_items(macrotile_map, aggregation_tiles, aggregation_id):
                     line_tuples.add((
                         source, 
                         source_item['filename'], 
-                        source_item['crs'], 
                         str(source_item['maxzoom']
                     )))
                     child_z = max(child_z, source_item['maxzoom'])
+        if len(line_tuples) == 0:
+            continue
         line_tuples = sorted(list(line_tuples))
         for line_tuple in line_tuples:
             lines.append(f'{",".join(line_tuple)}\n')

@@ -29,6 +29,10 @@ def merge(filepath):
         return
     
     num_tiff_files = len(glob(f'{tmp_folder}/*.tiff'))
+
+    if num_tiff_files == 0:
+        raise ValueError(f'failed to read tifs of {filepath}')
+
     if num_tiff_files == 1:
         print('single file...')
         command = f'touch {done_filepath}'
@@ -70,7 +74,8 @@ def merge(filepath):
         print(f'alpha_mask done in {time.time() - t1} s...')
 
         t1 = time.time()
-        merged = current * (1 - alpha_mask) + merged * alpha_mask
+        current_has_data = (current != -9999)
+        merged[current_has_data] = current[current_has_data] * (1 - alpha_mask[current_has_data]) + merged[current_has_data] * alpha_mask[current_has_data]
         print(f'merging done in {time.time() - t1} s...')
 
         if -9999 not in merged:
