@@ -33,7 +33,7 @@ def create_warp(vrt_filepath, vrt_3857_filepath, zoom, aggregation_tile, buffer)
     command += f'-r cubicspline '
     command += f'-dstnodata -9999 '
     command += f'{vrt_filepath} {vrt_3857_filepath}'
-    out, err = utils.run_command(command)
+    out, err = utils.run_command(command, silent=True)
     if err.strip() != '':
         raise Exception(f'gdalwarp failed for {vrt_filepath}:\n{out}\n{err}')
 
@@ -44,7 +44,7 @@ def translate(in_filepath, out_filepath):
     command += f'-co SPARSE_OK=YES -co BLOCKSIZE=512 -co COMPRESS=NONE '
     command += f'{in_filepath} '
     command += f'{out_filepath}'
-    out, err = utils.run_command(command)
+    out, err = utils.run_command(command, silent=True)
     if err.strip() != '':
         raise Exception(f'gdal_translate failed for {in_filepath}:\n{out}\n{err}')
 

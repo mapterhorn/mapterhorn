@@ -74,8 +74,15 @@ def merge(filepath):
         print(f'alpha_mask done in {time.time() - t1} s...')
 
         t1 = time.time()
-        current_has_data = (current != -9999)
-        merged[current_has_data] = current[current_has_data] * (1 - alpha_mask[current_has_data]) + merged[current_has_data] * alpha_mask[current_has_data]
+        
+        if -9999 not in current:
+            merged = current * (1 - alpha_mask) + merged * alpha_mask
+        else:
+            binary_mask_current = (current != -9999).astype('int32')
+            reduced_current = ndimage.binary_erosion(binary_mask_current, iterations=(buffer_pixels - 1))
+            current_has_data = (reduced_current == 1)
+            merged[current_has_data] = current[current_has_data] * (1 - alpha_mask[current_has_data]) + merged[current_has_data] * alpha_mask[current_has_data]
+            
         print(f'merging done in {time.time() - t1} s...')
 
         if -9999 not in merged:
