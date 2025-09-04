@@ -1,22 +1,26 @@
 # Run full pipeline
 default:
-    uv run python source_download.py glo30
-    uv run python source_download.py swissalti3d
-    uv run python source_download.py at10
-    uv run python source_download.py atburgenland
-    uv run python source_download.py atoberoesterreich
-    uv run python source_download.py atsalzburg
-    
-    uv run python source_set_crs.py atsalzburg EPSG:31258
+    # uv run python source_download.py glo30
+    # uv run python source_download.py swissalti3d
+    # uv run python source_download.py at10
+    # uv run python source_download.py atburgenland
+    # uv run python source_download.py atoberoesterreich
+    # uv run python source_download.py atsalzburg
+    # uv run python source_download.py atkaernten
+    # uv run python source_download.py beflanders
+
+    # uv run python source_set_crs.py atsalzburg EPSG:31258
     
     # uv run python source_set_nodata.py atkaernten 0.0
 
-    uv run python source_bounds.py glo30
-    uv run python source_bounds.py swissalti3d
-    uv run python source_bounds.py at10
-    uv run python source_bounds.py atburgenland
-    uv run python source_bounds.py atoberoesterreich
-    uv run python source_bounds.py atsalzburg
+    # uv run python source_bounds.py glo30
+    # uv run python source_bounds.py swissalti3d
+    # uv run python source_bounds.py at10
+    # uv run python source_bounds.py atburgenland
+    # uv run python source_bounds.py atoberoesterreich
+    # uv run python source_bounds.py atsalzburg
+    # uv run python source_bounds.py kaernten
+    # uv run python source_bounds.py beflanders
 
     uv run python aggregation_covering.py
     uv run python downsampling_covering.py
@@ -25,9 +29,11 @@ default:
     uv run python downsampling_run.py
 
     uv run python remove_dangling_pmtiles.py
-    TMPDIR=/tmp uv run python bundle.py 0.0.0
-    uv run python download_urls.py 0.0.0
-    uv run python attribution.py
+    uv run python create_index.py
+
+    # TMPDIR=/tmp uv run python bundle.py 0.0.0
+    # uv run python download_urls.py 0.0.0
+    # uv run python attribution.py
 
 # Run debug pipeline
 debug:
