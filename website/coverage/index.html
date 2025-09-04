@@ -73,7 +73,7 @@
                 const geometry = { 'type': 'Polygon', coordinates };
                 const properties = {
                     'label': `${item['name']}\nz${item['min_zoom']}-z${item['max_zoom']}`,
-                    'popup': `${item['name']}<br/>z${item['min_zoom']}-z${item['max_zoom']} (${Math.round(item['size'] / Math.pow(1024, 3))} GiB)<br/><a href="${item['url']}">Download...</a>`,
+                    'popup': `${item['name']}<br/>z${item['min_zoom']}-z${item['max_zoom']} (${(item['size'] / Math.pow(1024, 3)).toFixed(2)} GiB)<br/><a href="${item['url']}">Download...</a>`,
                     'url': item['url'],
                 }
                 features.push({ 'type': 'Feature', geometry, properties });

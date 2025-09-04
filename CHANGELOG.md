@@ -1,8 +1,16 @@
-## main
+## 0.0.3
 
 ### ✨ Features and improvements
 
-- add points here...
+- Add source at10: Austria country-wide 10 m (#36)
+- Add source atburgenland: Land Burgenland, Austria, 5 m (#37)
+- Add source atsalzburg: Land Salzburg, Austria, 1 m (#38)
+- Add source atoberoesterreich: Land Oberösterreich, Austria, 0.5 m (#41)
+- Add source atkaernten: Land Kärnten, Austria, 1 m (#43)
+
+### 🐞 Bug fixes
+
+- Remove CRS, increase vertical resolution, fix issue with three overlapping sources (#35)
 
 ## 0.0.2
 

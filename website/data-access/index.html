@@ -180,7 +180,7 @@
                 tr.appendChild(zoomTd);
 
                 const sizeTd = document.createElement('td');
-                sizeTd.textContent = `${Math.round(item['size'] / Math.pow(1024, 3))} GiB`;
+                sizeTd.textContent = `${(item['size'] / Math.pow(1024, 3)).toFixed(2)} GiB`;
                 tr.appendChild(sizeTd);
 
                 const md5Td = document.createElement('td');
