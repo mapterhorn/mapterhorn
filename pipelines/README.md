@@ -175,11 +175,12 @@ With this convention we can limit the total file size to roughly 1 terabyte assu
 
 ## Requirements
 
-- uv: `curl -LsSf https://astral.sh/uv/install.sh | sh`
-- tippecanoe: https://github.com/felt/tippecanoe?tab=readme-ov-file#installation
 - gdal: https://mothergeo-py.readthedocs.io/en/latest/development/how-to/gdal-ubuntu-pkg.html#install-gdal-ogr
+- uv: `curl -LsSf https://astral.sh/uv/install.sh | sh`
+- just: https://github.com/casey/just?tab=readme-ov-file#installation
+- pmtiles cli: https://github.com/protomaps/go-pmtiles?tab=readme-ov-file#installation
 
-## Debug
+## Debug Pipeline
 
-Run `./debug.sh`. This should download one image of swissalti3d and one of glo30, reproject them to web mercator, aggregate and downsample, and bundle them in two pmtiles files in the bundle store.
+Run `just debug`. This should download one image of swissalti3d and one of glo30, reproject them to web mercator, aggregate and downsample, and bundle them in two pmtiles files in the bundle store.
 
