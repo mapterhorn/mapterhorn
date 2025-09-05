@@ -8,10 +8,14 @@ default:
     # uv run python source_download.py atsalzburg
     # uv run python source_download.py atkaernten
     # uv run python source_download.py beflanders
+    # uv run python source_download.py bewallonie
+
+    # uv run python source_unzip.py bewallonie
 
     # uv run python source_set_crs.py atsalzburg EPSG:31258
     
     # uv run python source_set_nodata.py atkaernten 0.0
+    # uv run python source_to_cog.py bewallonie
 
     # uv run python source_bounds.py glo30
     # uv run python source_bounds.py swissalti3d
@@ -21,15 +25,16 @@ default:
     # uv run python source_bounds.py atsalzburg
     # uv run python source_bounds.py kaernten
     # uv run python source_bounds.py beflanders
+    # uv run python source_bounds.py bewallonie
 
-    uv run python aggregation_covering.py
-    uv run python downsampling_covering.py
-
+    # uv run python aggregation_covering.py
+    # uv run python downsampling_covering.py
+ 
     uv run python aggregation_run.py
-    uv run python downsampling_run.py
+    # uv run python downsampling_run.py
 
-    uv run python remove_dangling_pmtiles.py
-    uv run python create_index.py
+    # uv run python remove_dangling_pmtiles.py
+    # uv run python create_index.py
 
     # TMPDIR=/tmp uv run python bundle.py 0.0.0
     # uv run python download_urls.py 0.0.0
@@ -53,3 +58,19 @@ debug:
     TMPDIR=/tmp uv run python bundle.py 0.0.0
     uv run python download_urls.py 0.0.0
     uv run python attribution.py
+
+# Upload to cloudflare. Requires the following env variables:
+# export AWS_ACCESS_KEY_ID=MY_KEY
+# export AWS_SECRET_ACCESS_KEY=MY_SECRET
+upload:
+    pmtiles upload bundle-store/planet/planet.pmtiles planet.pmtiles --bucket="s3://mapterhorn?region=auto&endpoint=https://5521f1c60beed398e82b05eabc341142.r2.cloudflarestorage.com/"
+
+    pmtiles upload bundle-store/6-33-21/6-33-21.pmtiles 6-33-21.pmtiles --bucket="s3://mapterhorn?region=auto&endpoint=https://5521f1c60beed398e82b05eabc341142.r2.cloudflarestorage.com/"
+    pmtiles upload bundle-store/6-33-22/6-33-22.pmtiles 6-33-22.pmtiles --bucket="s3://mapterhorn?region=auto&endpoint=https://5521f1c60beed398e82b05eabc341142.r2.cloudflarestorage.com/"
+    pmtiles upload bundle-store/6-34-21/6-34-21.pmtiles 6-34-21.pmtiles --bucket="s3://mapterhorn?region=auto&endpoint=https://5521f1c60beed398e82b05eabc341142.r2.cloudflarestorage.com/"
+    pmtiles upload bundle-store/6-34-22/6-34-22.pmtiles 6-34-22.pmtiles --bucket="s3://mapterhorn?region=auto&endpoint=https://5521f1c60beed398e82b05eabc341142.r2.cloudflarestorage.com/"
+    pmtiles upload bundle-store/6-35-21/6-35-21.pmtiles 6-35-21.pmtiles --bucket="s3://mapterhorn?region=auto&endpoint=https://5521f1c60beed398e82b05eabc341142.r2.cloudflarestorage.com/"
+    pmtiles upload bundle-store/6-35-22/6-35-22.pmtiles 6-35-22.pmtiles --bucket="s3://mapterhorn?region=auto&endpoint=https://5521f1c60beed398e82b05eabc341142.r2.cloudflarestorage.com/"
+
+    pmtiles upload bundle-store/attribution.json attribution.json --bucket="s3://mapterhorn?region=auto&endpoint=https://5521f1c60beed398e82b05eabc341142.r2.cloudflarestorage.com/"
+    pmtiles upload bundle-store/download_urls.json download_urls.json --bucket="s3://mapterhorn?region=auto&endpoint=https://5521f1c60beed398e82b05eabc341142.r2.cloudflarestorage.com/"

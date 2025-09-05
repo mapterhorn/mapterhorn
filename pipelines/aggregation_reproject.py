@@ -26,7 +26,7 @@ def create_warp(vrt_filepath, vrt_3857_filepath, zoom, aggregation_tile, buffer)
     right += buffer
     top += buffer
     resolution = get_resolution(zoom)
-    command = f'gdalwarp -of vrt -multi -wo NUM_THREADS=ALL_CPUS -overwrite '
+    command = f'gdalwarp -of vrt -overwrite '
     command += f'-t_srs EPSG:3857 '
     command += f'-tr {resolution} {resolution} '
     command += f'-te {left} {bottom} {right} {top} '
@@ -38,8 +38,7 @@ def create_warp(vrt_filepath, vrt_3857_filepath, zoom, aggregation_tile, buffer)
         raise Exception(f'gdalwarp failed for {vrt_filepath}:\n{out}\n{err}')
 
 def translate(in_filepath, out_filepath):
-    command = f'GDAL_CACHEMAX=512 gdal_translate -of COG -co NUM_THREADS=ALL_CPUS '
-    command += f'--config GDAL_NUM_THREADS all_cpus '
+    command = f'GDAL_CACHEMAX=512 gdal_translate -of COG '
     command += f'-co BIGTIFF=IF_NEEDED -co ADD_ALPHA=YES -co OVERVIEWS=NONE '
     command += f'-co SPARSE_OK=YES -co BLOCKSIZE=512 -co COMPRESS=NONE '
     command += f'{in_filepath} '
