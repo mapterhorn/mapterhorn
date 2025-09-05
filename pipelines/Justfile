@@ -30,11 +30,11 @@ default:
     # uv run python aggregation_covering.py
     # uv run python downsampling_covering.py
  
-    uv run python aggregation_run.py
+    # uv run python aggregation_run.py
     # uv run python downsampling_run.py
 
-    # uv run python remove_dangling_pmtiles.py
-    # uv run python create_index.py
+    uv run python remove_dangling_pmtiles.py
+    uv run python create_index.py
 
     # TMPDIR=/tmp uv run python bundle.py 0.0.0
     # uv run python download_urls.py 0.0.0
