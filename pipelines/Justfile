@@ -26,7 +26,7 @@ default:
     # uv run python source_bounds.py atburgenland
     # uv run python source_bounds.py atoberoesterreich
     # uv run python source_bounds.py atsalzburg
-    # uv run python source_bounds.py kaernten
+    # uv run python source_bounds.py atkaernten
     # uv run python source_bounds.py beflanders
     # uv run python source_bounds.py bewallonie
     # uv run python source_bounds.py cz
