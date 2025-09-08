@@ -122,6 +122,9 @@ def is_parent_of_dirty_aggregation_tile(tile, dirty_aggregation_tiles):
             return True
     return False
 
+def not_in_previous_aggregation(filename, aggregation_ids):
+    return len(glob(f'aggregation-store/{aggregation_ids[-2]}/{filename}')) == 0
+
 if __name__ == '__main__':
     child_zoom_to_filepaths = {}
     aggregation_ids = utils.get_aggregation_ids()
@@ -138,7 +141,7 @@ if __name__ == '__main__':
         filename = filepath.split('/')[-1]
         z, x, y, child_zoom = [int(a) for a in filename.replace('-downsampling.csv', '').split('-')]
 
-        if len(aggregation_ids) < 2 or is_parent_of_dirty_aggregation_tile(mercantile.Tile(x=x, y=y, z=z), dirty_aggregation_tiles):
+        if len(aggregation_ids) < 2 or is_parent_of_dirty_aggregation_tile(mercantile.Tile(x=x, y=y, z=z), dirty_aggregation_tiles) or not_in_previous_aggregation(filename, aggregation_ids):
             if child_zoom not in child_zoom_to_filepaths:
                 child_zoom_to_filepaths[child_zoom] = []
             child_zoom_to_filepaths[child_zoom].append(filepath)
