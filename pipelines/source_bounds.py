@@ -3,7 +3,7 @@ import sys
 
 import rasterio
 from rasterio.warp import transform_bounds
-  
+
 def main():
     source = None
     if len(sys.argv) > 1:
@@ -17,8 +17,10 @@ def main():
 
     bounds_file_lines = ['filename,left,bottom,right,top,width,height\n']
 
+    excluded_suffices = ['csv', 'bak', 'geojson']
     for j, filepath in enumerate(filepaths):
-        if not filepath.endswith('.tif'):
+        suffix = filepath.split('.')[-1]
+        if suffix in excluded_suffices:
             continue
         with rasterio.open(filepath) as src:
             left, bottom, right, top = transform_bounds(src.crs, 'EPSG:3857', *src.bounds)

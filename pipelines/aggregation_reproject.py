@@ -11,8 +11,8 @@ def create_virtual_raster(filepath, source_items, tmp_source_folder):
     source = source_items[0]['source']
     command = f'gdalbuildvrt -overwrite {filepath}'
     for source_item in source_items:
-        command += f' {tmp_source_folder}/{source}/{source_item["filename"]}'
-    utils.run_command(command)
+        command += f' "{tmp_source_folder}/{source}/{source_item["filename"]}"'
+    utils.run_command(command, silent=True)
 
 def get_resolution(zoom):
     tile = mercantile.Tile(x=0, y=0, z=zoom)
