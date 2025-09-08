@@ -11,6 +11,7 @@ default:
     # uv run python source_download.py bewallonie
     # uv run python source_download.py cz
     # uv run python source_download.py debayern
+    # uv run python source_download.py deniedersachsen
 
     # uv run python source_unzip.py bewallonie
     # uv run python source_unzip.py cz
@@ -31,6 +32,7 @@ default:
     # uv run python source_bounds.py bewallonie
     # uv run python source_bounds.py cz
     # uv run python source_bounds.py debayern
+    # uv run python source_bounds.py niedersachsen
 
     # uv run python aggregation_covering.py
     # uv run python downsampling_covering.py
