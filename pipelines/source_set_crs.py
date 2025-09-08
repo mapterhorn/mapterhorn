@@ -3,6 +3,13 @@ import sys
 
 import utils
 
+from multiprocessing import Pool
+
+def set_crs(filepath, crs):
+    utils.run_command(f'mv {filepath} {filepath}.bak')
+    utils.run_command(f'gdal_translate -a_srs {crs} {filepath}.bak {filepath}', silent=True)
+    utils.run_command(f'rm {filepath}.bak')
+
 def main():
     source = None
     crs = None
@@ -16,12 +23,14 @@ def main():
     
     filepaths = sorted(glob(f'source-store/{source}/*'))
 
-    for j, filepath in enumerate(filepaths):
+    argument_tuples = []
+    for filepath in filepaths:
         if not filepath.endswith('.tif'):
             continue
-        if j % 100 == 0:
-            print(f'{j} / {len(filepaths)}')
-        utils.run_command(f'gdal_edit.py -a_srs {crs} {filepath}')
+        argument_tuples.append((filepath, crs))
+    
+    with Pool() as pool:
+        pool.starmap(set_crs, argument_tuples)
 
 if __name__ == '__main__':
     main()
