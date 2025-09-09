@@ -6,14 +6,16 @@ from multiprocessing import Pool
 
 import utils
 
+SILENT = True
+
 def unzip(filepath, source):
     filename = filepath.split('/')[-1]
-    utils.run_command(f'unzip -o {filepath} -d source-store/{source}/{filename}-tmp/', silent=False)
+    utils.run_command(f'unzip -o {filepath} -d source-store/{source}/{filename}-tmp/', silent=SILENT)
     utils.run_command(f'rm {filepath}', silent=False)
 
 def un7z(filepath, source):
     filename = filepath.split('/')[-1]
-    utils.run_command(f'7z x -osource-store/{source}/{filename}-tmp/ "{filepath}"', silent=False)
+    utils.run_command(f'7z x -osource-store/{source}/{filename}-tmp/ "{filepath}"', silent=SILENT)
     filepaths_to_remove = None
     if filepath.endswith('.7z'):
         filepaths_to_remove = [filepath]
@@ -21,7 +23,7 @@ def un7z(filepath, source):
         # filepath ends with '.7z.001'
         filepaths_to_remove = [path for path in glob(filepath.replace('.7z.001', '.7z.*')) if not path.endswith('-tmp')]
     for filepath_to_remove in filepaths_to_remove:
-        utils.run_command(f'rm "{filepath_to_remove}"', silent=False)
+        utils.run_command(f'rm "{filepath_to_remove}"', silent=SILENT)
 
 def move_images(filepath, source, suffix):
     image_filepaths = glob(f'{filepath}-tmp/**/*.{suffix}', recursive=True)
@@ -33,7 +35,7 @@ def is_7z_head_file(filepath):
     return filepath.endswith('.7z') or filepath.endswith('.7z.001')
 
 def to_cog(filepath_in, filepath_out):
-    utils.run_command(f'gdal_translate -of COG -co COMPRESS=LZW -co BLOCKSIZE=512 {filepath_in} {filepath_out}', silent=True)
+    utils.run_command(f'gdal_translate -of COG -co COMPRESS=LZW -co BLOCKSIZE=512 {filepath_in} {filepath_out}', silent=SILENT)
 
 def main():
     source = None
