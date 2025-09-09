@@ -3,6 +3,7 @@ import sys
 import zipfile
 import shutil
 from multiprocessing import Pool
+import os
 
 import utils
 
@@ -29,7 +30,7 @@ def move_images(filepath, source, suffix):
     image_filepaths = glob(f'{filepath}-tmp/**/*.{suffix}', recursive=True)
     for image_filepath in image_filepaths:
         image_filename = image_filepath.split('/')[-1]
-        utils.run_command(f'mv {image_filepath} source-store/{source}/{image_filename}')
+        utils.run_command(f'mv "{image_filepath}" "source-store/{source}/{image_filename}"', silent=SILENT)
 
 def is_7z_head_file(filepath):
     return filepath.endswith('.7z') or filepath.endswith('.7z.001')
@@ -62,7 +63,10 @@ def main():
             pool.starmap(to_cog, argument_tuples)
         for text_filepath in text_filepaths:
             utils.run_command(f'rm {text_filepath}')
-        shutil.rmtree(f'{filepath}-tmp')
+        
+        tmpdir = f'{filepath}-tmp'
+        if os.path.isdir(tmpdir):
+            shutil.rmtree(tmpdir)
 
 if __name__ == '__main__':
     main()
