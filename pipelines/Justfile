@@ -21,6 +21,7 @@ default:
     # uv run python source_download.py frrgealti5metro
     # uv run python source_download.py frrgealti5guiana
     # uv run python source_download.py frrgealti5mayotte
+    # uv run python source_download.py demv
 
     # uv run python source_unzip.py bewallonie
     # uv run python source_unzip.py cz
@@ -43,6 +44,8 @@ default:
     # uv run python source_set_crs.py frrgealti5mayotte EPSG:4471
     
     # uv run python source_set_nodata.py atkaernten 0.0
+    # uv run python source_set_nodata.py demv -9999
+
     # uv run python source_to_cog.py bewallonie
 
     # uv run python source_bounds.py glo30
@@ -66,6 +69,7 @@ default:
     # uv run python source_bounds.py frrgealti5metro
     # uv run python source_bounds.py frrgealti5guiana
     # uv run python source_bounds.py frrgealti5mayotte
+    # uv run python source_bounds.py demv
 
     # uv run python aggregation_covering.py
     # uv run python downsampling_covering.py

@@ -1,10 +1,16 @@
 from glob import glob
 import sys
+from multiprocessing import Pool
 
 import rasterio
 
 import utils
-  
+
+def set_nodata(filepath, nodata):
+    utils.run_command(f'mv "{filepath}" "{filepath}.bak"', silent=True)
+    utils.run_command(f'gdal_translate "{filepath}.bak" "{filepath}" -a_nodata {nodata} -of COG -co COMPRESS=LZW', silent=True)
+    utils.run_command(f'rm "{filepath}.bak"', silent=True)
+
 def main():
     source = None
     nodata = None
@@ -18,15 +24,17 @@ def main():
     
     filepaths = sorted(glob(f'source-store/{source}/*'))
 
-    for j, filepath in enumerate(filepaths):
-        if j % 100 == 0:
-            print(f'{j} / {len(filepaths)}')
+    argument_tuples = []
+    for filepath in filepaths:
         if not filepath.endswith('.tif'):
             continue
         with rasterio.open(filepath) as src:
             if src.nodata is None:
-                utils.run_command(f'mv {filepath} {filepath}.bak', silent=False)
-                utils.run_command(f'gdal_translate {filepath}.bak {filepath} -a_nodata {nodata} -of COG -co COMPRESS=LZW', silent=False)
-            
+                argument_tuples.append((filepath, nodata))
+
+    print(len(argument_tuples))
+    with Pool() as pool:
+        pool.starmap(set_nodata, argument_tuples)
+
 if __name__ == '__main__':
     main()
