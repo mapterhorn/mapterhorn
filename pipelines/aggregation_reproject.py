@@ -7,12 +7,14 @@ import mercantile
 
 import utils
 
+SILENT = True
+
 def create_virtual_raster(filepath, source_items, tmp_source_folder):
     source = source_items[0]['source']
     command = f'gdalbuildvrt -overwrite {filepath}'
     for source_item in source_items:
         command += f' "{tmp_source_folder}/{source}/{source_item["filename"]}"'
-    utils.run_command(command, silent=True)
+    utils.run_command(command, silent=SILENT)
 
 def get_resolution(zoom):
     tile = mercantile.Tile(x=0, y=0, z=zoom)
@@ -33,7 +35,7 @@ def create_warp(vrt_filepath, vrt_3857_filepath, zoom, aggregation_tile, buffer)
     command += f'-r cubicspline '
     command += f'-dstnodata -9999 '
     command += f'{vrt_filepath} {vrt_3857_filepath}'
-    out, err = utils.run_command(command, silent=True)
+    out, err = utils.run_command(command, silent=SILENT)
     if err.strip() != '':
         raise Exception(f'gdalwarp failed for {vrt_filepath}:\n{out}\n{err}')
 
@@ -43,7 +45,7 @@ def translate(in_filepath, out_filepath):
     command += f'-co SPARSE_OK=YES -co BLOCKSIZE=512 -co COMPRESS=NONE '
     command += f'{in_filepath} '
     command += f'{out_filepath}'
-    out, err = utils.run_command(command, silent=True)
+    out, err = utils.run_command(command, silent=SILENT)
     if err.strip() != '':
         raise Exception(f'gdal_translate failed for {in_filepath}:\n{out}\n{err}')
 
