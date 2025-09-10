@@ -91,7 +91,7 @@ def get_smallest_overzoom(left, bottom, right, top, width, height, mercator_reso
     for z in range(len(mercator_resolutions)):
         if mercator_resolutions[z] < horizontal_resolution and mercator_resolutions[z] < vertical_resolution:
             return z
-    return len(mercator_resolutions[-1])
+    raise ValueError(f'No overzoom found. (left, bottom, right, top, width, height) = {(left, bottom, right, top, width, height)}')
 
 def add_group_ids(macrotile_map):
     for tile_tuple in macrotile_map:
