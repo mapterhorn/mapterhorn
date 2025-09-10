@@ -32,7 +32,7 @@ def main():
             if src.nodata is None:
                 argument_tuples.append((filepath, nodata))
 
-    print(len(argument_tuples))
+    print(f'will process {len(argument_tuples)} files...')
     with Pool() as pool:
         pool.starmap(set_nodata, argument_tuples)
 

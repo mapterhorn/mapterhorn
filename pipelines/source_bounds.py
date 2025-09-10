@@ -24,6 +24,8 @@ def main():
         if suffix in excluded_suffices:
             continue
         with rasterio.open(filepath) as src:
+            if src.crs is None:
+                raise ValueError(f'crs not defined on {filepath}')
             left, bottom, right, top = transform_bounds(src.crs, 'EPSG:3857', *src.bounds)
             for num in [left, bottom, right, top]:
                 if not math.isfinite(num):
