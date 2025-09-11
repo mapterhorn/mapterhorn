@@ -30,6 +30,7 @@ default:
     # uv run python source_download.py dehessen
     # uv run python source_download.py lu
     # uv run python source_download.py desachsenanhalt
+    # uv run python source_download.py denrw
 
     # uv run python source_unzip.py bewallonie
     # uv run python source_unzip.py cz
@@ -108,6 +109,7 @@ default:
     # uv run python source_bounds.py dehessen
     # uv run python source_bounds.py lu
     # uv run python source_bounds.py desachsenanhalt
+    # uv run python source_bounds.py denrw
 
     # uv run python aggregation_covering.py
     # uv run python downsampling_covering.py
