@@ -34,6 +34,7 @@ default:
     # uv run python source_download.py desachsenanhalt
     # uv run python source_download.py denrw
     # uv run python source_download.py itaosta
+    # uv run python source_download.py itbozen # no public download yet
 
     # uv run python source_unzip.py bewallonie
     # uv run python source_unzip.py cz
@@ -55,6 +56,7 @@ default:
     # rm source-store/lu/MNT_Z3_Z4_Luref_NGL.tif # this file has a different resolution
     # uv run python source_unzip.py desachsenanhalt
     # uv run python source_unzip.py itaosta
+    # uv run python source_unzip.py itbozen
 
     # uv run python source_to_cog.py bewallonie
     # uv run python source_to_cog.py dehamburg
@@ -79,6 +81,7 @@ default:
     # uv run python source_set_nodata.py dehamburg 0.0
     # uv run python source_set_nodata.py debremen 0.0
     # uv run python source_set_nodata.py dehessen -9999
+    # uv run python source_set_nodata.py itbozen -9999
 
     # uv run python source_fix_orientation.py deberlin
     # uv run python source_fix_orientation.py dehamburg
@@ -115,6 +118,7 @@ default:
     # uv run python source_bounds.py desachsenanhalt
     # uv run python source_bounds.py denrw
     # uv run python source_bounds.py itaosta
+    # uv run python source_bounds.py itbozen
 
     # uv run python aggregation_covering.py
     # uv run python downsampling_covering.py
