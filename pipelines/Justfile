@@ -13,6 +13,7 @@ default:
     # uv run python source_download.py debayern
     # uv run python source_download.py deniedersachsen
     # uv run python source_download.py ee
+    # # rename ee files by hand
     # uv run python source_download.py tinitaly
     # uv run python source_download.py frrgealti5corse
     # uv run python source_download.py frrgealti5reunion
@@ -22,6 +23,7 @@ default:
     # uv run python source_download.py frrgealti5guiana
     # uv run python source_download.py frrgealti5mayotte
     # uv run python source_download.py demv
+    # # rename demv files by hand
     # uv run python source_download.py deberlin
     # uv run python source_download.py debrandenburg
     # uv run python source_download.py desachsen
@@ -31,6 +33,7 @@ default:
     # uv run python source_download.py lu
     # uv run python source_download.py desachsenanhalt
     # uv run python source_download.py denrw
+    # uv run python source_download.py itaosta
 
     # uv run python source_unzip.py bewallonie
     # uv run python source_unzip.py cz
@@ -51,6 +54,7 @@ default:
     # uv run python source_unzip.py lu
     # rm source-store/lu/MNT_Z3_Z4_Luref_NGL.tif # this file has a different resolution
     # uv run python source_unzip.py desachsenanhalt
+    # uv run python source_unzip.py itaosta
 
     # uv run python source_to_cog.py bewallonie
     # uv run python source_to_cog.py dehamburg
@@ -95,7 +99,7 @@ default:
     # uv run python source_bounds.py tinitaly
     # uv run python source_bounds.py frrgealti5corse
     # uv run python source_bounds.py frrgealti5reunion
-    # uv run python source_bounds.py frrgealti5carribean
+    # uv run python source_bounds.py frrgealti5caribbean
     # uv run python source_bounds.py frrgealti5stpm
     # uv run python source_bounds.py frrgealti5metro
     # uv run python source_bounds.py frrgealti5guiana
@@ -110,6 +114,7 @@ default:
     # uv run python source_bounds.py lu
     # uv run python source_bounds.py desachsenanhalt
     # uv run python source_bounds.py denrw
+    # uv run python source_bounds.py itaosta
 
     # uv run python aggregation_covering.py
     # uv run python downsampling_covering.py
