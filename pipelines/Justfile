@@ -35,6 +35,7 @@ default:
     # uv run python source_download.py denrw
     # uv run python source_download.py itaosta
     # uv run python source_download.py itbozen # no public download yet
+    # uv run python source_download.py derlp
 
     # uv run python source_unzip.py bewallonie
     # uv run python source_unzip.py cz
@@ -119,6 +120,7 @@ default:
     # uv run python source_bounds.py denrw
     # uv run python source_bounds.py itaosta
     # uv run python source_bounds.py itbozen
+    # uv run python source_bounds.py derlp
 
     # uv run python aggregation_covering.py
     # uv run python downsampling_covering.py
