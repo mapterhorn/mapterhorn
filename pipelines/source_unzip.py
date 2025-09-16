@@ -2,12 +2,11 @@ from glob import glob
 import sys
 import zipfile
 import shutil
-# from multiprocessing import Pool
 import os
 
 import utils
 
-SILENT = True
+SILENT = False
 
 def unzip(filepath, source):
     filename = filepath.split('/')[-1]

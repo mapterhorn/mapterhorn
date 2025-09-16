@@ -42,6 +42,7 @@ default:
     # uv run python source_download.py es5b # no public download yet
     # uv run python source_download.py es5c # no public download yet
     # uv run python source_download.py es5d # no public download yet
+    # uv run python source_download.py aalv
 
     # uv run python source_unzip.py bewallonie
     # uv run python source_unzip.py cz
@@ -65,6 +66,7 @@ default:
     # uv run python source_unzip.py itaosta
     # uv run python source_unzip.py itbozen
     # uv run python source_unzip.py dk # remove southern border files, wrong nodata value
+    # uv run python source_unzip.py aalv # sparse txt file, convert to tif by filling a matrix
 
     # uv run python source_to_cog.py bewallonie
     # uv run python source_to_cog.py dehamburg
@@ -73,6 +75,7 @@ default:
     # uv run python source_to_cog.py es5b
     # uv run python source_to_cog.py es5c
     # uv run python source_to_cog.py es5d
+    # uv run python source_to_cog.py aalv
 
     # uv run python source_set_crs.py atsalzburg EPSG:31258
     # uv run python source_set_crs.py frrgealti5corse EPSG:2154
@@ -142,6 +145,7 @@ default:
     # uv run python source_bounds.py es5b
     # uv run python source_bounds.py es5c
     # uv run python source_bounds.py es5d
+    # uv run python source_bounds.py aalv
 
     # uv run python aggregation_covering.py
     # uv run python downsampling_covering.py
