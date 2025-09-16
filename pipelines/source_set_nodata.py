@@ -8,7 +8,7 @@ import utils
 
 def set_nodata(filepath, nodata):
     utils.run_command(f'mv "{filepath}" "{filepath}.bak"', silent=True)
-    utils.run_command(f'gdal_translate "{filepath}.bak" "{filepath}" -a_nodata {nodata} -of COG -co COMPRESS=LZW', silent=True)
+    utils.run_command(f'gdal_translate "{filepath}.bak" "{filepath}" -a_nodata {nodata}', silent=True)
     utils.run_command(f'rm "{filepath}.bak"', silent=True)
 
 def main():
@@ -32,7 +32,7 @@ def main():
             if src.nodata is None:
                 argument_tuples.append((filepath, nodata))
 
-    print(f'will process {len(argument_tuples)} files...')
+    print(f'Will set nodata on {len(argument_tuples)} files. Nothing to do for the remaining {len(filepaths) - len(argument_tuples)} files...')
     with Pool() as pool:
         pool.starmap(set_nodata, argument_tuples)
 

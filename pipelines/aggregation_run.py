@@ -29,7 +29,7 @@ def main():
     else:
         print(f'start aggregating {len(dirty_filepaths)} items...')
 
-    batch_size = 128
+    batch_size = 64
     starts = range(0, len(dirty_filepaths), batch_size)
 
     for start in starts:

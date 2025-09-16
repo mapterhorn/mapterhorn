@@ -7,7 +7,7 @@ import os
 
 import utils
 
-SILENT = False
+SILENT = True
 
 def unzip(filepath, source):
     filename = filepath.split('/')[-1]
@@ -37,7 +37,7 @@ def translate_images(filepath, source, suffix):
         suffix_length = len(suffix)
         filepath_out = filepath_out[:-suffix_length] + 'tif'
 
-        utils.run_command(f'gdal_translate -of COG -co COMPRESS=LZW -co OVERVIEWS=NONE -co SPARSE_OK=YES -co BLOCKSIZE=512 -co BIGTIFF=YES "{filepath_in}" "{filepath_out}"', silent=False)
+        utils.run_command(f'gdal_translate -of COG -co BLOCKSIZE=512 -co OVERVIEWS=NONE -co SPARSE_OK=YES -co BIGTIFF=YES -co COMPRESS=LERC -co MAX_Z_ERROR=0.001 "{filepath_in}" "{filepath_out}"', silent=SILENT)
 
 def is_7z_head_file(filepath):
     return filepath.endswith('.7z') or filepath.endswith('.7z.001')
