@@ -38,6 +38,25 @@
       console.log("module.exports after loading:", module.exports);
       var DrawRectangle = exports.RectangleMode || module.exports.RectangleMode;
       console.log("DrawRectangle resolved to:", DrawRectangle);
+
+      // Reset for tilebelt
+      exports = {};
+      module = { exports: exports };
+    </script>
+
+    <!-- Tilebelt for tile calculations -->
+    <script src="https://unpkg.com/@mapbox/tilebelt@1.0.2/index.js"></script>
+    <script>
+      // Make tilebelt available globally
+      console.log('Raw exports:', exports);
+      console.log('Raw module.exports:', module.exports);
+
+      // Tilebelt exports all functions directly on the exports object
+      var tilebelt = module.exports;
+
+      console.log('Tilebelt loaded:', typeof tilebelt);
+      console.log('pointToTile available:', typeof tilebelt.pointToTile);
+      console.log('Available methods:', Object.keys(tilebelt));
     </script>
 
     <link

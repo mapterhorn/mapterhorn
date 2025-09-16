@@ -93,41 +93,67 @@ class CoverageQuery {
     this.loaded = true;
   }
 
-  latLngToTile(lat, lng, zoom) {
-    const n = Math.pow(2, zoom);
-    const x = Math.floor(((lng + 180) / 360) * n);
-    const latRad = (lat * Math.PI) / 180;
-    const y = Math.floor(
-      ((1 - Math.asinh(Math.tan(latRad)) / Math.PI) / 2) * n
-    );
-    return { x, y, z: zoom };
-  }
+  getTilesAtZoom(bbox, zoom) {
+    console.log('Using tilebelt.pointToTile for bbox:', bbox, 'at zoom:', zoom);
+    const sw = tilebelt.pointToTile(bbox[0], bbox[1], zoom);
+    const ne = tilebelt.pointToTile(bbox[2], bbox[3], zoom);
 
-  queryCoverage(sw, ne) {
-    const sources = new Map();
+    console.log('SW tile:', sw, 'NE tile:', ne);
 
-    // Check tiles at multiple zoom levels
-    for (let zoom = 12; zoom >= 5; zoom--) {
-      const swTile = this.latLngToTile(sw[1], sw[0], zoom);
-      const neTile = this.latLngToTile(ne[1], ne[0], zoom);
-
-      for (let x = swTile.x; x <= neTile.x; x++) {
-        for (let y = neTile.y; y <= swTile.y; y++) {
-          const key = `${zoom}-${x}-${y}`;
-
-          if (this.tileIndex.has(key)) {
-            this.tileIndex.get(key).forEach((entry) => {
-              if (
-                !sources.has(entry.source) ||
-                sources.get(entry.source).maxzoom < entry.maxzoom
-              ) {
-                sources.set(entry.source, entry);
-              }
-            });
-          }
-        }
+    const tiles = [];
+    for (let x = sw[0]; x <= ne[0]; x++) {
+      for (let y = ne[1]; y <= sw[1]; y++) {
+        tiles.push([x, y, zoom]);
       }
     }
+    console.log('Generated', tiles.length, 'tiles at zoom', zoom);
+    return tiles;
+  }
+
+  /**
+   * Query data source coverage for a given bounding box
+   *
+   * @param {Array} sw - Southwest corner [longitude, latitude]
+   * @param {Array} ne - Northeast corner [longitude, latitude]
+   * @returns {Array} Array of sources with their maximum zoom levels
+   */
+  queryCoverage(sw, ne) {
+    const sources = new Map();
+    const bbox = [sw[0], sw[1], ne[0], ne[1]]; // [west, south, east, north]
+
+    // Search through multiple zoom levels from high to low resolution
+    // Starting at zoom 12 because that's the "macrotile" zoom used in Mapterhorn's
+    // aggregation pipeline - the primary zoom where most coverage tiles are stored
+    for (let zoom = 12; zoom >= 5; zoom--) {
+      // Get all tiles that intersect with the bounding box at this zoom level
+      const tiles = this.getTilesAtZoom(bbox, zoom);
+
+      // Check each tile to see if we have coverage data for it
+      tiles.forEach(([x, y, z]) => {
+        const key = `${z}-${x}-${y}`;
+
+        // Look up this tile in our pre-loaded coverage index
+        if (this.tileIndex.has(key)) {
+          // Process each data source found in this tile
+          this.tileIndex.get(key).forEach((entry) => {
+            // Keep only the highest resolution (maxzoom) for each source
+            // If we haven't seen this source before, or if this entry has
+            // higher resolution than what we've seen, store it
+            if (
+              !sources.has(entry.source) ||
+              sources.get(entry.source).maxzoom < entry.maxzoom
+            ) {
+              sources.set(entry.source, entry);
+            }
+          });
+        }
+      });
+    }
+
+    // We search multiple zoom levels (12 down to 5) because the coverage data
+    // uses hierarchical simplification - some areas may only have coverage
+    // stored at lower zoom levels (parent tiles) rather than individual z12 tiles
+    // This ensures we don't miss any available data sources
 
     return Array.from(sources.values());
   }
