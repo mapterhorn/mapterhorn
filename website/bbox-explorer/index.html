@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Bbox Explorer | Mapterhorn</title>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="initial-scale=1,maximum-scale=1,user-scalable=no"
+    />
+
+    <!-- MapLibre GL JS -->
+    <script src="https://unpkg.com/maplibre-gl@5.6.2/dist/maplibre-gl.js"></script>
+    <link
+      href="https://unpkg.com/maplibre-gl@5.6.2/dist/maplibre-gl.css"
+      rel="stylesheet"
+    />
+
+    <!-- PMTiles -->
+    <script src="https://unpkg.com/pmtiles@4.3.0/dist/pmtiles.js"></script>
+
+    <!-- MapLibre GL Draw plugin -->
+    <script src="https://unpkg.com/@mapbox/mapbox-gl-draw@1.4.3/dist/mapbox-gl-draw.js"></script>
+    <link
+      href="https://unpkg.com/@mapbox/mapbox-gl-draw@1.4.3/dist/mapbox-gl-draw.css"
+      rel="stylesheet"
+    />
+
+    <!-- Rectangle mode plugin -->
+    <script>
+      // Define exports and module for CommonJS compatibility
+      var exports = {};
+      var module = { exports: exports };
+    </script>
+    <script src="https://unpkg.com/@ookla/mapbox-gl-draw-rectangle@1.2.2/build/index.js"></script>
+    <script>
+      // Make DrawRectangle available globally
+      console.log("exports after loading:", exports);
+      console.log("module.exports after loading:", module.exports);
+      var DrawRectangle = exports.RectangleMode || module.exports.RectangleMode;
+      console.log("DrawRectangle resolved to:", DrawRectangle);
+    </script>
+
+    <link
+      rel="icon"
+      href="https://mapterhorn.github.io/.github/brand/screen/mapterhorn-icon.png"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+
+  <body>
+    <div id="map"></div>
+    <div id="results-panel">
+      <h3>Data Source Coverage Explorer</h3>
+      <div id="draw-controls">
+        <button id="draw-bbox-btn" class="control-btn">
+          Draw bounding box
+        </button>
+      </div>
+      <div id="instructions">
+        Click "Draw bounding box" then draw on the map to query available data
+        sources
+      </div>
+      <div id="results"></div>
+    </div>
+    <script src="app.js"></script>
+  </body>
+</html>
