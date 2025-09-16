@@ -7,7 +7,7 @@ from multiprocessing import Pool
 
 def fix_orientation(filepath):
     utils.run_command(f'mv {filepath} {filepath}.bak')
-    utils.run_command(f'gdalwarp -of COG -co COMPRESS=LZW -co OVERVIEWS=NONE -co SPARSE_OK=YES -co BLOCKSIZE=512 -co BIGTIFF=YES "{filepath}.bak" "{filepath}"', silent=True)
+    utils.run_command(f'gdalwarp -of COG -co BLOCKSIZE=512 -co OVERVIEWS=NONE -co SPARSE_OK=YES -co BIGTIFF=YES -co COMPRESS=LERC -co MAX_Z_ERROR=0.001 "{filepath}.bak" "{filepath}"', silent=True)
     utils.run_command(f'rm {filepath}.bak')
 
 def main():

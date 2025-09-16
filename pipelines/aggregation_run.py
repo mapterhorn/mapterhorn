@@ -33,7 +33,7 @@ def main():
     starts = range(0, len(dirty_filepaths), batch_size)
 
     for start in starts:
-        print(f'batch {start}:{start + batch_size}. {datetime.datetime.now()}.')
+        print(f'batch {start}:{start + batch_size}. Total: {len(dirty_filepaths)}. {datetime.datetime.now()}.')
         filepath_batch = dirty_filepaths[start:start + batch_size]
 
         t1 = time.time()

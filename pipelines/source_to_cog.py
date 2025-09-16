@@ -34,6 +34,7 @@ def main():
     
     filepaths = [(filepath,) for filepath in sorted(glob(f'source-store/{source}/*.tif') + glob(f'source-store/{source}/*.xyz') + glob(f'source-store/{source}/*.asc') + glob(f'source-store/{source}/*.txt'))]
 
+    print(f'num files: {len(filepaths)}')
     with Pool() as pool:
         pool.starmap(to_cog, filepaths)
             
