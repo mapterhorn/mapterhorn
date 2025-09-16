@@ -20,7 +20,7 @@ def to_cog(filepath):
         filepath_in = filepath
         filepath_out = filepath.replace('.txt', '.tif')
     
-    utils.run_command(f'gdal_translate -of COG -co COMPRESS=LZW -co OVERVIEWS=NONE -co SPARSE_OK=YES -co BLOCKSIZE=512 -co BIGTIFF=YES "{filepath_in}" "{filepath_out}"', silent=False)
+    utils.run_command(f'gdal_translate -of COG -co BLOCKSIZE=512 -co OVERVIEWS=NONE -co SPARSE_OK=YES -co BIGTIFF=YES -co COMPRESS=LERC -co MAX_Z_ERROR=0.001 "{filepath_in}" "{filepath_out}"', silent=False)
     utils.run_command(f'rm "{filepath_in}"', silent=False)
 
 def main():
