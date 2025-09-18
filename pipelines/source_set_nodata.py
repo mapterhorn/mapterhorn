@@ -25,13 +25,17 @@ def main():
     filepaths = sorted(glob(f'source-store/{source}/*'))
 
     argument_tuples = []
+    nodata_values = set({})
     for filepath in filepaths:
         if not filepath.endswith('.tif'):
             continue
         with rasterio.open(filepath) as src:
             if src.nodata is None:
                 argument_tuples.append((filepath, nodata))
+            else:
+                nodata_values.add(src.nodata)
 
+    print(f'Found these nodata values: {nodata_values}')
     print(f'Will set nodata on {len(argument_tuples)} files. Nothing to do for the remaining {len(filepaths) - len(argument_tuples)} files...')
     with Pool() as pool:
         pool.starmap(set_nodata, argument_tuples)

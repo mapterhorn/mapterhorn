@@ -44,6 +44,7 @@ default:
     # uv run python source_download.py es5d # no public download yet
     # uv run python source_download.py aalv
     # uv run python source_download.py ro
+    # uv run python source_download.py debw
 
     # uv run python source_unzip.py bewallonie
     # uv run python source_unzip.py cz
@@ -69,6 +70,7 @@ default:
     # uv run python source_unzip.py dk # remove southern border files, wrong nodata value
     # uv run python source_unzip.py aalv # sparse txt file, convert to tif by filling a matrix
     # uv run python source_unzip_ro.py
+    # uv run python source_unzip.py debw # translate only the .xyz files
 
     # uv run python source_to_cog.py bewallonie
     # uv run python source_to_cog.py dehamburg
@@ -94,6 +96,7 @@ default:
     # uv run python source_set_crs.py desachsenanhalt EPSG:25832
     # uv run python source_set_crs.py si EPSG:3794
     # uv run python source_set_crs.py ro EPSG:3844
+    # uv run python source_set_crs.py debw EPSG:25832
 
     # uv run python source_set_nodata.py atkaernten 0.0
     # uv run python source_set_nodata.py demv -9999
@@ -103,11 +106,13 @@ default:
     # uv run python source_set_nodata.py dehessen -9999
     # uv run python source_set_nodata.py itbozen -9999
     # uv run python source_set_nodata.py si -9999
+    # uv run python source_set_nodata.py debw 0.0
 
     # uv run python source_fix_orientation.py deberlin
     # uv run python source_fix_orientation.py dehamburg
     # uv run python source_fix_orientation.py si
     # uv run python source_fix_orientation.py ro
+    # uv run python source_fix_orientation.py debw
 
     # uv run python source_bounds.py glo30
     # uv run python source_bounds.py swissalti3d
@@ -151,6 +156,7 @@ default:
     # uv run python source_bounds.py es5d
     # uv run python source_bounds.py aalv
     # uv run python source_bounds.py ro
+    # uv run python source_bounds.py debw
 
     # uv run python aggregation_covering.py
     # uv run python downsampling_covering.py
