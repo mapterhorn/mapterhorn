@@ -48,6 +48,7 @@ default:
     # uv run python source_download.py desaarland
     # uv run python source_download.py dethueringen
     # uv run python source_download.py desh # rename files after download
+    # uv run python source_download.py sk
 
     # uv run python source_unzip.py bewallonie
     # uv run python source_unzip.py cz
@@ -76,6 +77,7 @@ default:
     # uv run python source_unzip.py debw # translate only the .xyz files
     # uv run python source_unzip.py desaarland
     # uv run python source_unzip.py dethueringen
+    # uv run python source_unzip.py sk # set crs to EPSG:5514
 
     # uv run python source_to_cog.py bewallonie
     # uv run python source_to_cog.py dehamburg
@@ -86,6 +88,7 @@ default:
     # uv run python source_to_cog.py es5d
     # uv run python source_to_cog.py aalv
     # uv run python source_to_cog.py desh
+    # uv run python source_to_cog.py sk
 
     # uv run python source_set_crs.py atsalzburg EPSG:31258
     # uv run python source_set_crs.py frrgealti5corse EPSG:2154
@@ -170,6 +173,7 @@ default:
     # uv run python source_bounds.py desaarland
     # uv run python source_bounds.py dethueringen
     # uv run python source_bounds.py desh
+    # uv run python source_bounds.py sk
 
     # uv run python aggregation_covering.py
     # uv run python downsampling_covering.py
