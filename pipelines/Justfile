@@ -49,6 +49,7 @@ default:
     # uv run python source_download.py dethueringen
     # uv run python source_download.py desh # rename files after download
     # uv run python source_download.py sk
+    # uv run python source_download.py fi
 
     # uv run python source_unzip.py bewallonie
     # uv run python source_unzip.py cz
@@ -174,6 +175,7 @@ default:
     # uv run python source_bounds.py dethueringen
     # uv run python source_bounds.py desh
     # uv run python source_bounds.py sk
+    # uv run python source_bounds.py fi
 
     # uv run python aggregation_covering.py
     # uv run python downsampling_covering.py
