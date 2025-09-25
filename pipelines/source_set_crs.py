@@ -6,9 +6,9 @@ import utils
 from multiprocessing import Pool
 
 def set_crs(filepath, crs):
-    utils.run_command(f'mv {filepath} {filepath}.bak')
-    utils.run_command(f'gdal_translate -a_srs {crs} {filepath}.bak {filepath}', silent=True)
-    utils.run_command(f'rm {filepath}.bak')
+    utils.run_command(f'mv "{filepath}" "{filepath}.bak"')
+    utils.run_command(f'gdal_translate -a_srs {crs} -of COG -co BLOCKSIZE=512 -co OVERVIEWS=NONE -co SPARSE_OK=YES -co BIGTIFF=YES -co COMPRESS=LERC -co MAX_Z_ERROR=0.001 "{filepath}.bak" "{filepath}"', silent=True)
+    utils.run_command(f'rm "{filepath}.bak"')
 
 def main():
     source = None

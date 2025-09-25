@@ -50,6 +50,13 @@ default:
     # uv run python source_download.py desh # rename files after download
     # uv run python source_download.py sk
     # uv run python source_download.py fi
+    # uv run python source_download.py frrgealti1mayotte
+    # uv run python source_download.py frrgealti1reunion
+    # uv run python source_download.py frrgealti1guiana
+    # uv run python source_download.py frrgealti1corse
+    # uv run python source_download.py frrgealti1stpm
+    # uv run python source_download.py frrgealti1caribbean
+    # uv run python source_download.py frrgealti1metro
 
     # uv run python source_unzip.py bewallonie
     # uv run python source_unzip.py cz
@@ -79,6 +86,13 @@ default:
     # uv run python source_unzip.py desaarland
     # uv run python source_unzip.py dethueringen
     # uv run python source_unzip.py sk # set crs to EPSG:5514
+    # uv run python source_unzip.py frrgealti1mayotte # translate only the .asc files
+    # uv run python source_unzip.py frrgealti1reunion # translate only the .asc files
+    # uv run python source_unzip.py frrgealti1guiana # translate only the .asc files
+    # uv run python source_unzip.py frrgealti1corse # translate only the .asc files
+    # uv run python source_unzip.py frrgealti1stpm # translate only the .asc files
+    # uv run python source_unzip.py frrgealti1caribbean # translate only the .asc files
+    # uv run python source_unzip.py frrgealti1metro # translate only the .asc files
 
     # uv run python source_to_cog.py bewallonie
     # uv run python source_to_cog.py dehamburg
@@ -109,6 +123,13 @@ default:
     # uv run python source_set_crs.py debw EPSG:25832
     # uv run python source_set_crs.py dethueringen EPSG:25832
     # uv run python source_set_crs.py desh EPSG:25832
+    # uv run python source_set_crs.py frrgealti1mayotte EPSG:4471
+    # uv run python source_set_crs.py frrgealti1reunion EPSG:2975
+    # uv run python source_set_crs.py frrgealti1guiana EPSG:2972
+    # uv run python source_set_crs.py frrgealti1corse EPSG:2154
+    # uv run python source_set_crs.py frrgealti1stpm EPSG:4467
+    # uv run python source_set_crs.py frrgealti1caribbean EPSG:4559
+    # uv run python source_set_crs.py frrgealti1metro EPSG:2154
 
     # uv run python source_set_nodata.py atkaernten 0.0
     # uv run python source_set_nodata.py demv -9999
@@ -176,6 +197,13 @@ default:
     # uv run python source_bounds.py desh
     # uv run python source_bounds.py sk
     # uv run python source_bounds.py fi
+    # uv run python source_bounds.py frrgealti1mayotte
+    # uv run python source_bounds.py frrgealti1reunion
+    # uv run python source_bounds.py frrgealti1guiana
+    # uv run python source_bounds.py frrgealti1corse
+    # uv run python source_bounds.py frrgealti1stpm
+    # uv run python source_bounds.py frrgealti1caribbean
+    # uv run python source_bounds.py frrgealti1metro
 
     # uv run python aggregation_covering.py
     # uv run python downsampling_covering.py

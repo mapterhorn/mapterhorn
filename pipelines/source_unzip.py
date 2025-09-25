@@ -3,6 +3,7 @@ import sys
 import zipfile
 import shutil
 import os
+from multiprocessing import Pool
 
 import utils
 
@@ -25,9 +26,18 @@ def un7z(filepath, source):
     for filepath_to_remove in filepaths_to_remove:
         utils.run_command(f'rm "{filepath_to_remove}"', silent=SILENT)
 
+def translate_image(filepath_in, filepath_out, j, total):
+    if j % 1000 == 0:
+        print(f'{j} / {total}')
+    utils.run_command(f'gdal_translate -of COG -co BLOCKSIZE=512 -co OVERVIEWS=NONE -co SPARSE_OK=YES -co BIGTIFF=YES -co COMPRESS=LERC -co MAX_Z_ERROR=0.001 "{filepath_in}" "{filepath_out}"', silent=True)
+
 def translate_images(filepath, source, suffix):
+    print(f'translate .{suffix} images...')
     # suffix = 'asc' or 'tif' u.s.w. (without dot)
     image_filepaths = glob(f'{filepath}-tmp/**/*.{suffix}', recursive=True)
+    
+    argument_tuples = []
+    j = 0
     for image_filepath in image_filepaths:
         image_filename = image_filepath.split('/')[-1]
 
@@ -35,8 +45,11 @@ def translate_images(filepath, source, suffix):
         filepath_out = f'source-store/{source}/{image_filename}'
         suffix_length = len(suffix)
         filepath_out = filepath_out[:-suffix_length] + 'tif'
+        argument_tuples.append((filepath_in, filepath_out, j, len(image_filepaths)))
+        j += 1
 
-        utils.run_command(f'gdal_translate -of COG -co BLOCKSIZE=512 -co OVERVIEWS=NONE -co SPARSE_OK=YES -co BIGTIFF=YES -co COMPRESS=LERC -co MAX_Z_ERROR=0.001 "{filepath_in}" "{filepath_out}"', silent=SILENT)
+    with Pool() as pool:
+        pool.starmap(translate_image, argument_tuples)
 
 def is_7z_head_file(filepath):
     return filepath.endswith('.7z') or filepath.endswith('.7z.001')
