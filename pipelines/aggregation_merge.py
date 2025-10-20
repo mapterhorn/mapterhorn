@@ -1,5 +1,4 @@
 from glob import glob
-from multiprocessing import Pool
 import os
 import time
 import json
@@ -10,8 +9,8 @@ from scipy import ndimage
 
 import utils
 
+
 def merge(filepath):
-    print(f'merging {filepath}...')
     _, aggregation_id, filename = filepath.split('/')
 
     z, x, y, child_z = [int(a) for a in filename.replace('-aggregation.csv', '').split('-')]
@@ -34,7 +33,6 @@ def merge(filepath):
         raise ValueError(f'failed to read tifs of {filepath}')
 
     if num_tiff_files == 1:
-        print('single file...')
         command = f'touch {done_filepath}'
         utils.run_command(command)
         return
@@ -45,70 +43,90 @@ def merge(filepath):
     with open(metadata_filepath) as f:
         metadata = json.load(f)
         buffer_pixels = metadata['buffer_pixels']
-
-    merged = None
-    with rasterio.env.Env(GDAL_CACHEMAX=256):
-        with rasterio.open(tiff_filepaths[0]) as src: 
-            merged = src.read(1)
-
-    for tiff_filepath in tiff_filepaths[1:]:
-        current = None
-        with rasterio.env.Env(GDAL_CACHEMAX=256):
-            with rasterio.open(tiff_filepath) as src: 
-                current = src.read(1)
-        
-        t1 = time.time()
-        binary_mask = (merged != -9999).astype('int32')
-        print(f'binary_mask done in {time.time() - t1} s...')
-
-        max_pixel_distance = int(0.5 * buffer_pixels)
-
-        t1 = time.time()
-        reduced = ndimage.binary_erosion(binary_mask, iterations=max_pixel_distance)
-        print(f'binary erosion done in {time.time() - t1} s...')
-
-        t1 = time.time()
-        alpha_mask = ndimage.uniform_filter(reduced.astype('float32'), int(1.25 * max_pixel_distance), mode='nearest')
-        alpha_mask = 3 * alpha_mask ** 2 - 2 * alpha_mask ** 3 # smoothstep with zero derivative at 0 and 1
-        alpha_mask = np.where((1 - binary_mask), 0.0, alpha_mask)
-        print(f'alpha_mask done in {time.time() - t1} s...')
-
-        t1 = time.time()
-        
-        if -9999 not in current:
-            merged = current * (1 - alpha_mask) + merged * alpha_mask
-        else:
-            binary_mask_current = (current != -9999).astype('int32')
-            reduced_current = ndimage.binary_erosion(binary_mask_current, iterations=(buffer_pixels - 1))
-            current_has_data = (reduced_current == 1)
-            merged[current_has_data] = current[current_has_data] * (1 - alpha_mask[current_has_data]) + merged[current_has_data] * alpha_mask[current_has_data]
-            
-        print(f'merging done in {time.time() - t1} s...')
-
-        if -9999 not in merged:
-            break
-
-    t1 = time.time()
-    with rasterio.open(
-        f'{tmp_folder}/{num_tiff_files}-3857.tiff',
-        'w',
-        driver='GTiff',
-        height=merged.shape[0],
-        width=merged.shape[1],
-        count=1,
-        dtype='float32',
-        tiled=True,
-        blockxsize=512,
-        blockysize=512,
-    ) as dst:
-        dst.write(merged, 1)
-    print(f'writing done in {time.time() - t1} s...')
     
+    tile_size = 512
+    overlap = buffer_pixels
+    with rasterio.env.Env(GDAL_CACHEMAX=256):
+        with rasterio.open(tiff_filepaths[0]) as src:
+            height = src.height
+            width = src.width
+            profile = src.profile
+            
+            output_path = f'{tmp_folder}/{num_tiff_files}-3857.tiff'
+            profile.update(
+                tiled=True,
+                blockxsize=512,
+                blockysize=512,
+            )
+            
+            with rasterio.open(output_path, 'w', **profile) as dst:
+                for y in range(0, height, tile_size):
+                    for x in range(0, width, tile_size):
+                        y_start = max(0, y - overlap)
+                        y_end = min(height, y + tile_size + overlap)
+                        x_start = max(0, x - overlap)
+                        x_end = min(width, x + tile_size + overlap)
+                        
+                        window = rasterio.windows.Window(x_start, y_start, x_end - x_start, y_end - y_start)
+                        
+                        merged_tile = None
+                        with rasterio.open(tiff_filepaths[0]) as src:
+                            merged_tile = src.read(1, window=window)
+                        
+                        filled_from_start = (-9999 not in merged_tile)
+                        
+                        if not filled_from_start:
+
+                            binary_mask = (merged_tile != -9999).astype('int32')
+                            eroded = ndimage.binary_erosion(binary_mask)
+                            boundary_tile = binary_mask.astype(bool) & ~eroded
+
+                            for tiff_filepath in tiff_filepaths[1:]:
+                                    
+                                with rasterio.open(tiff_filepath) as src:
+                                    current_tile = src.read(1, window=window)
+                                
+                                copy_mask = (merged_tile == -9999) & (current_tile != -9999)
+                                merged_tile[copy_mask] = current_tile[copy_mask]
+
+                                if -9999 not in merged_tile:
+                                    break
+                                
+                                binary_mask = (merged_tile != -9999).astype('int32')
+                                eroded = ndimage.binary_erosion(binary_mask)
+                                boundary_tile |= binary_mask.astype(bool) & ~eroded
+                        
+                            boundary_tile[0, :] = 0
+                            boundary_tile[-1, :] = 0
+                            boundary_tile[:, 0] = 0
+                            boundary_tile[:, -1] = 0
+
+                            binary_mask = (merged_tile != -9999).astype('int32')
+                            eroded = ndimage.binary_erosion(binary_mask)
+                            boundary_tile &= binary_mask.astype(bool)
+                            
+                            if 1 in boundary_tile:
+                                truncate = 4
+                                sigma = int(overlap / truncate) - 1
+                                boundary_tile_blurred = ndimage.gaussian_filter(boundary_tile.astype(float), sigma=sigma, truncate=truncate)
+                                boundary_tile_blurred /= (1.0 / (np.sqrt(2 * np.pi) * sigma))
+                                boundary_tile_blurred = np.clip(boundary_tile_blurred, 0, 1)
+                                boundary_tile_blurred = 3 * boundary_tile_blurred ** 2 - 2 * boundary_tile_blurred ** 3
+                                merged_tile_blurred = ndimage.gaussian_filter(merged_tile, sigma=sigma, truncate=truncate)
+                                merged_tile = boundary_tile_blurred * merged_tile_blurred + (1 - boundary_tile_blurred) * merged_tile
+                        
+                        crop_y_start = overlap if y > 0 else 0
+                        crop_y_end = merged_tile.shape[0] - (overlap if y_end < height else 0)
+                        crop_x_start = overlap if x > 0 else 0
+                        crop_x_end = merged_tile.shape[1] - (overlap if x_end < width else 0)
+                        
+                        output_window = rasterio.windows.Window(x, y, crop_x_end - crop_x_start, crop_y_end - crop_y_start)
+                        dst.write(merged_tile[crop_y_start:crop_y_end, crop_x_start:crop_x_end], 1, window=output_window)
+        
     command = f'touch {done_filepath}'
     utils.run_command(command)
-    
-def main(filepaths):
-    # needs ~30 GB per thread
-    pool_size = 2
-    with Pool(pool_size) as pool:
-        pool.starmap(merge, [(filepath,) for filepath in filepaths])
+
+if __name__ == '__main__':
+    filepath = 'aggregation-store/01K7M3DMZF4RFVFYDWN9KF1Q4N/12-2130-1459-17-aggregation.csv'
+    tic = time.time()
+    merge(filepath)

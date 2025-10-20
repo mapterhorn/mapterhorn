@@ -1,6 +1,5 @@
 from glob import glob
 import math
-from multiprocessing import Pool
 import os
 import json
 
@@ -21,17 +20,13 @@ def create_tiles(tmp_folder, aggregation_tile, tiff_filepath, buffer_pixels):
         horizontal_block_count = (src.width - 2 * buffer_pixels) / 512
         assert math.floor(horizontal_block_count) == horizontal_block_count
         child_z = base_z + int(math.log2(horizontal_block_count))
-    argument_tuples = []
     z = child_z
     x_min = base_x * 2 ** (z - base_z)
     y_min = base_y * 2 ** (z - base_z)
     for i, x in enumerate(range(x_min, x_min + 2 ** (z - base_z))):
         for j, y in enumerate(range(y_min, y_min + 2 ** (z - base_z))):
             out_filepath = f'{tmp_folder}/{z}-{x}-{y}.webp'
-            argument_tuples.append((i, j, tiff_filepath, out_filepath, buffer_pixels))
-    
-    with Pool() as pool:
-        pool.starmap(create_tile, argument_tuples)
+            create_tile(i, j, tiff_filepath, out_filepath, buffer_pixels)
 
 def create_tile(i, j, tiff_filepath, out_filepath, buffer_pixels):
     col_start = i * 512 + buffer_pixels
@@ -50,41 +45,36 @@ def create_tile(i, j, tiff_filepath, out_filepath, buffer_pixels):
     subdata[subdata == -9999] = 0
     utils.save_terrarium_tile(subdata, out_filepath)
 
-def main(filepaths):
-    aggregation_ids = utils.get_aggregation_ids()
-    aggregation_id = aggregation_ids[-1]
+def main(filepath):
+    _, aggregation_id, filename = filepath.split('/')
 
-    for j, filepath in enumerate(filepaths):
-        print(f'tiling {filepath}. {j + 1} / {len(filepaths)}.')
-        filename = filepath.split('/')[-1]
+    z, x, y, child_z = [int(a) for a in filename.replace('-aggregation.csv', '').split('-')]
 
-        z, x, y, child_z = [int(a) for a in filename.replace('-aggregation.csv', '').split('-')]
-
-        tmp_folder = f'aggregation-store/{aggregation_id}/{z}-{x}-{y}-{child_z}-tmp'
+    tmp_folder = f'aggregation-store/{aggregation_id}/{z}-{x}-{y}-{child_z}-tmp'
 
 
-        pmtiles_done_filepath = f'{tmp_folder}/pmtiles-done'
-        if os.path.isfile(pmtiles_done_filepath):
-            print(f'tiling {filename} already done...')
-            continue
+    pmtiles_done_filepath = f'{tmp_folder}/pmtiles-done'
+    if os.path.isfile(pmtiles_done_filepath):
+        print(f'tiling {filename} already done...')
+        return
 
-        merge_done = os.path.isfile(f'{tmp_folder}/merge-done')
-        if not merge_done:
-            print('merge not done yet...')
-            continue
+    merge_done = os.path.isfile(f'{tmp_folder}/merge-done')
+    if not merge_done:
+        print('merge not done yet...')
+        return
 
-        buffer_pixels = None
-        with open(f'{tmp_folder}/reprojection.json') as f:
-            metadata = json.load(f)
-            buffer_pixels = metadata['buffer_pixels']
+    buffer_pixels = None
+    with open(f'{tmp_folder}/reprojection.json') as f:
+        metadata = json.load(f)
+        buffer_pixels = metadata['buffer_pixels']
 
-        num_tiff_files = len(glob(f'{tmp_folder}/*.tiff'))
-        tiff_filepath = f'{tmp_folder}/{num_tiff_files - 1}-3857.tiff'
+    num_tiff_files = len(glob(f'{tmp_folder}/*.tiff'))
+    tiff_filepath = f'{tmp_folder}/{num_tiff_files - 1}-3857.tiff'
 
-        aggregation_tile = mercantile.Tile(x=x, y=y, z=z)
-        out_folder = utils.get_pmtiles_folder(x, y, z)
-        utils.create_folder(out_folder)
-        out_filepath = f'{out_folder}/{z}-{x}-{y}-{child_z}.pmtiles'
-        create_tiles(tmp_folder, aggregation_tile, tiff_filepath, buffer_pixels)
-        utils.create_archive(tmp_folder, out_filepath)
-        utils.run_command(f'touch {pmtiles_done_filepath}')
+    aggregation_tile = mercantile.Tile(x=x, y=y, z=z)
+    out_folder = utils.get_pmtiles_folder(x, y, z)
+    utils.create_folder(out_folder)
+    out_filepath = f'{out_folder}/{z}-{x}-{y}-{child_z}.pmtiles'
+    create_tiles(tmp_folder, aggregation_tile, tiff_filepath, buffer_pixels)
+    utils.create_archive(tmp_folder, out_filepath)
+    utils.run_command(f'touch {pmtiles_done_filepath}')

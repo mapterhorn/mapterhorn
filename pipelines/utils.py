@@ -12,7 +12,7 @@ from pmtiles.tile import zxy_to_tileid, tileid_to_zxy, TileType, Compression
 from pmtiles.writer import Writer
 
 macrotile_z = 12
-macrotile_buffer_3857 = 250
+macrotile_buffer_3857 = 150
 num_overviews = 6
 
 def run_command(command, silent=True):

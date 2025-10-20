@@ -1,16 +1,24 @@
 from glob import glob
 import shutil
-import time
-import datetime
 import os
+from multiprocessing import Pool
 
-import aggregation_copy
 import aggregation_reproject
 import aggregation_merge
 import aggregation_tile
 import utils
 
-
+def run(filepath):
+    filename = filepath.split('/')[-1]
+    item = filename.replace('-aggregation.csv', '')
+    print(f'{item} start')
+    aggregation_reproject.reproject(filepath)
+    aggregation_merge.merge(filepath)
+    aggregation_tile.main(filepath)
+    tmp_folder = filepath.replace('-aggregation.csv', '-tmp')
+    shutil.rmtree(tmp_folder)
+    utils.run_command(f'touch {filepath.replace("-aggregation.csv", "-aggregation.done")}')
+    print(f'{item} end')
 
 def main():    
     aggregation_ids = utils.get_aggregation_ids()
@@ -29,33 +37,9 @@ def main():
     else:
         print(f'start aggregating {len(dirty_filepaths)} items...')
 
-    batch_size = 64
-    starts = range(0, len(dirty_filepaths), batch_size)
-
-    for start in starts:
-        print(f'batch {start}:{start + batch_size}. Total: {len(dirty_filepaths)}. {datetime.datetime.now()}.')
-        filepath_batch = dirty_filepaths[start:start + batch_size]
-
-        t1 = time.time()
-        aggregation_copy.main(filepath_batch)
-        print(f't_copy: {int(time.time() - t1)} s. {datetime.datetime.now()}.')
-
-        t1 = time.time()
-        aggregation_reproject.main(filepath_batch)
-        print(f't_reproject: {int(time.time() - t1)} s. {datetime.datetime.now()}.')
-
-        t1 = time.time()
-        aggregation_merge.main(filepath_batch)
-        print(f't_merge: {int(time.time() - t1)} s. {datetime.datetime.now()}.')
-
-        t1 = time.time()
-        aggregation_tile.main(filepath_batch)
-        print(f't_pmtiles: {int(time.time() - t1)} s. {datetime.datetime.now()}.')
-
-        for filepath in filepath_batch:
-            tmp_folder = filepath.replace('-aggregation.csv', '-tmp')
-            shutil.rmtree(tmp_folder)
-            utils.run_command(f'touch {filepath.replace("-aggregation.csv", "-aggregation.done")}')
+    argument_tuples = [(dirty_filepath,) for dirty_filepath in dirty_filepaths]
+    with Pool() as pool:
+        pool.starmap(run, argument_tuples, chunksize=1)
 
 if __name__ == '__main__':
     main()

@@ -100,7 +100,7 @@ def main(filepaths):
             argument_tuples.append((parent.x, parent.y, parent.z, aggregation_id, tmp_folder, pmtiles_filenames))
 
         with Pool() as pool:
-            pool.starmap(create_tile, argument_tuples)
+            pool.starmap(create_tile, argument_tuples, chunksize=1)
         
         utils.create_archive(tmp_folder, out_filepath)
 

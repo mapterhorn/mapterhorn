@@ -1,4 +1,3 @@
-from multiprocessing import Pool
 import json
 import os
 
@@ -9,11 +8,11 @@ import utils
 
 SILENT = True
 
-def create_virtual_raster(filepath, source_items, tmp_source_folder):
+def create_virtual_raster(filepath, source_items):
     source = source_items[0]['source']
     command = f'gdalbuildvrt -overwrite {filepath}'
     for source_item in source_items:
-        command += f' "{tmp_source_folder}/{source}/{source_item["filename"]}"'
+        command += f' "source-store/{source}/{source_item["filename"]}"'
     utils.run_command(command, silent=SILENT)
 
 def get_resolution(zoom):
@@ -66,9 +65,8 @@ def contains_nodata_pixels(filepath):
                         return True
     return False
 
-def reproject(filepath, aggregation_id):
-    print(f'reprojecting {filepath}...')
-    filename = filepath.split('/')[-1]
+def reproject(filepath):
+    _, aggregation_id, filename = filepath.split('/')
 
     z, x, y, child_z = [int(a) for a in filename.replace('-aggregation.csv', '').split('-')]
     
@@ -92,10 +90,9 @@ def reproject(filepath, aggregation_id):
         buffer_pixels = int(utils.macrotile_buffer_3857 / resolution)
         buffer_3857_rounded = buffer_pixels * resolution
 
-    tmp_source_folder = f'aggregation-store/{aggregation_id}/tmp-sources'
     for i, source_items in enumerate(grouped_source_items):
         vrt_filepath = f'{tmp_folder}/{i}.vrt'
-        create_virtual_raster(vrt_filepath, source_items, tmp_source_folder)
+        create_virtual_raster(vrt_filepath, source_items)
         zoom = maxzoom
         vrt_3857_filepath = f'{tmp_folder}/{i}-3857.vrt'
         create_warp(vrt_filepath, vrt_3857_filepath, zoom, aggregation_tile, buffer_3857_rounded)
@@ -110,14 +107,3 @@ def reproject(filepath, aggregation_id):
     }
     with open(metadata_filepath, 'w') as f:
         json.dump(metadata, f, indent=2)
-
-def main(filepaths):
-    aggregation_ids = utils.get_aggregation_ids()
-    aggregation_id = aggregation_ids[-1]
-
-    argument_tuples = []
-    for filepath in filepaths:
-        argument_tuples.append((filepath, aggregation_id))
-    
-    with Pool() as pool:
-        pool.starmap(reproject, argument_tuples)
