@@ -1,3 +1,43 @@
+## 0.0.4
+
+### ✨ Features and improvements
+
+- Apply Gaussian blur along dataset boundaries (#91)
+- Add sources frrgealti1*: France 1m (#87)
+- Add source fi: Finland 2m (#86)
+- Add source sk: Slovakia 1m (#85)
+- Add source desh: Schleswig-Holstein, Germany 1m (#83)
+- Add source dethueringen: Thüringen, Germany 1m (#82)
+- Add source desaarland: Saarland, Germany 1m (#81)
+- Add source debw: Baden-Württemberg, Germany 1m (#80)
+- Add source ro: Romania partial 0.5 m (#79)
+- Add source aalv: Latvia 20m (#78)
+- Add source es5*: Spain 5m (#77)
+- Add source si: Slovenia 0.5m (#75)
+- Add source dk: Denmark 0.5m (#73)
+- Add source derlp: Rheinland-Pfalz, Germany 1m (#72)
+- Add source itbozen: Bozen, Italy 2.5m (#70)
+- Add source itaosta: Aosta, Italy 0.5m (#69)
+- Add source denrw: Nordrhein-Westfalen, Germany 1m (#68)
+- Add source desachsenanhalt: Sachsen-Anhalt, Germany 1m (#66)
+- Add source lu: Luxembourg country-wide 1m (#65)
+- Add source dehessen: Hessen, Germany 1m (#64)
+- Add source debremen: Bremen, Germany 1m
+- Add source dehamburg: Hamburg, Germany 1m (#62)
+- Add source desachsen: Sachsen, Germany 1m (#60)
+- Add source debrandenburg: Brandenburg, Germany 1m (#57)
+- Add source deberlin: Berlin, Germany 1m (#56)
+- Add source demv: Mecklenburg-Vorpommern, Germany 1m (#55)
+- Add sources frrgealti5*: France country-wide 5m (#54)
+- Add source tinitaly: Italy country-wide 10m (#53)
+- Add source ee: Estonia country-wide 1m (#52)
+- Add source deniedersachsen: Niedersachsen, Germany 1m (#51)
+- Add source debayern: Bayern, Germany 1m (#50)
+- Add source cz: Czech Republic, 5 m (#47)
+- Add Justfile (#42)
+- Add source bewallonie: Wallonie, Belgium 1m (#46)
+- Add source beflanders: Flanders, Belgium 1m (#45)
+
 ## 0.0.3
 
 ### ✨ Features and improvements
