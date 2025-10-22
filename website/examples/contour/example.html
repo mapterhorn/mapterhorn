@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang='en'>
+
+<head>
+    <meta charset="utf-8" />
+    <script src="https://unpkg.com/maplibre-gl@5.6.0/dist/maplibre-gl.js"></script>
+    <link href="https://unpkg.com/maplibre-gl@5.6.0/dist/maplibre-gl.css" rel="stylesheet" />
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        #map {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map"></div>
+    <script src="https://unpkg.com/maplibre-contour@0.0.5/dist/index.min.js"></script>
+    <script type="text/javascript">
+        const demSource = new mlcontour.DemSource({
+            url: 'https://tiles.mapterhorn.com/{z}/{x}/{y}.webp',
+            encoding: 'terrarium',
+            maxzoom: 12,
+            worker: true
+        });
+        demSource.setupMaplibre(maplibregl);
+        const map = new maplibregl.Map({
+            container: 'map',
+            hash: 'map',
+            zoom: 14,
+            center: [7.96383, 47.46682],
+            style: {
+                version: 8,
+                glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
+                sources: {
+                    hillshadeSource: {
+                        type: 'raster-dem',
+                        tiles: [demSource.sharedDemProtocolUrl],
+                        encoding: 'terrarium',
+                        tileSize: 512,
+                        maxzoom: 17
+                    },
+                    contourSource: {
+                        type: 'vector',
+                        tiles: [
+                            demSource.contourProtocolUrl({
+                                thresholds: {
+                                    12: [100, 500],
+                                    14: [20, 100]
+                                },
+                                elevationKey: 'ele',
+                                levelKey: 'level',
+                                contourLayer: 'contours',
+                                buffer: 1,
+                                overzoom: 2,
+                            })
+                        ],
+                        maxzoom: 17
+                    }
+                },
+                layers: [
+                    {
+                        id: 'hills',
+                        type: 'hillshade',
+                        source: 'hillshadeSource',
+                        paint: {
+                            'hillshade-method': 'igor',
+                            'hillshade-exaggeration': 0.2,
+                            'hillshade-highlight-color': 'rgb(255, 255, 228)',
+                            'hillshade-shadow-color': 'rgb(114, 124, 131)',
+                        }
+                    },
+                    {
+                        id: 'contours',
+                        type: 'line',
+                        source: 'contourSource',
+                        'source-layer': 'contours',
+                        paint: {
+                            'line-color': 'rgb(215, 151, 060)',
+                            'line-width': ['match', ['get', 'level'], 1, 1, 0.5],
+                        },
+                    },
+                    {
+                        id: 'contour-text',
+                        type: 'symbol',
+                        source: 'contourSource',
+                        'source-layer': 'contours',
+                        paint: {
+                            'text-color': 'rgb(172, 120, 48)',
+                            'text-halo-color': 'white',
+                            'text-halo-width': 2,
+                        },
+                        layout: {
+                            'symbol-placement': 'line',
+                            'text-size': 14,
+                            'text-field': ['concat', ['number-format', ['get', 'ele'], {},], 'm'],
+                            'text-font': ['Noto Sans Regular']
+                        }
+                    }
+                ]
+            },
+        });
+    </script>
+</body>
+
+</html>

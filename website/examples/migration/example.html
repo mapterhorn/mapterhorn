@@ -28,14 +28,19 @@
         const map = new maplibregl.Map({
             container: 'map',
             hash: 'map',
-            zoom: 10.5,
-            center: [9.0788, 47.1194],
+            zoom: 12.5,
+            center: [8.03747, 46.50269],
             style: {
                 version: 8,
                 sources: {
                     hillshadeSource: {
                         type: 'raster-dem',
-                        url: 'https://tiles.mapterhorn.com/tilejson.json',
+                        // tiles: ['https://elevation-tiles-prod.s3.amazonaws.com/terrarium/{z}/{x}/{y}.png']
+                        tiles: ['https://tiles.mapterhorn.com/{z}/{x}/{y}.webp'],
+                        encoding: 'terrarium',
+                        // tileSize: 256,
+                        tileSize: 512,
+                        attribution: '<a href="https://mapterhorn.com/attribution">© Mapterhorn</a>'
                     },
                 },
                 layers: [
@@ -43,6 +48,9 @@
                         id: 'hillshade',
                         type: 'hillshade',
                         source: 'hillshadeSource',
+                        paint: {
+                            'hillshade-method': 'igor',
+                        }
                     },
                 ],
             },

@@ -6,7 +6,6 @@
     <meta charset="utf-8" />
     <script src="https://unpkg.com/maplibre-gl@5.6.0/dist/maplibre-gl.js"></script>
     <link href="https://unpkg.com/maplibre-gl@5.6.0/dist/maplibre-gl.css" rel="stylesheet" />
-    <script src="https://unpkg.com/pmtiles@4.3.0/dist/pmtiles.js"></script>
     <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
     <link rel="icon" href="https://mapterhorn.github.io/.github/brand/screen/mapterhorn-icon.png">
     <style>
@@ -28,16 +27,6 @@
     <div id="map"></div>
     <script type="text/javascript">
 
-        const protocol = new pmtiles.Protocol({ metadata: true, errorOnMissingTile: true });
-        maplibregl.addProtocol('mapterhorn', async (params, abortController) => {
-            const [z, x, y] = params.url.replace('mapterhorn://', '').split('/').map(Number);
-            const name = z <= 12 ? 'planet' : `6-${x >> (z - 6)}-${y >> (z - 6)}`;
-            const url = `pmtiles://https://download.mapterhorn.com/${name}.pmtiles/${z}/${x}/${y}.webp`;
-            const response = await protocol.tile({ ...params, url }, abortController);
-            if (response['data'] === null) throw new Error(`Tile z=${z} x=${x} y=${y} not found.`);
-            return response;
-        });
-
         const map = new maplibregl.Map({
             container: 'map',
             hash: 'map',
@@ -48,10 +37,7 @@
                 sources: {
                     hillshadeSource: {
                         type: 'raster-dem',
-                        tiles: ['mapterhorn://{z}/{x}/{y}'],
-                        encoding: 'terrarium',
-                        tileSize: 512,
-                        attribution: '<a href="https://mapterhorn.com/attribution">© Mapterhorn</a>'
+                        url: 'https://tiles.mapterhorn.com/tilejson.json'
                     },
                 },
                 layers: [

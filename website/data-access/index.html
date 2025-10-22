@@ -53,31 +53,31 @@
 
     <h1>Data Access</h1>
 
-    <div>
+    <p>
         Mapterhorn <span id="version"></span> distributes Terrarium-encoded terrain
         rgb tiles as webp images with 512 pixel width. The tiles are bundled into multiple PMTiles archives listed
-        below.
-    </div>
+        below. Alternatively, single tiles can be retrieved from a zxy-endpoint.
+    </p>
+
+    <p>
+        <a href="https://www.cloudflare.com/">Cloudflare</a> is generously supporting Mapterhorn with <a
+            href="https://www.cloudflare.com/developer-platform/products/r2/">R2 Object Storage</a>, <a
+            href="https://www.cloudflare.com/developer-platform/products/workers/">Workers</a>,
+        and bandwidth. Thank you, Cloudflare, we are proud to have you as our infrastructure partner!
+    </p>
+
+    <h2 id="tiles-endpoint">Single Tile HTTP Endpoint</h2>
+    <p>
+        Tile zxy endpoint: <code>https://tiles.mapterhorn.com/{z}/{x}/{y}.webp</code>
+    </p>
+    <p>
+        TileJSON endpoint: <code>https://tiles.mapterhorn.com/tilejson.json</code>
+    </p>
 
     <h2 id="bulk-download">Bulk Download</h2>
-    <div> For a full list of download URLs in JSON format see <a
+    <p> For a full list of PMTiles download URLs in JSON format see <a
             href="https://download.mapterhorn.com/download_urls.json">download_urls.json</a>.
-    </div>
-
-    <h2 id="file-list">File List</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>name</th>
-                <th>zoom</th>
-                <th>size</th>
-                <th class="hide-mobile">md5sum</th>
-                <th>coverage</th>
-            </tr>
-        </thead>
-        <tbody id="table-body">
-        </tbody>
-    </table>
+    </p>
 
     <h2 id="area-extracts">Area Extracts</h2>
     <p>
@@ -120,7 +120,7 @@
         extract:
     </p>
     <p>
-        <pre><code>pmtiles extract \
+    <pre><code>pmtiles extract \
   --bbox=7.74,46.60,7.96,46.75 \
   https://download.mapterhorn.com/planet.pmtiles \
   planet.pmtiles</code></pre>
@@ -129,7 +129,7 @@
         Example Interlaken 6-33-22.pmtiles (z13-z17) extract:
     </p>
     <p>
-        <pre><code>pmtiles extract \
+    <pre><code>pmtiles extract \
   --bbox=7.74,46.60,7.96,46.75 \
   https://download.mapterhorn.com/6-33-22.pmtiles \
   6-33-22.pmtiles</code></pre>
@@ -138,6 +138,21 @@
     <p>
         Tip: Add the flag <code>--dry-run</code> to get the total extract size before starting the actual download.
     </p>
+
+    <h2 id="file-list">File List</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>name</th>
+                <th>zoom</th>
+                <th>size</th>
+                <th class="hide-mobile">md5sum</th>
+                <th>coverage</th>
+            </tr>
+        </thead>
+        <tbody id="table-body">
+        </tbody>
+    </table>
 
     <div class="footer">
         <hr>

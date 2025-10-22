@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang='en'>
+
+<head>
+    <meta charset="utf-8" />
+    <script src="https://unpkg.com/maplibre-gl@5.6.0/dist/maplibre-gl.js"></script>
+    <link href="https://unpkg.com/maplibre-gl@5.6.0/dist/maplibre-gl.css" rel="stylesheet" />
+    <script src="https://unpkg.com/pmtiles@4.3.0/dist/pmtiles.js"></script>
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        #map {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map"></div>
+    <script type="text/javascript">
+
+        const protocol = new pmtiles.Protocol({ metadata: true, errorOnMissingTile: true });
+        maplibregl.addProtocol('mapterhorn', async (params, abortController) => {
+            const [z, x, y] = params.url.replace('mapterhorn://', '').split('/').map(Number);
+            const name = z <= 12 ? 'planet' : `6-${x >> (z - 6)}-${y >> (z - 6)}`;
+            const url = `pmtiles://https://download.mapterhorn.com/${name}.pmtiles/${z}/${x}/${y}.webp`;
+            const response = await protocol.tile({ ...params, url }, abortController);
+            if (response['data'] === null) throw new Error(`Tile z=${z} x=${x} y=${y} not found.`);
+            return response;
+        });
+
+        const map = new maplibregl.Map({
+            container: 'map',
+            hash: 'map',
+            zoom: 12.5,
+            center: [7.93246, 47.005],
+            style: {
+                version: 8,
+                sources: {
+                    hillshadeSource: {
+                        type: 'raster-dem',
+                        tiles: ['mapterhorn://{z}/{x}/{y}'],
+                        encoding: 'terrarium',
+                        tileSize: 512,
+                        attribution: '<a href="https://mapterhorn.com/attribution">© Mapterhorn</a>'
+                    },
+                },
+                layers: [
+                    {
+                        id: 'hillshade',
+                        type: 'hillshade',
+                        source: 'hillshadeSource',
+                        paint: {
+                            'hillshade-method': 'multidirectional',
+                            'hillshade-highlight-color': ['#FF4000', '#FFFF00', '#40FF00', '#00FF80'],
+                            'hillshade-shadow-color': ['#00BFFF', '#0000FF', '#BF00FF', '#FF0080'],
+                            'hillshade-illumination-direction': [270, 315, 0, 45],
+                            'hillshade-illumination-altitude': [30, 30, 30, 30],
+                        }
+                    },
+                ],
+            },
+        });
+    </script>
+</body>
+
+</html>

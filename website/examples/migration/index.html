@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang='en'>
+
+<head>
+    <title>Migration Example | Mapterhorn</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <link rel="stylesheet" href="/style.css" type="text/css">
+    <link rel="icon" href="https://mapterhorn.github.io/.github/brand/screen/mapterhorn-icon.png">
+    <link id="hljs-theme" rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/atom-one-light.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+
+
+    <style>
+        .iframe-container {
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin: 20px 0;
+        }
+
+        iframe {
+            width: 100%;
+            height: 450px;
+            border: none;
+            display: block;
+        }
+
+        .code-container {
+            position: relative;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin: 20px 0;
+        }
+
+        pre {
+            margin: 0;
+            border-radius: 6px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <a href="/"><img class="logo" src="https://mapterhorn.github.io/.github/brand/screen/mapterhorn-logo.png"></a>
+        <nav class="nav-links">
+            <a href="/viewer">Viewer</a>
+            <a href="/data-access">Data Access</a>
+            <a href="/coverage">Coverage</a>
+            <a href="/attribution">Attribution</a>
+            <a href="/examples" class="selected">Examples</a>
+        </nav>
+        <hr />
+    </header>
+
+    <h1>Migration Example</h1>
+
+    <p>
+        Migrate from AWS Elevation Tiles (Tilezen Joerd) to Mapterhorn.
+    </p>
+
+    <p>
+        <a href="example.html">Full Screen</a> &middot; <a
+            href="https://github.com/mapterhorn/mapterhorn/blob/main/website/examples/terrain/example.html">Source on
+            GitHub</a>
+    </p>
+
+    <div class="iframe-container">
+        <iframe src="example.html" title="Example Content" loading="lazy">
+            <p>Your browser doesn't support iframes.
+                <a href="example.html">Click here to view the content directly.</a>
+            </p>
+        </iframe>
+    </div>
+
+    <div class="code-container">
+        <pre><code class="language-html" id="code"></code></pre>
+    </div>
+
+    <div class="footer">
+        <hr>
+        <div class="footer-content">
+            <span>Copyright 2025 &middot; Mapterhorn</span>
+            <a href="https://www.linkedin.com/company/mapterhorn/">LinkedIn</a>
+            <a href="https://bsky.app/profile/mapterhorn.com">Bluesky</a>
+            <a href="https://mastodon.social/@mapterhorn">Mastodon</a>
+            <a href="https://github.com/mapterhorn/mapterhorn">GitHub</a>
+        </div>
+    </div>
+
+    <script>
+        const loadCode = async () => {
+            const request = await fetch('example.html');
+            const text = await request.text();
+            const codeElement = document.getElementById('code');
+            codeElement.textContent = text;
+            hljs.highlightAll();
+        }
+        loadCode();
+    </script>
+</body>
+
+</html>
