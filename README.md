@@ -10,6 +10,24 @@ Public terrain tiles for interactive web map visualizations
 
 [https://mapterhorn.com/viewer](https://mapterhorn.com/viewer)
 
+## Examples
+
+[https://mapterhorn.com/examples](https://mapterhorn.com/examples)
+
+## Migrate from AWS Elevation Tiles (Tilezen Joerd)
+
+```diff
+"hillshadeSource": {
+    "type": "raster-dem",
+-   "tiles": ["https://elevation-tiles-prod.s3.amazonaws.com/terrarium/{z}/{x}/{y}.png"],
++   "tiles": ["https://tiles.mapterhorn.com/{z}/{x}/{y}.webp"],
+    "encoding": "terrarium",
+-   "tileSize": 256,
++   "tileSize": 512,
+}
+
+```
+
 ## Contributing
 
 See [source-catalog/README.md](source-catalog/README.md) and [pipelines/README.md](pipelines/README.md).
