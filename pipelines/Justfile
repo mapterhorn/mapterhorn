@@ -216,6 +216,7 @@ default:
     # TMPDIR=/tmp uv run python bundle.py 0.0.0
     # uv run python download_urls.py 0.0.0
     # uv run python attribution.py
+    # uv run python coverage.py
 
 # Run debug pipeline
 debug:
@@ -304,3 +305,4 @@ upload:
 
     pmtiles upload bundle-store/attribution.json attribution.json --bucket="s3://mapterhorn?region=auto&endpoint=https://5521f1c60beed398e82b05eabc341142.r2.cloudflarestorage.com/"
     pmtiles upload bundle-store/download_urls.json download_urls.json --bucket="s3://mapterhorn?region=auto&endpoint=https://5521f1c60beed398e82b05eabc341142.r2.cloudflarestorage.com/"
+    pmtiles upload bundle-store/source-coverage.csv source-coverage.csv --bucket="s3://mapterhorn?region=auto&endpoint=https://5521f1c60beed398e82b05eabc341142.r2.cloudflarestorage.com/"
