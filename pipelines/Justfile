@@ -57,6 +57,8 @@ default:
     # uv run python source_download.py frrgealti1stpm
     # uv run python source_download.py frrgealti1caribbean
     # uv run python source_download.py frrgealti1metro
+    # uv run python source_download.py itsardegnacostiera
+    # uv run python source_download.py itsardegnaurban
 
     # uv run python source_unzip.py bewallonie
     # uv run python source_unzip.py cz
@@ -93,6 +95,8 @@ default:
     # uv run python source_unzip.py frrgealti1stpm # translate only the .asc files
     # uv run python source_unzip.py frrgealti1caribbean # translate only the .asc files
     # uv run python source_unzip.py frrgealti1metro # translate only the .asc files
+    # uv run python source_unzip.py itsardegnacostiera
+    # uv run python source_unzip.py itsardegnaurban
 
     # uv run python source_to_cog.py bewallonie
     # uv run python source_to_cog.py dehamburg
@@ -130,6 +134,7 @@ default:
     # uv run python source_set_crs.py frrgealti1stpm EPSG:4467
     # uv run python source_set_crs.py frrgealti1caribbean EPSG:4559
     # uv run python source_set_crs.py frrgealti1metro EPSG:2154
+    # uv run python source_set_crs.py itsardegnacostiera EPSG:25832
 
     # uv run python source_set_nodata.py atkaernten 0.0
     # uv run python source_set_nodata.py demv -9999
@@ -204,6 +209,8 @@ default:
     # uv run python source_bounds.py frrgealti1stpm
     # uv run python source_bounds.py frrgealti1caribbean
     # uv run python source_bounds.py frrgealti1metro
+    # uv run python source_bounds.py itsardegnacostiera
+    # uv run python source_bounds.py itsardegnaurban
 
     # uv run python aggregation_covering.py
     # uv run python downsampling_covering.py

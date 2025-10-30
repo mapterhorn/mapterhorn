@@ -77,6 +77,7 @@ def main():
         translate_images(filepath, source, 'asc')
         translate_images(filepath, source, 'ASC')
         translate_images(filepath, source, 'xyz')
+        translate_images(filepath, source, 'grd')
         
         tmpdir = f'{filepath}-tmp'
         if os.path.isdir(tmpdir):

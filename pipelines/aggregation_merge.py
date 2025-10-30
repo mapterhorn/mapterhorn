@@ -103,7 +103,7 @@ def merge(filepath):
 
                             binary_mask = (merged_tile != -9999).astype('int32')
                             eroded = ndimage.binary_erosion(binary_mask)
-                            boundary_tile &= binary_mask.astype(bool)
+                            boundary_tile &= eroded.astype(bool)
                             
                             if 1 in boundary_tile:
                                 truncate = 4

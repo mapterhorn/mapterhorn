@@ -14,13 +14,22 @@ def set_nodata(filepath, nodata):
 def main():
     source = None
     nodata = None
+    force = False
     if len(sys.argv) > 2:
         source = sys.argv[1]
         nodata = sys.argv[2]
         print(f'setting nodata={nodata} for source={source}...')
     else:
-        print('arguments missing, usage: python source_assign_nodata.py {{source}} {{nodata}}')
+        print('arguments missing, usage: python source_set_nodata.py {{source}} {{nodata}} [--force]')
         exit()
+    
+    if len(sys.argv) == 4:
+        if sys.argv[3] == '--force':
+            force = True
+            print('Force NODATA overwrite on all files.')
+        else:
+            print('unkown third argument, usage: python source_set_nodata.py {{source}} {{nodata}} [--force]')
+            exit()
     
     filepaths = sorted(glob(f'source-store/{source}/*'))
 
@@ -30,7 +39,7 @@ def main():
         if not filepath.endswith('.tif'):
             continue
         with rasterio.open(filepath) as src:
-            if src.nodata is None:
+            if src.nodata is None or force:
                 argument_tuples.append((filepath, nodata))
             else:
                 nodata_values.add(src.nodata)
