@@ -59,6 +59,7 @@ default:
     # uv run python source_download.py frrgealti1metro
     # uv run python source_download.py itsardegnacostiera
     # uv run python source_download.py itsardegnaurban
+    # uv run python source_download.py se # no public download yet
 
     # uv run python source_unzip.py bewallonie
     # uv run python source_unzip.py cz
@@ -108,6 +109,7 @@ default:
     # uv run python source_to_cog.py aalv
     # uv run python source_to_cog.py desh
     # uv run python source_to_cog.py sk
+    # uv run python source_to_cog.py se
 
     # uv run python source_set_crs.py atsalzburg EPSG:31258
     # uv run python source_set_crs.py frrgealti5corse EPSG:2154
@@ -211,6 +213,7 @@ default:
     # uv run python source_bounds.py frrgealti1metro
     # uv run python source_bounds.py itsardegnacostiera
     # uv run python source_bounds.py itsardegnaurban
+    # uv run python source_bounds.py se
 
     # uv run python aggregation_covering.py
     # uv run python downsampling_covering.py
