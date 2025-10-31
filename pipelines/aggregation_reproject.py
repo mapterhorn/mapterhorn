@@ -6,14 +6,20 @@ import mercantile
 
 import utils
 
-SILENT = True
+SILENT = False
 
-def create_virtual_raster(filepath, source_items):
+def create_virtual_raster(tmp_folder, i, source_items):
     source = source_items[0]['source']
-    command = f'gdalbuildvrt -overwrite {filepath}'
-    for source_item in source_items:
-        command += f' "source-store/{source}/{source_item["filename"]}"'
-    utils.run_command(command, silent=SILENT)
+    vrt_filepath = f'{tmp_folder}/{i}.vrt'
+    input_file_list_path = f'{tmp_folder}/{i}-file-list.txt'
+    with open(input_file_list_path, 'w') as f:
+        for source_item in source_items:
+            f.write(f'source-store/{source}/{source_item["filename"]}\n')
+    command = f'gdalbuildvrt -overwrite -input_file_list {input_file_list_path} {vrt_filepath}'
+    out, err = utils.run_command(command, silent=SILENT)
+    if not SILENT:
+        print(out, err)
+    return vrt_filepath
 
 def get_resolution(zoom):
     tile = mercantile.Tile(x=0, y=0, z=zoom)
@@ -91,8 +97,7 @@ def reproject(filepath):
         buffer_3857_rounded = buffer_pixels * resolution
 
     for i, source_items in enumerate(grouped_source_items):
-        vrt_filepath = f'{tmp_folder}/{i}.vrt'
-        create_virtual_raster(vrt_filepath, source_items)
+        vrt_filepath = create_virtual_raster(tmp_folder, i, source_items)
         zoom = maxzoom
         vrt_3857_filepath = f'{tmp_folder}/{i}-3857.vrt'
         create_warp(vrt_filepath, vrt_3857_filepath, zoom, aggregation_tile, buffer_3857_rounded)
