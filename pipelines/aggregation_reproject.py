@@ -6,7 +6,7 @@ import mercantile
 
 import utils
 
-SILENT = False
+SILENT = True
 
 def create_virtual_raster(tmp_folder, i, source_items):
     source = source_items[0]['source']

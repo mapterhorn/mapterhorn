@@ -3,7 +3,7 @@ import sys
 from multiprocessing import Pool
 import utils
 
-SILENT = True
+SILENT = False
 
 def to_cog(filepath):
     filepath_in = None
@@ -12,6 +12,10 @@ def to_cog(filepath):
         utils.run_command(f'mv {filepath} {filepath}.bak', silent=SILENT)
         filepath_in = f'{filepath}.bak'
         filepath_out = filepath
+    elif filepath.endswith('.TIF'):
+        utils.run_command(f'mv {filepath} {filepath}.bak', silent=SILENT)
+        filepath_in = f'{filepath}.bak'
+        filepath_out = filepath.replace('.TIF', '.tif')
     elif filepath.endswith('.xyz'):
         filepath_in = filepath
         filepath_out = filepath.replace('.xyz', '.tif')
@@ -34,7 +38,14 @@ def main():
         print('source argument missing')
         exit()
     
-    filepaths = [(filepath,) for filepath in sorted(glob(f'source-store/{source}/*.tif') + glob(f'source-store/{source}/*.xyz') + glob(f'source-store/{source}/*.asc') + glob(f'source-store/{source}/*.txt'))]
+    filepaths = []
+    filepaths += glob(f'source-store/{source}/*.tif')
+    filepaths += glob(f'source-store/{source}/*.TIF')
+    filepaths += glob(f'source-store/{source}/*.xyz')
+    filepaths += glob(f'source-store/{source}/*.asc')
+    filepaths += glob(f'source-store/{source}/*.txt')
+
+    filepaths = [(filepath,) for filepath in sorted(filepaths)]
 
     print(f'num files: {len(filepaths)}')
     with Pool() as pool:

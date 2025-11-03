@@ -61,6 +61,7 @@ default:
     # uv run python source_download.py itsardegnaurban
     # uv run python source_download.py se # no public download yet
     # uv run python source_download.py itsicily # no public download yet
+    # uv run python source_download.py nlahn5lowresfilled # no public download yet
 
     # uv run python source_unzip.py bewallonie
     # uv run python source_unzip.py cz
@@ -112,6 +113,7 @@ default:
     # uv run python source_to_cog.py sk
     # uv run python source_to_cog.py se
     # uv run python source_to_cog.py itsicily
+    # uv run python source_to_cog.py nlahn5lowresfilled
 
     # uv run python source_set_crs.py atsalzburg EPSG:31258
     # uv run python source_set_crs.py frrgealti5corse EPSG:2154
@@ -139,6 +141,7 @@ default:
     # uv run python source_set_crs.py frrgealti1caribbean EPSG:4559
     # uv run python source_set_crs.py frrgealti1metro EPSG:2154
     # uv run python source_set_crs.py itsardegnacostiera EPSG:25832
+    # uv run python source_set_crs.py debrandenburg EPSG:25833
 
     # uv run python source_set_nodata.py atkaernten 0.0
     # uv run python source_set_nodata.py demv -9999
@@ -169,7 +172,7 @@ default:
     # uv run python source_bounds.py bewallonie
     # uv run python source_bounds.py cz
     # uv run python source_bounds.py debayern
-    # uv run python source_bounds.py niedersachsen
+    # uv run python source_bounds.py deniedersachsen
     # uv run python source_bounds.py ee
     # uv run python source_bounds.py tinitaly
     # uv run python source_bounds.py frrgealti5corse
@@ -217,6 +220,68 @@ default:
     # uv run python source_bounds.py itsardegnaurban
     # uv run python source_bounds.py se
     # uv run python source_bounds.py itsicily
+    # uv run python source_bounds.py nlahn5lowresfilled
+
+    # uv run python source_vrt.py glo30
+    # uv run python source_vrt.py swissalti3d
+    # uv run python source_vrt.py at10
+    # uv run python source_vrt.py atburgenland
+    # uv run python source_vrt.py atoberoesterreich
+    # uv run python source_vrt.py atsalzburg
+    # uv run python source_vrt.py atkaernten
+    # uv run python source_vrt.py beflanders
+    # uv run python source_vrt.py bewallonie
+    # uv run python source_vrt.py cz
+    # uv run python source_vrt.py debayern
+    # uv run python source_vrt.py deniedersachsen
+    # uv run python source_vrt.py ee
+    # uv run python source_vrt.py tinitaly
+    # uv run python source_vrt.py frrgealti5corse
+    # uv run python source_vrt.py frrgealti5reunion
+    # uv run python source_vrt.py frrgealti5caribbean
+    # uv run python source_vrt.py frrgealti5stpm
+    # uv run python source_vrt.py frrgealti5metro
+    # uv run python source_vrt.py frrgealti5guiana
+    # uv run python source_vrt.py frrgealti5mayotte
+    # uv run python source_vrt.py demv
+    # uv run python source_vrt.py deberlin
+    # uv run python source_vrt.py debrandenburg # projection issues
+    # uv run python source_vrt.py desachsen
+    # uv run python source_vrt.py dehamburg
+    # uv run python source_vrt.py debremen
+    # uv run python source_vrt.py dehessen
+    # uv run python source_vrt.py lu
+    # uv run python source_vrt.py desachsenanhalt
+    # uv run python source_vrt.py denrw
+    # uv run python source_vrt.py itaosta
+    # uv run python source_vrt.py itbozen
+    # uv run python source_vrt.py derlp
+    # uv run python source_vrt.py dk
+    # uv run python source_vrt.py si
+    # uv run python source_vrt.py es5a
+    # uv run python source_vrt.py es5b
+    # uv run python source_vrt.py es5c
+    # uv run python source_vrt.py es5d
+    # uv run python source_vrt.py aalv
+    # uv run python source_vrt.py ro
+    # uv run python source_vrt.py debw # projection issues
+    # uv run python source_vrt.py desaarland
+    # uv run python source_vrt.py dethueringen
+    # uv run python source_vrt.py desh
+    # uv run python source_vrt.py sk
+    # uv run python source_vrt.py fi
+    # uv run python source_vrt.py frrgealti1mayotte
+    # uv run python source_vrt.py frrgealti1reunion
+    # uv run python source_vrt.py frrgealti1guiana
+    # uv run python source_vrt.py frrgealti1corse
+    # uv run python source_vrt.py frrgealti1stpm
+    # uv run python source_vrt.py frrgealti1caribbean
+    # uv run python source_vrt.py frrgealti1metro
+    # uv run python source_vrt.py itsardegnacostiera
+    # uv run python source_vrt.py itsardegnaurban
+    # uv run python source_vrt.py se
+    # uv run python source_vrt.py itsicily
+    # uv run python source_vrt.py nlahn5lowresfilled
 
     # uv run python aggregation_covering.py
     # uv run python downsampling_covering.py
