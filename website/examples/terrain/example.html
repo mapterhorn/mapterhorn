@@ -45,10 +45,6 @@
                     terrainSource: {
                         type: 'raster-dem',
                         url: 'https://tiles.mapterhorn.com/tilejson.json',
-                    },
-                    hillshadeSource: {
-                        type: 'raster-dem',
-                        url: 'https://tiles.mapterhorn.com/tilejson.json',
                     }
                 },
                 layers: [
@@ -60,7 +56,7 @@
                     {
                         id: 'hills',
                         type: 'hillshade',
-                        source: 'hillshadeSource',
+                        source: 'terrainSource',
                         paint: { 'hillshade-shadow-color': '#473B24' }
                     }
                 ],
