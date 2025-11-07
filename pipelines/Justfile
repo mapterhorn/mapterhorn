@@ -115,6 +115,12 @@ default:
     # uv run python source_to_cog.py itsicily
     # uv run python source_to_cog.py nlahn5lowresfilled
 
+    # uv run python source_slice.py bewallonie 16384
+    # uv run python source_to_cog.py bewallonie
+
+    # uv run python source_slice.py sk 16384
+    # uv run python source_to_cog.py sk
+
     # uv run python source_set_crs.py atsalzburg EPSG:31258
     # uv run python source_set_crs.py frrgealti5corse EPSG:2154
     # uv run python source_set_crs.py frrgealti5reunion EPSG:2975
@@ -222,66 +228,66 @@ default:
     # uv run python source_bounds.py itsicily
     # uv run python source_bounds.py nlahn5lowresfilled
 
-    # uv run python source_vrt.py glo30
-    # uv run python source_vrt.py swissalti3d
-    # uv run python source_vrt.py at10
-    # uv run python source_vrt.py atburgenland
-    # uv run python source_vrt.py atoberoesterreich
-    # uv run python source_vrt.py atsalzburg
-    # uv run python source_vrt.py atkaernten
-    # uv run python source_vrt.py beflanders
-    # uv run python source_vrt.py bewallonie
-    # uv run python source_vrt.py cz
-    # uv run python source_vrt.py debayern
-    # uv run python source_vrt.py deniedersachsen
-    # uv run python source_vrt.py ee
-    # uv run python source_vrt.py tinitaly
-    # uv run python source_vrt.py frrgealti5corse
-    # uv run python source_vrt.py frrgealti5reunion
-    # uv run python source_vrt.py frrgealti5caribbean
-    # uv run python source_vrt.py frrgealti5stpm
-    # uv run python source_vrt.py frrgealti5metro
-    # uv run python source_vrt.py frrgealti5guiana
-    # uv run python source_vrt.py frrgealti5mayotte
-    # uv run python source_vrt.py demv
-    # uv run python source_vrt.py deberlin
-    # uv run python source_vrt.py debrandenburg # projection issues
-    # uv run python source_vrt.py desachsen
-    # uv run python source_vrt.py dehamburg
-    # uv run python source_vrt.py debremen
-    # uv run python source_vrt.py dehessen
-    # uv run python source_vrt.py lu
-    # uv run python source_vrt.py desachsenanhalt
-    # uv run python source_vrt.py denrw
-    # uv run python source_vrt.py itaosta
-    # uv run python source_vrt.py itbozen
-    # uv run python source_vrt.py derlp
-    # uv run python source_vrt.py dk
-    # uv run python source_vrt.py si
-    # uv run python source_vrt.py es5a
-    # uv run python source_vrt.py es5b
-    # uv run python source_vrt.py es5c
-    # uv run python source_vrt.py es5d
-    # uv run python source_vrt.py aalv
-    # uv run python source_vrt.py ro
-    # uv run python source_vrt.py debw # projection issues
-    # uv run python source_vrt.py desaarland
-    # uv run python source_vrt.py dethueringen
-    # uv run python source_vrt.py desh
-    # uv run python source_vrt.py sk
-    # uv run python source_vrt.py fi
-    # uv run python source_vrt.py frrgealti1mayotte
-    # uv run python source_vrt.py frrgealti1reunion
-    # uv run python source_vrt.py frrgealti1guiana
-    # uv run python source_vrt.py frrgealti1corse
-    # uv run python source_vrt.py frrgealti1stpm
-    # uv run python source_vrt.py frrgealti1caribbean
-    # uv run python source_vrt.py frrgealti1metro
-    # uv run python source_vrt.py itsardegnacostiera
-    # uv run python source_vrt.py itsardegnaurban
-    # uv run python source_vrt.py se
-    # uv run python source_vrt.py itsicily
-    # uv run python source_vrt.py nlahn5lowresfilled
+    # uv run python source_polygonize.py frrgealti5stpm 32
+    # uv run python source_polygonize.py frrgealti5mayotte 32
+    # uv run python source_polygonize.py frrgealti5reunion 32
+    # uv run python source_polygonize.py frrgealti5caribbean 32
+    # uv run python source_polygonize.py frrgealti1stpm 32
+    # uv run python source_polygonize.py aalv 32
+    # uv run python source_polygonize.py atburgenland 32
+    # uv run python source_polygonize.py debremen 32
+    # uv run python source_polygonize.py frrgealti5corse 32
+    # uv run python source_polygonize.py es5d 32
+    # uv run python source_polygonize.py frrgealti1mayotte 32
+    # uv run python source_polygonize.py dehamburg 32
+    # uv run python source_polygonize.py deberlin 32
+    # uv run python source_polygonize.py nlahn5lowresfilled 32
+    # uv run python source_polygonize.py itaosta 32
+    # uv run python source_polygonize.py at10 32
+    # uv run python source_polygonize.py itbozen 32
+    # uv run python source_polygonize.py itsardegnaurban 32
+    # uv run python source_polygonize.py frrgealti1reunion 32
+    # uv run python source_polygonize.py frrgealti1caribbean 32
+    # uv run python source_polygonize.py cz 32
+    # uv run python source_polygonize.py desaarland 32
+    # uv run python source_polygonize.py es5c 32
+    # uv run python source_polygonize.py frrgealti5guiana 32
+    # uv run python source_polygonize.py lu 32
+    # uv run python source_polygonize.py tinitaly 32
+    # uv run python source_polygonize.py itsardegnacostiera 32
+    # uv run python source_polygonize.py es5b 32
+    # uv run python source_polygonize.py frrgealti1corse 32
+    # uv run python source_polygonize.py desachsenanhalt 32
+    # uv run python source_polygonize.py atkaernten 32
+    # uv run python source_polygonize.py desachsen 32
+    # uv run python source_polygonize.py debrandenburg 32
+    # uv run python source_polygonize.py frrgealti5metro 32
+    # uv run python source_polygonize.py demv 32
+    # uv run python source_polygonize.py dehessen 32
+    # uv run python source_polygonize.py itsicily 32
+    # uv run python source_polygonize.py derlp 32
+    # uv run python source_polygonize.py denrw 32
+    # uv run python source_polygonize.py es5a 32
+    # uv run python source_polygonize.py debw 32
+    # uv run python source_polygonize.py ro 32
+    # uv run python source_polygonize.py atsalzburg 32
+    # uv run python source_polygonize.py ee 32
+    # uv run python source_polygonize.py deniedersachsen 32
+    # uv run python source_polygonize.py si 32
+    # uv run python source_polygonize.py atoberoesterreich 32
+    # uv run python source_polygonize.py dethueringen 32
+    # uv run python source_polygonize.py frrgealti1guiana 32
+    # uv run python source_polygonize.py desh 32
+    # uv run python source_polygonize.py debayern 32
+    # uv run python source_polygonize.py swissalti3d 32
+    # uv run python source_polygonize.py dk 32
+    # uv run python source_polygonize.py glo30 32
+    # uv run python source_polygonize.py se 32
+    # uv run python source_polygonize.py frrgealti1metro 32
+    # uv run python source_polygonize.py fi 12
+    # uv run python source_polygonize.py beflanders 12
+    # uv run python source_polygonize.py bewallonie 32
+    # uv run python source_polygonize.py sk 32
 
     # uv run python aggregation_covering.py
     # uv run python downsampling_covering.py
@@ -294,7 +300,7 @@ default:
     # TMPDIR=/tmp uv run python bundle.py 0.0.0
     # uv run python download_urls.py 0.0.0
     # uv run python attribution.py
-    # uv run python coverage.py
+    # java -cp planetiler.jar Coverage.java # cf https://github.com/onthegomap/planetiler-examples
 
 # Run debug pipeline
 debug:
@@ -383,4 +389,4 @@ upload:
 
     pmtiles upload bundle-store/attribution.json attribution.json --bucket="s3://mapterhorn?region=auto&endpoint=https://5521f1c60beed398e82b05eabc341142.r2.cloudflarestorage.com/"
     pmtiles upload bundle-store/download_urls.json download_urls.json --bucket="s3://mapterhorn?region=auto&endpoint=https://5521f1c60beed398e82b05eabc341142.r2.cloudflarestorage.com/"
-    pmtiles upload bundle-store/source-coverage.csv source-coverage.csv --bucket="s3://mapterhorn?region=auto&endpoint=https://5521f1c60beed398e82b05eabc341142.r2.cloudflarestorage.com/"
+    pmtiles upload bundle-store/coverage.pmtiles coverage.pmtiles --bucket="s3://mapterhorn?region=auto&endpoint=https://5521f1c60beed398e82b05eabc341142.r2.cloudflarestorage.com/"

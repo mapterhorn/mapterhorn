@@ -7,7 +7,6 @@
     <title>Coverage | Mapterhorn</title>
     <script src='https://unpkg.com/maplibre-gl@5.6.2/dist/maplibre-gl.js'></script>
     <link href='https://unpkg.com/maplibre-gl@5.6.2/dist/maplibre-gl.css' rel='stylesheet' />
-    <script src='https://unpkg.com/pmtiles@4.3.0/dist/pmtiles.js'></script>
     <link rel="icon" href="https://mapterhorn.github.io/.github/brand/screen/mapterhorn-icon.png">
     <style>
         body {
@@ -28,8 +27,11 @@
     <div id='map'></div>
 
     <script>
-        const protocol = new pmtiles.Protocol();
-        maplibregl.addProtocol('pmtiles', protocol.tile);
+        maplibregl.setRTLTextPlugin(
+            'https://unpkg.com/@mapbox/mapbox-gl-rtl-text@0.3.0/dist/mapbox-gl-rtl-text.js',
+            true
+        );
+
         const map = new maplibregl.Map({
             container: 'map',
             hash: 'map',
@@ -37,7 +39,6 @@
             center: [0, 0],
             zoom: 0,
         });
-        map.setMaxZoom(7.9);
 
         class LogoControl {
             onAdd(map) {
@@ -57,6 +58,51 @@
         map.addControl(new LogoControl(), 'bottom-left');
 
         const addOverlay = async () => {
+            map.addSource('coverage', {
+                'type': 'vector',
+                'url': 'https://single-archive-tiles.mapterhorn.com/coverage.json'
+            });
+
+            map.addLayer({
+                'id': 'coverage-fill',
+                'type': 'fill',
+                'source': 'coverage',
+                'source-layer': 'coverage',
+                'layout': {
+                    'fill-sort-key': [
+                        'match',
+                        ['get', 'source'],
+                        'glo30',
+                        0,
+                        1
+                    ]
+                },
+                'paint': {
+                    'fill-color': [
+                        'match',
+                        ['get', 'source'],
+                        'glo30',
+                        'rgba(255, 255, 255, 0.3)',
+                        'rgba(26, 188, 156, 0.3)'
+                    ]
+                }
+            }, 'water_waterway_label');
+            map.addLayer({
+                'id': 'coverage-line',
+                'type': 'line',
+                'source': 'coverage',
+                'source-layer': 'coverage',
+                'paint': {
+                    'line-width': 2,
+                    'line-color': [
+                        'case',
+                        ['==', ['get', 'source'], 'glo30'],
+                        'rgba(255, 255, 255, 1.0)',
+                        'rgba(26, 188, 156, 0.6)'
+                    ]
+                }
+            }, 'water_waterway_label');
+
             const request = await fetch('https://download.mapterhorn.com/download_urls.json');
             const data = await request.json();
             const items = data['items'].filter(item => item['name'] !== 'planet.pmtiles');
@@ -72,38 +118,38 @@
                 ]];
                 const geometry = { 'type': 'Polygon', coordinates };
                 const properties = {
-                    'label': `${item['name']}\nz${item['min_zoom']}-z${item['max_zoom']}`,
-                    'popup': `${item['name']}<br/>z${item['min_zoom']}-z${item['max_zoom']} (${(item['size'] / Math.pow(1024, 3)).toFixed(2)} GiB)<br/><a href="${item['url']}">Download...</a>`,
+                    'label': `${item['name']}`,
+                    'popup': `<a href="${item['url']}">${item['name']}</a><br/>`,
                     'url': item['url'],
                 }
                 features.push({ 'type': 'Feature', geometry, properties });
             }
-            map.addSource('overlay', {
+            map.addSource('pmtiles', {
                 'type': 'geojson',
                 'data': { 'type': 'FeatureCollection', features }
             });
             map.addLayer({
-                'id': 'overlay-fill',
+                'id': 'pmtiles-fill',
                 'type': 'fill',
-                'source': 'overlay',
+                'source': 'pmtiles',
                 'paint': {
-                    'fill-color': 'rgba(255, 0, 255, 0.3)'
+                    'fill-color': 'rgba(255, 0, 255, 0.0)'
                 }
-            });
+            }, 'water_waterway_label');
             map.addLayer({
-                'id': 'overlay-line',
+                'id': 'pmtiles-line',
                 'type': 'line',
-                'source': 'overlay',
+                'source': 'pmtiles',
                 'paint': {
-                    'line-width': 2,
-                    'line-color': 'rgba(255, 0, 255, 0.9)'
+                    'line-width': 1.0,
+                    'line-color': 'rgba(155, 89, 182, 1.0)'
                 }
-            });
+            }, 'water_waterway_label');
             map.addLayer({
-                'id': 'overlay-label',
+                'id': 'pmtiles-label',
                 'type': 'symbol',
-                'source': 'overlay',
-                'minzoom': 4,
+                'source': 'pmtiles',
+                'minzoom': 5,
                 'layout': {
                     'text-field': ['get', 'label'],
                     'text-font': ['Noto Sans Regular'],
@@ -114,16 +160,42 @@
                     'text-halo-blur': 1,
                 }
             });
-            map.on('click', 'overlay-fill', e => {
-                const popup = new maplibregl.Popup()
+
+            map.on('click', e => {
+                const features = map.queryRenderedFeatures(e.point, {
+                    layers: ['pmtiles-fill', 'coverage-fill']
+                });
+
+                if (!features.length) return;
+
+                let dataSources = '';
+                let pmtilesPopup = '';
+                features.forEach(f => {
+                    if (f.layer.id === 'pmtiles-fill') {
+                        pmtilesPopup = f.properties['popup'];
+                    }
+                    else if (f.layer.id === 'coverage-fill') {
+                        dataSources += `<a href="/attribution/#${f.properties['source']}">${f.properties['source']}</a> (<a href="#" onclick="highlightSource('${f.properties['source']}')">coverage</a>)<br>`;
+                    }
+                });
+
+                let popupContent = '<strong>Low resolution z0-z12:</strong><br>';
+                popupContent += '<a href="https://download.mapterhorn.com/planet.pmtiles">planet.pmtiles</a><br>';
+                if (pmtilesPopup !== '') {
+                    popupContent += '<strong>High resolution z13+:</strong><br>';
+                    popupContent += pmtilesPopup;
+                }
+                popupContent += `<strong>Data sources:</strong><br>${dataSources}`;
+
+                new maplibregl.Popup()
                     .setLngLat(e.lngLat)
-                    .setHTML(e.features[0].properties['popup'])
+                    .setHTML(popupContent)
                     .addTo(map);
             });
-            map.on('mouseenter', 'overlay-fill', e => {
+            map.on('mouseenter', 'coverage-fill', e => {
                 map.getCanvas().style.cursor = 'pointer';
             });
-            map.on('mouseleave', 'overlay-fill', () => {
+            map.on('mouseleave', 'coverage-fill', () => {
                 map.getCanvas().style.cursor = '';
             });
         };
@@ -149,17 +221,66 @@
             map.addLayer({
                 'id': 'bbox-fill',
                 'source': 'bbox',
-                'type': 'fill',
+                'type': 'line',
                 'paint': {
-                    'fill-color': 'rgba(255, 0, 255, 0.3)'
+                    'line-width': 10,
+                    'line-color': 'rgba(155, 89, 182, 0.5)'
                 }
-            })
+            }, 'water_waterway_label')
         };
 
+        const addHighlightSource = () => {
+            const params = new URLSearchParams(window.location.search);
+            if (!params.has('source')) {
+                return;
+            }
+            const source = params.get('source');
+            if (source !== 'glo30') {
+                map.setLayoutProperty('coverage-fill', 'fill-sort-key', [
+                    'match',
+                    ['get', 'source'],
+                    'glo30', 0,
+                    source, 2,
+                    1
+                ]);
+                map.setPaintProperty('coverage-fill', 'fill-color', [
+                    'match',
+                    ['get', 'source'],
+                    'glo30',
+                    'rgba(255, 255, 255, 0.3)',
+                    source,
+                    'rgba(241, 196, 15, 1.0)',
+                    'rgba(26, 188, 156, 0.3)'
+                ]);
+            }
+            else {
+                map.setLayoutProperty('coverage-fill', 'fill-sort-key', [
+                    'match',
+                    ['get', 'source'],
+                    'glo30', 1,
+                    0
+                ]);
+                map.setPaintProperty('coverage-fill', 'fill-color', [
+                    'match',
+                    ['get', 'source'],
+                    'glo30',
+                    'rgba(241, 196, 15, 1.0)',
+                    'rgba(26, 188, 156, 0.3)'
+                ]);
+            }
+        }
+
         map.on('load', async () => {
-            addBbox();
             addOverlay();
+            addBbox();
+            addHighlightSource();
         });
+
+        function highlightSource(source) {
+            const url = new URL(window.location.href);
+            url.searchParams.set('source', source);
+            window.location.href = url.toString();
+        }
 
     </script>
 </body>

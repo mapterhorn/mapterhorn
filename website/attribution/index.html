@@ -50,16 +50,21 @@
             for (const entry of entries) {
                 const nameTitle = document.createElement('h4');
                 nameTitle.textContent = entry['name'];
+                nameTitle.id = entry['source'];
                 attribution.appendChild(nameTitle);
 
                 const ul = document.createElement('ul');
                 const producerLi = document.createElement('li');
-                producerLi.textContent = entry['producer'];
+                producerLi.textContent = `Producer: ${entry['producer']}`;
                 ul.appendChild(producerLi);
 
                 const licenseLi = document.createElement('li');
-                licenseLi.textContent = entry['license'];
+                licenseLi.textContent = `License: ${entry['license']}`;
                 ul.appendChild(licenseLi);
+
+                const sourceLi = document.createElement('li');
+                sourceLi.textContent = `Name: ${entry['source']}`;
+                ul.appendChild(sourceLi);
 
                 const licensePdfLi = document.createElement('li');
                 const licensePdfA = document.createElement('a');
@@ -71,11 +76,24 @@
                 const websiteLi = document.createElement('li');
                 const websiteA = document.createElement('a');
                 websiteA.href = entry['website'];
-                websiteA.textContent = 'website';
+                websiteA.textContent = 'Website';
                 websiteLi.appendChild(websiteA);
                 ul.appendChild(websiteLi);
 
+                const coverageLi = document.createElement('li');
+                const coverageA = document.createElement('a');
+                coverageA.href = `/coverage?source=${entry['source']}`;
+                coverageA.textContent = 'Coverage';
+                coverageLi.appendChild(coverageA);
+                ul.appendChild(coverageLi);
+
                 attribution.appendChild(ul);
+            }
+            if (window.location.hash) {
+                const el = document.querySelector(window.location.hash);
+                if (el) {
+                    el.scrollIntoView();
+                }
             }
         }
         buildList();

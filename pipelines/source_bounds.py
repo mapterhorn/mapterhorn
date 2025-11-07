@@ -14,15 +14,11 @@ def main():
         print('source argument missing...')
         exit()
     
-    filepaths = sorted(glob(f'source-store/{source}/*'))
+    filepaths = sorted(glob(f'source-store/{source}/*.tif'))
 
     bounds_file_lines = ['filename,left,bottom,right,top,width,height\n']
 
-    excluded_suffices = ['csv', 'bak', 'geojson']
     for j, filepath in enumerate(filepaths):
-        suffix = filepath.split('.')[-1]
-        if suffix in excluded_suffices:
-            continue
         with rasterio.open(filepath) as src:
             if src.crs is None:
                 raise ValueError(f'crs not defined on {filepath}')

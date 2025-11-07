@@ -19,6 +19,7 @@ def main():
         with open(f'../source-catalog/{source}/metadata.json') as f:
             metadata = json.load(f)
             data.append({
+                'source': source,
                 'name': metadata['name'],
                 'website': metadata['website'],
                 'license': metadata['license'],
