@@ -4,6 +4,7 @@ import sys
 import utils
 
 from multiprocessing import Pool
+import rasterio
 
 SILENT = False
 
@@ -23,12 +24,24 @@ def main():
         print('wrong number of arguments: source_set_crs.py source crs')
         exit()
     
-    filepaths = sorted(glob(f'source-store/{source}/*'))
+    filepaths = sorted(glob(f'source-store/{source}/*.tif'))
+
+    only_list_crses = False
+    if only_list_crses:
+        print('will only list crs(es) and then exit...')
+        crses = set({})
+        for j, filepath in enumerate(filepaths):
+            if j % 100 == 0:
+                print(f'{j:_} / {len(filepaths):_}')
+            with rasterio.open(filepath) as src:
+                crses.add(src.crs)
+        print(f'\nfound {len(crses)} crs(es):')
+        for crs in crses:
+            print(f'  -> {crs}')
+        exit()
 
     argument_tuples = []
     for filepath in filepaths:
-        if not filepath.endswith('.tif'):
-            continue
         argument_tuples.append((filepath, crs))
     
     with Pool() as pool:
