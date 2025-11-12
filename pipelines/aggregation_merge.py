@@ -106,6 +106,7 @@ def merge(filepath):
                             boundary_tile &= eroded.astype(bool)
                             
                             if 1 in boundary_tile:
+                                merged_tile[merged_tile == -9999] = 0
                                 truncate = 4
                                 sigma = int(overlap / truncate) - 1
                                 boundary_tile_blurred = ndimage.gaussian_filter(boundary_tile.astype(float), sigma=sigma, truncate=truncate)
