@@ -22,6 +22,9 @@ def to_cog(filepath):
     elif filepath.endswith('.asc'):
         filepath_in = filepath
         filepath_out = filepath.replace('.asc', '.tif')
+    elif filepath.endswith('.ASC'):
+        filepath_in = filepath
+        filepath_out = filepath.replace('.ASC', '.tif')
     elif filepath.endswith('.txt'):
         filepath_in = filepath
         filepath_out = filepath.replace('.txt', '.tif')
@@ -43,6 +46,7 @@ def main():
     filepaths += glob(f'source-store/{source}/*.TIF')
     filepaths += glob(f'source-store/{source}/*.xyz')
     filepaths += glob(f'source-store/{source}/*.asc')
+    filepaths += glob(f'source-store/{source}/*.ASC')
     filepaths += glob(f'source-store/{source}/*.txt')
 
     filepaths = [(filepath,) for filepath in sorted(filepaths)]

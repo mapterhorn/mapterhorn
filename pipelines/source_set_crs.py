@@ -32,7 +32,7 @@ def main():
         argument_tuples.append((filepath, crs))
     
     with Pool() as pool:
-        pool.starmap(set_crs, argument_tuples)
+        pool.starmap(set_crs, argument_tuples, chunksize=1)
 
 if __name__ == '__main__':
     main()

@@ -62,6 +62,8 @@ default:
     # uv run python source_download.py se # no public download yet
     # uv run python source_download.py itsicily # no public download yet
     # uv run python source_download.py nlahn5lowresfilled # no public download yet
+    # uv run python source_download.py pl5
+    # uv run python source_download.py pl1
 
     # uv run python source_unzip.py bewallonie
     # uv run python source_unzip.py cz
@@ -114,6 +116,8 @@ default:
     # uv run python source_to_cog.py se
     # uv run python source_to_cog.py itsicily
     # uv run python source_to_cog.py nlahn5lowresfilled
+    # uv run python source_to_cog.py pl5 # remove zip files, remove wrongly tagged 1m files
+    # uv run python source_to_cog.py pl1 # remove zip files
 
     # uv run python source_slice.py bewallonie 16384
     # uv run python source_to_cog.py bewallonie
@@ -148,6 +152,8 @@ default:
     # uv run python source_set_crs.py frrgealti1metro EPSG:2154
     # uv run python source_set_crs.py itsardegnacostiera EPSG:25832
     # uv run python source_set_crs.py debrandenburg EPSG:25833
+    # uv run python source_set_crs.py pl5 EPSG:2180
+    # uv run python source_set_crs.py pl1 EPSG:2180
 
     # uv run python source_set_nodata.py atkaernten 0.0
     # uv run python source_set_nodata.py demv -9999
@@ -227,6 +233,8 @@ default:
     # uv run python source_bounds.py se
     # uv run python source_bounds.py itsicily
     # uv run python source_bounds.py nlahn5lowresfilled
+    # uv run python source_bounds.py pl5
+    # uv run python source_bounds.py pl1
 
     # uv run python source_polygonize.py frrgealti5stpm 32
     # uv run python source_polygonize.py frrgealti5mayotte 32
@@ -288,6 +296,8 @@ default:
     # uv run python source_polygonize.py beflanders 12
     # uv run python source_polygonize.py bewallonie 32
     # uv run python source_polygonize.py sk 32
+    # uv run python source_polygonize.py pl5 32
+    # uv run python source_polygonize.py pl1 32
 
     # uv run python aggregation_covering.py
     # uv run python downsampling_covering.py
