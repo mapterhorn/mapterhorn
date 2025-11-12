@@ -154,6 +154,7 @@ default:
     # uv run python source_set_crs.py debrandenburg EPSG:25833
     # uv run python source_set_crs.py pl5 EPSG:2180
     # uv run python source_set_crs.py pl1 EPSG:2180
+    # uv run python source_set_crs.py itaosta EPSG:23032
 
     # uv run python source_set_nodata.py atkaernten 0.0
     # uv run python source_set_nodata.py demv -9999
