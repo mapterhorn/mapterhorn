@@ -3,6 +3,7 @@ from pathlib import Path
 from glob import glob
 import math
 import os
+import hashlib
 
 import numpy as np
 
@@ -184,3 +185,17 @@ def get_grouped_source_items(filepath):
         })
     grouped_source_items.append(current_group)
     return grouped_source_items
+
+class HashWriter:
+    def __init__(self, f):
+        self.f = f
+        self.md5 = hashlib.md5()
+    def write(self, data):
+        self.md5.update(data)
+        return self.f.write(data)
+    def tell(self):
+        return self.f.tell()
+    def flush(self):
+        return self.f.flush()
+    def close(self):
+        return self.f.close()
