@@ -309,7 +309,7 @@ default:
     # uv run python remove_dangling_pmtiles.py
     # uv run python create_index.py
 
-    # TMPDIR=/tmp uv run python bundle.py 0.0.0
+    # TMPDIR=/tmp uv run python bundle.py
     # uv run python download_urls.py 0.0.0
     # uv run python attribution.py
     # java -cp planetiler.jar Coverage.java # cf https://github.com/onthegomap/planetiler-examples
