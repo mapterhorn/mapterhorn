@@ -161,6 +161,9 @@
                 }
             });
 
+            const attributionRequest = await fetch('https://download.mapterhorn.com/attribution.json');
+            const attributionData = await attributionRequest.json();
+            const sourceToResolution = Object.fromEntries(attributionData.map(item => [item['source'], item['resolution']]));
             map.on('click', e => {
                 const features = map.queryRenderedFeatures(e.point, {
                     layers: ['pmtiles-fill', 'coverage-fill']
@@ -175,7 +178,7 @@
                         pmtilesPopup = f.properties['popup'];
                     }
                     else if (f.layer.id === 'coverage-fill') {
-                        dataSources += `<a href="/attribution/#${f.properties['source']}">${f.properties['source']}</a> (<a href="#" onclick="highlightSource('${f.properties['source']}')">coverage</a>)<br>`;
+                        dataSources += `<a href="/attribution/#${f.properties['source']}">${f.properties['source']}</a>, ${sourceToResolution[f.properties['source']]} m, <a href="#" onclick="highlightSource('${f.properties['source']}')">coverage</a><br>`;
                     }
                 });
 

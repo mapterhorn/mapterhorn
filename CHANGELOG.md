@@ -1,3 +1,25 @@
+## 0.0.5
+
+### ✨ Features and improvements
+
+- Add links to source tarballs (#128)
+- Add source resolution information and access_year (#127)
+- Create source tarballs (#123)
+- ⚠️ Remove version from PMTiles files (#122)
+- Add sources pl5 and pl1: Poland, country-wide 5 and 1m (#118)
+- Add source coverage vector tiles layer (#113)
+- Add source nlahn5lowresfilled: The Netherlands, 5 m (#111)
+- Add itsicily: Sicily, Italy 2m (#108)
+- Add source se: Sweden 1 m (#107)
+- Add itsardegna* (#104)
+
+### 🐞 Bug fixes
+
+- Fix heterogeneous definition of CRS in source atoberoesterreich (#121)
+- Fix CRS of source itaosta (#120)
+- Fix nodata handling during merge (#119)
+- Use correct DL-DE BY 2.0 license in 4 German sources (#116)
+
 ## 0.0.4
 
 ### ✨ Features and improvements
