@@ -1,7 +1,6 @@
 from glob import glob
 import math
 import time
-import sys
 
 import mercantile
 from pmtiles.tile import zxy_to_tileid, TileType, Compression
@@ -10,10 +9,11 @@ from pmtiles.writer import Writer
 
 import utils
 
-def get_parent_to_filepaths():
+def get_parent_to_filepaths(only_dirty=True):
     filepaths = sorted(glob('pmtiles-store/*.pmtiles') + glob('pmtiles-store/*/*.pmtiles'))
 
     parent_to_filepath = {}
+    dirty_parents = get_dirty_parents()
 
     for filepath in filepaths:
         filename = filepath.split('/')[-1]
@@ -29,12 +29,30 @@ def get_parent_to_filepaths():
             else:
                 parent = mercantile.parent(mercantile.Tile(x=x, y=y, z=z), zoom=6)
         
+        if only_dirty and parent not in dirty_parents:
+            continue
+
         if parent not in parent_to_filepath:
             parent_to_filepath[parent] = []
 
         parent_to_filepath[parent].append(filepath)
 
     return parent_to_filepath
+
+def get_dirty_parents():
+    dirty_parents = set([mercantile.Tile(x=0, y=0, z=0)])
+    aggregation_ids = utils.get_aggregation_ids()
+    assert len(aggregation_ids) > 0
+    current_aggregation_id = aggregation_ids[-1]
+    last_aggregation_id = None if len(aggregation_ids) == 1 else aggregation_ids[-2]
+    aggregation_filenames = utils.get_dirty_aggregation_filenames(current_aggregation_id, last_aggregation_id)
+    
+    for filename in aggregation_filenames:
+        z, x, y, child_z = [int(a) for a in filename.replace('-aggregation.csv', '').split('-')]
+        if child_z >= 13:
+            dirty_parents.add(mercantile.parent(mercantile.Tile(x=x, y=y, z=z), zoom=6))
+
+    return list(dirty_parents)
 
 def read_full_archive(filepath):
     tile_id_to_bytes = {}
@@ -46,8 +64,10 @@ def read_full_archive(filepath):
     return tile_id_to_bytes
 
 def create_archive(filepaths, out_filepath):
+    checksum = None
     with open(out_filepath, 'wb') as f1:
-        writer = Writer(f1)
+        hash_writer = utils.HashWriter(f1)
+        writer = Writer(hash_writer)
         min_z = math.inf
         max_z = 0
         min_lon = math.inf
@@ -126,15 +146,23 @@ def create_archive(filepaths, out_filepath):
                 'attribution': '<a href="https://mapterhorn.com/attribution">© Mapterhorn</a>',
             },
         )
+        checksum = hash_writer.md5.hexdigest()
+
+    with open(f'{out_filepath}.md5', 'w') as f:
+        f.write(f'{checksum} {out_filepath.split('/')[-1]}\n')
+
+def get_name_from_parent(parent):
+    name = None
+    if parent == mercantile.Tile(x=0, y=0, z=0):
+        name = 'planet'
+    else:
+        name = f'{parent.z}-{parent.x}-{parent.y}'
+    return name
 
 def main():
     parent_to_filepaths = get_parent_to_filepaths()
     for parent in parent_to_filepaths:
-        name = None
-        if parent == mercantile.Tile(x=0, y=0, z=0):
-            name = 'planet'
-        else:
-            name = f'{parent.z}-{parent.x}-{parent.y}'
+        name = get_name_from_parent(parent)
         print(name)
         folder = f'bundle-store/{name}'
         utils.create_folder(folder)

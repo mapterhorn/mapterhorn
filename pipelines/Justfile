@@ -251,7 +251,7 @@ default:
     # uv run python source_polygonize.py frrgealti1mayotte 32
     # uv run python source_polygonize.py dehamburg 32
     # uv run python source_polygonize.py deberlin 32
-    # uv run python source_polygonize.py nlahn5lowresfilled 32
+    # uv run python source_polygonize.py nlahn5lowresfilled 32 # fix compound CRS: ogr2ogr -f GPKG nlahn5lowresfilledfixed.gpkg nlahn5lowresfilled.gpkg -a_srs EPSG:28992
     # uv run python source_polygonize.py itaosta 32
     # uv run python source_polygonize.py at10 32
     # uv run python source_polygonize.py itbozen 32
@@ -292,7 +292,7 @@ default:
     # uv run python source_polygonize.py swissalti3d 32
     # uv run python source_polygonize.py dk 32
     # uv run python source_polygonize.py glo30 32
-    # uv run python source_polygonize.py se 32
+    # uv run python source_polygonize.py se 32 # fix compound CRS: ogr2ogr -f GPKG sefixed.gpkg se.gpkg -a_srs EPSG:3006
     # uv run python source_polygonize.py frrgealti1metro 32
     # uv run python source_polygonize.py fi 12
     # uv run python source_polygonize.py beflanders 12

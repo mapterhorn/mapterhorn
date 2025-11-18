@@ -111,7 +111,7 @@ def create_archive(tmp_folder, out_filepath):
                 'center_lat_e7': int(0.5 * (min_lat_e7 + max_lat_e7)),
             },
             {
-                'attribution': '<a href="https://github.com/mapterhorn/mapterhorn">© Mapterhorn</a>'
+                'attribution': '<a href="https://mapterhorn.com/attribution">© Mapterhorn</a>'
             },
         )
 
@@ -128,6 +128,9 @@ def get_aggregation_item_string(aggregation_id, filename):
 
 def get_dirty_aggregation_filenames(current_aggregation_id, last_aggregation_id):
     filepaths = sorted(glob(f'aggregation-store/{current_aggregation_id}/*-aggregation.csv'))
+
+    if last_aggregation_id is None:
+        return [filepath.split('/')[-1] for filepath in filepaths]
 
     dirty_filenames = []
     for filepath in filepaths:

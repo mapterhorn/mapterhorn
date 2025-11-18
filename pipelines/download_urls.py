@@ -1,4 +1,3 @@
-from glob import glob
 import os
 import sys
 import json
@@ -6,11 +5,16 @@ import json
 import mercantile
 from pmtiles.reader import Reader, MmapSource
 
-import utils
+import bundle
 
 def get_md5sum(filepath):
-    out, _ = utils.run_command(f'md5sum {filepath}')
-    return out.strip().split('  ')[0]    
+    checksum = None
+    with open(f'{filepath}.md5') as f:
+        line = f.readline()        
+        parts = line.strip().split(' ')
+        assert len(parts) == 2
+        checksum = parts[0]
+    return checksum
 
 def main():
     version = None
@@ -21,7 +25,11 @@ def main():
         print('version argument missing...')
         exit()
 
-    filepaths = glob('bundle-store/*/*.pmtiles')
+    parent_to_filepaths = bundle.get_parent_to_filepaths()
+    parents = parent_to_filepaths.keys()
+    names = [bundle.get_name_from_parent(parent) for parent in parents]
+    filepaths = [f'bundle-store/{name}/{name}.pmtiles' for name in names]
+
     data = {
         'version': version,
         'items': []
@@ -58,7 +66,7 @@ def main():
         print(json.dumps(data['items'][-1], indent=2))
 
     with open('bundle-store/download_urls.json', 'w') as f:
-        json.dump(data, f)
+        json.dump(data, f, indent=2)
 
 if __name__ == '__main__':
     main()
