@@ -47,6 +47,7 @@
             const request = await fetch('https://download.mapterhorn.com/attribution.json');
             const entries = await request.json();
             const attribution = document.getElementById('attribution');
+            let totalSize = 0;
             for (const entry of entries) {
                 const nameTitle = document.createElement('h4');
                 nameTitle.textContent = entry['name'];
@@ -66,29 +67,25 @@
                 sourceLi.textContent = `Name: ${entry['source']}`;
                 ul.appendChild(sourceLi);
 
-                const licensePdfLi = document.createElement('li');
-                const licensePdfA = document.createElement('a');
-                licensePdfA.href = entry['license_pdf'];
-                licensePdfA.textContent = 'LICENSE.pdf';
-                licensePdfLi.appendChild(licensePdfA);
-                ul.appendChild(licensePdfLi);
+                const accessLi = document.createElement('li');
+                accessLi.textContent = `Year of Data Access: ${entry['access_year']}`;
+                ul.appendChild(accessLi);
 
-                const websiteLi = document.createElement('li');
-                const websiteA = document.createElement('a');
-                websiteA.href = entry['website'];
-                websiteA.textContent = 'Website';
-                websiteLi.appendChild(websiteA);
-                ul.appendChild(websiteLi);
-
-                const coverageLi = document.createElement('li');
-                const coverageA = document.createElement('a');
-                coverageA.href = `/coverage?source=${entry['source']}`;
-                coverageA.textContent = 'Coverage';
-                coverageLi.appendChild(coverageA);
-                ul.appendChild(coverageLi);
+                const linksLi = document.createElement('li');
+                linksLi.innerHTML = `<a href="${entry['license_pdf']}">LICENSE.pdf</a> · `;
+                linksLi.innerHTML += `<a href="${entry['website']}">Website</a> · `;
+                linksLi.innerHTML += `<a href="/coverage?source=${entry['source']}">Coverage</a> · `;
+                linksLi.innerHTML += `<a href="${entry['tarball_url']}">Raw Download (${(entry['tarball_size'] / Math.pow(1024, 3)).toFixed(1)} GiB)</a>`
+                ul.appendChild(linksLi);
 
                 attribution.appendChild(ul);
+
+                totalSize += entry['tarball_size'];
             }
+            const sizeP = document.createElement('p');
+            sizeP.textContent = `Total raw data size: ${(totalSize / Math.pow(1024, 4)).toFixed(1)} TiB.`;
+            attribution.prepend(sizeP);
+
             if (window.location.hash) {
                 const el = document.querySelector(window.location.hash);
                 if (el) {

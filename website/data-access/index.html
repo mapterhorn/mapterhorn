@@ -140,6 +140,7 @@
     </p>
 
     <h2 id="file-list">File List</h2>
+    <p>Total PMTiles size: <span id="total_size"></span>.</p>
     <table>
         <thead>
             <tr>
@@ -180,6 +181,7 @@
 
             const tableBody = document.getElementById('table-body');
 
+            let totalSize = 0;
             for (const item of items) {
                 const tr = document.createElement('tr');
 
@@ -218,7 +220,10 @@
                 tr.appendChild(coverageTd);
 
                 tableBody.appendChild(tr);
+                totalSize += item['size'];
             }
+            const sizeSpan = document.getElementById('total_size');
+            sizeSpan.textContent = `${(totalSize / Math.pow(1024, 4)).toFixed(1)} TiB`;
         }
         buildList();
     </script>
