@@ -2,5 +2,7 @@
     "name": "Digitaal Hoogtemodel Vlaanderen II, DTM, raster, 1 m",
     "website": "https://www.vlaanderen.be/datavindplaats/catalogus/digitaal-hoogtemodel-vlaanderen-ii-dtm-raster-1-m",
     "license": "Model license for free reuse",
-    "producer": "agentschap Digitaal Vlaanderen"
+    "producer": "agentschap Digitaal Vlaanderen",
+    "resolution": 1.0,
+    "access_year": 2025
 }

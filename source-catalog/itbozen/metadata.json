@@ -1,6 +1,8 @@
 {
-    "name": "Digitales Geländemodell (DGM 2,5m) ",
+    "name": "Digitales Geländemodell (DGM 2,5m)",
     "website": "https://natur-raum.provinz.bz.it/de/digitale-hohenmodelle",
     "license": "Creative Commons CCZero",
-    "producer": "Amt für Landesplanung und Kartografie, Autonome Provinz Bozen"
+    "producer": "Amt für Landesplanung und Kartografie, Autonome Provinz Bozen",
+    "resolution": 2.5,
+    "access_year": 2025
 }

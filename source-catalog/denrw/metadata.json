@@ -2,5 +2,7 @@
     "name": "Digitales Geländemodell - Rasterweite 1 m",
     "website": "https://www.opengeodata.nrw.de/produkte/geobasis/hm/dgm1_tiff/dgm1_tiff/",
     "license": "Datenlizenz Deutschland - Zero - Version 2.0",
-    "producer": "Ministerium des Innern des Landes Nordrhein-Westfalen"
+    "producer": "Ministerium des Innern des Landes Nordrhein-Westfalen",
+    "resolution": 1.0,
+    "access_year": 2025
 }

@@ -2,5 +2,7 @@
     "name": "LiDAR 2019 - Modèle numérique de terrain (MNT)",
     "website": "https://data.public.lu/fr/datasets/lidar-2019-modele-numerique-de-terrain-mnt/#/information",
     "license": "CC0",
-    "producer": "Administration du cadastre et de la topographie Luxembourg"
+    "producer": "Administration du cadastre et de la topographie Luxembourg",
+    "resolution": 0.5,
+    "access_year": 2025
 }

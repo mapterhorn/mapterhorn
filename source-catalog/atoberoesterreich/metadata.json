@@ -2,5 +2,7 @@
     "name": "Digitales Geländemodell (DGM) Land Oberösterreich",
     "website": "https://www.data.gv.at/katalog/dataset/d8f39b43-f52b-4387-9b6d-b93b412a2fc2",
     "license": "Creative Commons Namensnennung 4.0 International (CC BY 4.0)",
-    "producer": "land-oberoesterreich.gv.at. Land Oberösterreich"
+    "producer": "land-oberoesterreich.gv.at. Land Oberösterreich",
+    "resolution": 1.0,
+    "access_year": 2025
 }

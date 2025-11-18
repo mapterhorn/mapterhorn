@@ -2,5 +2,7 @@
     "name": "Digitales Geländemodell 1m (DGM1) Mecklenburg-Vorpommern",
     "website": "https://www.laiv-mv.de/Geoinformation/Geobasisdaten/Gelaendemodelle/",
     "license": "CC BY 4.0",
-    "producer": "© GeoBasis-DE/M-V 2025"
+    "producer": "© GeoBasis-DE/M-V 2025",
+    "resolution": 1.0,
+    "access_year": 2025
 }

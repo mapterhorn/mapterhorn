@@ -2,5 +2,7 @@
     "name": "DMR v 5.0",
     "website": "https://geoportal.gov.sk/gallery/datasets/detail/c310bf1e-68a0-43b9-9955-c7dad13a93aa?csrt=4917832570778447195",
     "license": "CC BY Creative Commons Attribution („uvedenie autora“) 4.0",
-    "producer": "ÚGKK SR"
+    "producer": "ÚGKK SR",
+    "resolution": 1.0,
+    "access_year": 2025
 }

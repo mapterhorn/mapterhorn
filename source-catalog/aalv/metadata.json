@@ -1,6 +1,8 @@
 {
     "name": "Digital terrain model",
     "website": "https://www.lgia.gov.lv/en/Digit%C4%81lais%20reljefa%20modelis",
-    "license": "Creative Commons Attribution 4.0 ",
-    "producer": "Latvijas Ģeotelpiskās informācijas aģentūra"
+    "license": "Creative Commons Attribution 4.0",
+    "producer": "Latvijas Ģeotelpiskās informācijas aģentūra",
+    "resolution": 20.0,
+    "access_year": 2025
 }

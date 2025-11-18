@@ -2,5 +2,7 @@
     "name": "Danmarks Højdemodel - Terræn",
     "website": "https://dataforsyningen.dk/data/930",
     "license": "CC BY 4.0",
-    "producer": "Klimadatastyrelsen Danmark"
+    "producer": "Klimadatastyrelsen Danmark",
+    "resolution": 0.4,
+    "access_year": 2025
 }

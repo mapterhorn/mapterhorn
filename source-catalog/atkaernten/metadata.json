@@ -2,5 +2,7 @@
     "name": "Digitales Gelände- und Oberflächenmodell Kärnten",
     "website": "https://www.data.gv.at/katalog/dataset/c4352e0c-f811-4c59-bdac-4ba199684fc2",
     "license": "CC-BY-4.0: Land Kärnten - data.gv.at",
-    "producer": "ktn.gv.at. Land Kärnten"
+    "producer": "ktn.gv.at. Land Kärnten",
+    "resolution": 1.0,
+    "access_year": 2025
 }

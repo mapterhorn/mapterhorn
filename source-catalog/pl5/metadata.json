@@ -2,5 +2,7 @@
     "name": "Numeryczny Model Terenu 5 m",
     "website": "https://www.geoportal.gov.pl/",
     "license": "Open Government Data (Art. 40a. geod. i kartogr.)",
-    "producer": "Head Office of Geodesy and Cartography (GUGiK), National Geodetic and Cartographic Resource (PZGiK), Poland"
+    "producer": "Head Office of Geodesy and Cartography (GUGiK), National Geodetic and Cartographic Resource (PZGiK), Poland",
+    "resolution": 5.0,
+    "access_year": 2025
 }

@@ -2,5 +2,7 @@
     "name": "DGM 1 Thüringen",
     "website": "https://tlbg.thueringen.de/geobasisdaten/3d-informationen/digitale-gelaendemodelle#c75998",
     "license": "Datenlizenz Deutschland - Namensnennung - Version 2.0",
-    "producer": "© GDI-Th"
+    "producer": "© GDI-Th",
+    "resolution": 1.0,
+    "access_year": 2025
 }

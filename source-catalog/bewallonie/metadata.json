@@ -2,5 +2,7 @@
     "name": "Relief de la Wallonie - Modèle Numérique de Terrain (MNT) 2021-2022",
     "website": "https://geoportail.wallonie.be/catalogue/a004e570-99d6-4fe5-b83d-49b774409278.html",
     "license": "CC-BY 4.0",
-    "producer": "Service public de Wallonie (SPW) "
+    "producer": "Service public de Wallonie (SPW)",
+    "resolution": 0.5,
+    "access_year": 2025
 }

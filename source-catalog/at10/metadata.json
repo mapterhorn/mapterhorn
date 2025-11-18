@@ -2,5 +2,7 @@
     "name": "Digital Elevation Modell (DEM) Austria",
     "website": "https://www.data.gv.at/katalog/dataset/land-ktn_digitales-gelandemodell-dgm-osterreich",
     "license": "CC-BY-4.0: Land Kärnten - data.gv.at",
-    "producer": "geoland.at, Land Kärnten."
+    "producer": "geoland.at, Land Kärnten.",
+    "resolution": 10.0,
+    "access_year": 2025
 }
