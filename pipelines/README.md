@@ -178,7 +178,7 @@ With this convention we can limit the total file size to roughly 1 terabyte assu
 - gdal: https://mothergeo-py.readthedocs.io/en/latest/development/how-to/gdal-ubuntu-pkg.html#install-gdal-ogr
 - uv: `curl -LsSf https://astral.sh/uv/install.sh | sh`
 - just: https://github.com/casey/just?tab=readme-ov-file#installation
-- pmtiles cli: https://github.com/protomaps/go-pmtiles?tab=readme-ov-file#installation
+- aws cli: https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
 
 ## Debug Pipeline
 
