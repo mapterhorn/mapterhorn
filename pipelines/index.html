@@ -1,0 +1,94 @@
+
+<html>
+
+<head>
+    <title>Mapterhorn Viewer</title>
+    <meta charset="utf-8" />
+    <script src="https://unpkg.com/maplibre-gl@5.6.0/dist/maplibre-gl.js"></script>
+    <link href="https://unpkg.com/maplibre-gl@5.6.0/dist/maplibre-gl.css" rel="stylesheet" />
+    <script src="https://unpkg.com/pmtiles@4.3.0/dist/pmtiles.js"></script>
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <style>
+        body {
+            margin: 0;
+        }
+
+        #map {
+            height: 100%;
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map"></div>
+    <script type="text/javascript">
+
+        const protocol = new pmtiles.Protocol({ metadata: true, errorOnMissingTile: true });
+
+        maplibregl.addProtocol('mapterhorn', async (params, abortController) => {
+            const parts = params.url.replace('mapterhorn://', '').split('/');
+            const x = parseInt(parts[1]);
+            const y = parseInt(parts[2]);
+            const z = parseInt(parts[0]);
+            const p = new pmtiles.PMTiles('index.pmtiles');
+            const indexTile = await p.getZxy(z, x, y);
+            if (indexTile === undefined) {
+                 throw new Error(`tile ${z}/${x}/${y} not found`);
+            }
+            const decoder = new TextDecoder('utf-8')
+            const filename = decoder.decode(indexTile.data);
+            console.log({params, filename})
+            const url = `pmtiles://${filename}/${z}/${x}/${y}.webp`;
+            const newParams = { ...params, url };
+            return await protocol.tile(newParams, abortController);
+        });
+
+        const map = new maplibregl.Map({
+            container: 'map',
+            hash: 'map',
+            zoom: 10.5,
+            center: [9.0788, 47.1194],
+            style: {
+                version: 8,
+                sources: {
+                    hillshadeSource: {
+                        type: 'raster-dem',
+                        tiles: ['mapterhorn://{z}/{x}/{y}'],
+                        encoding: 'terrarium',
+                        tileSize: 512,
+                        attribution: '<a href="https://github.com/mapterhorn/mapterhorn">© Mapterhorn</a>'
+                    },
+                },
+                layers: [
+                    {
+                        id: 'hillshade',
+                        type: 'hillshade',
+                        source: 'hillshadeSource',
+                    },
+                ],
+            },
+        });
+
+        class LogoControl {
+            onAdd(map) {
+                this._map = map;
+                this._container = document.createElement('div');
+                this._container.className = 'maplibregl-ctrl';
+                this._container.innerHTML = '<a href="/"><img width=400 src="https://mapterhorn.github.io/.github/brand/screen/mapterhorn-logo.png"/></a>';
+                this._container.style.marginBottom = '-11px';
+                this._container.style.marginLeft = '-5px';
+                return this._container;
+            }
+            onRemove() {
+                this._container.parentNode.removeChild(this._container);
+                this._map = undefined;
+            }
+        }
+        map.addControl(new LogoControl(), 'bottom-left');
+
+        map.showTileBoundaries = true;
+    </script>
+</body>
+
+</html>

@@ -5,4 +5,8 @@ aggregation-store
 pmtiles-store
 bundle-store
 polygon-store
+tar-store
 planetiler.jar
+index.md
+index.pmtiles
+data
