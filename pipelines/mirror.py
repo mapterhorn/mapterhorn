@@ -2,13 +2,25 @@ import requests
 import json
 from multiprocessing import Pool
 import os
-
-import utils
+import subprocess
 
 SILENT = False
 CHUNKSIZE = 1_000_000_000
 TMPDIR = '/tmp/'
 PROCESSES = 32
+
+def run_command(command, silent=True):
+    if not silent:
+        print(command)
+    p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = p.communicate()
+    err = stderr.decode()
+    if err != '' and not silent:
+        print(err)
+    out = stdout.decode()
+    if out != '' and not silent:
+        print(out)
+    return out, err
 
 def get_file_size(url):
     r = requests.head(url)
@@ -16,7 +28,7 @@ def get_file_size(url):
 
 def download_range(url, start, end, filepath):
     command = f'curl -r {start}-{end} {url} -o {filepath}'
-    out, err = utils.run_command(command, silent=SILENT)
+    out, err = run_command(command, silent=SILENT)
     if not SILENT:
         print('out:', out)
         print('err:', err)
@@ -29,7 +41,7 @@ def create_multipart_upload(bucket, key, region):
     '''
     
     command = f'aws s3api create-multipart-upload --bucket {bucket} --key {key} --region {region}'
-    out, err = utils.run_command(command, silent=SILENT)
+    out, err = run_command(command, silent=SILENT)
     if err != '':
         print('err:', err)
         raise Exception(err)
@@ -44,7 +56,7 @@ def upload_part(bucket, key, part_number, filepath, upload_id, region):
     '''
 
     command = f'aws s3api upload-part --bucket {bucket} --key {key} --part-number {part_number} --body {filepath} --upload-id "{upload_id}" --region {region}'
-    out, err = utils.run_command(command, silent=SILENT)
+    out, err = run_command(command, silent=SILENT)
     if err != '':
         print('err:', err)
         raise Exception(err)
@@ -60,7 +72,7 @@ def complete_multipart_upload(bucket, key, upload_id, parts, region):
         
     parts = {'Parts': parts}
     command = f'aws s3api complete-multipart-upload --bucket {bucket} --key {key} --upload-id "{upload_id}" --multipart-upload \'{json.dumps(parts)}\' --region {region}'
-    out, err = utils.run_command(command, silent=SILENT)
+    out, err = run_command(command, silent=SILENT)
     if err != '':
         print('err:', err)
         raise Exception(err)
@@ -97,18 +109,38 @@ def mirror_http_resource_to_s3(url, bucket, key, region, filename):
     
     complete_multipart_upload(bucket, key, upload_id, parts, region)
 
-def get_filenames():
-    r = requests.get('https://download.mapterhorn.com/download_urls.json')
-    data = json.loads(r.text)
-    filenames = [item['name'] for item in data['items']]
+def get_filenames(mirror_base_url):
+    filenames = []
+
+    mapterhorn_r = requests.get('https://download.mapterhorn.com/download_urls.json')
+    if mapterhorn_r.status_code != 200:
+        raise Exception('Failed to load download_urls.json from mapterhorn.com')
+    mapterhorn_data = json.loads(mapterhorn_r.text)
+    mapterhorn_name_to_md5sum = {item['name']: item['md5sum'] for item in mapterhorn_data['items']}
+
+    mirror_r = requests.get(f'{mirror_base_url}/download_urls.json')
+    mirror_name_to_md5sum = {}
+    if mirror_r.status_code == 200:
+        mirror_data = json.loads(mirror_r.text)
+        mirror_name_to_md5sum = {item['name']: item['md5sum'] for item in mirror_data['items']}
+    
+    for name in mapterhorn_name_to_md5sum:
+        if name not in mirror_name_to_md5sum:
+            filenames.append(name)
+        else:
+            if mapterhorn_name_to_md5sum[name] != mirror_name_to_md5sum[name]:
+                filenames.append(name)
+    
     filenames += [
         'attribution.json',
         'download_urls.json'
     ]
+
     return filenames
 
 if __name__ == '__main__':
-    filenames = get_filenames()
+    mirror_base_url = 'https://s3.us-west-2.amazonaws.com/us-west-2.opendata.source.coop/mapterhorn/'
+    filenames = get_filenames(mirror_base_url)
     for filename in filenames:
         url = F'https://download.mapterhorn.com/{filename}'
         bucket = 'us-west-2.opendata.source.coop'
