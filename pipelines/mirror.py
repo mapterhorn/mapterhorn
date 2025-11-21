@@ -2,25 +2,13 @@ import requests
 import json
 from multiprocessing import Pool
 import os
-import subprocess
+
+import utils
 
 SILENT = False
 CHUNKSIZE = 1_000_000_000
 TMPDIR = '/tmp/'
 PROCESSES = 16
-
-def run_command(command, silent=True):
-    if not silent:
-        print(command)
-    p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = p.communicate()
-    err = stderr.decode()
-    if err != '' and not silent:
-        print(err)
-    out = stdout.decode()
-    if out != '' and not silent:
-        print(out)
-    return out, err
 
 def get_file_size(url):
     r = requests.head(url)
@@ -30,7 +18,7 @@ def get_file_size(url):
 
 def download_range(url, start, end, filepath):
     command = f'curl -r {start}-{end} {url} -o {filepath}'
-    out, err = run_command(command, silent=SILENT)
+    out, err = utils.run_command(command, silent=SILENT)
     if not SILENT:
         print('out:', out)
         print('err:', err)
@@ -43,7 +31,7 @@ def create_multipart_upload(bucket, key, region, endpoint):
     '''
     
     command = f'aws s3api create-multipart-upload --bucket {bucket} --key {key} --region {region} --endpoint "{endpoint}"'
-    out, err = run_command(command, silent=SILENT)
+    out, err = utils.run_command(command, silent=SILENT)
     if err != '':
         print('err:', err)
         raise Exception(err)
@@ -58,7 +46,7 @@ def upload_part(bucket, key, part_number, filepath, upload_id, region, endpoint)
     '''
 
     command = f'aws s3api upload-part --bucket {bucket} --key {key} --part-number {part_number} --body {filepath} --upload-id "{upload_id}" --region {region} --endpoint "{endpoint}"'
-    out, err = run_command(command, silent=SILENT)
+    out, err = utils.run_command(command, silent=SILENT)
     if err != '':
         print('err:', err)
         raise Exception(err)
@@ -74,7 +62,7 @@ def complete_multipart_upload(bucket, key, upload_id, parts, region, endpoint):
         
     parts = {'Parts': parts}
     command = f'aws s3api complete-multipart-upload --bucket {bucket} --key {key} --upload-id "{upload_id}" --multipart-upload \'{json.dumps(parts)}\' --region {region} --endpoint "{endpoint}"'
-    _, err = run_command(command, silent=SILENT)
+    _, err = utils.run_command(command, silent=SILENT)
     if err != '':
         print('err:', err)
         raise Exception(err)
