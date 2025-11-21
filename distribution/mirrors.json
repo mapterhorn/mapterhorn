@@ -1,0 +1,10 @@
+{
+    "Hetzner (DE)": {
+        "homepage": "https://nbg1.your-objectstorage.com/mapterhorn/index.html",
+        "base_url": "https://nbg1.your-objectstorage.com/mapterhorn/"
+    },
+    "Source Coop (US)": {
+        "homepage": "https://source.coop/mapterhorn/mapterhorn",
+        "base_url": "https://data.source.coop/mapterhorn/mapterhorn/"
+    }
+}

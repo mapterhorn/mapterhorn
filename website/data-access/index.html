@@ -74,11 +74,6 @@
         TileJSON endpoint: <code>https://tiles.mapterhorn.com/tilejson.json</code>
     </p>
 
-    <h2 id="bulk-download">Bulk Download</h2>
-    <p> For a full list of PMTiles download URLs in JSON format see <a
-            href="https://download.mapterhorn.com/download_urls.json">download_urls.json</a>.
-    </p>
-
     <h2 id="area-extracts">Area Extracts</h2>
     <p>
         Download Mapterhorn data extracts for a limited area.
@@ -139,16 +134,41 @@
         Tip: Add the flag <code>--dry-run</code> to get the total extract size before starting the actual download.
     </p>
 
+    <h2 id="mirrors">Mirrors</h2>
+    <p>
+        Mapterhorn's PMTiles are available on multiple mirrors:
+    </p>
+
+    <p>
+        <span id="mirror-list"></span>
+    </p>
+
+    <p>
+        For the current update status of the mirrors see <a
+            href="https://download.mapterhorn.com/mirrorstatus.json">mirrorstatus.json</a>.
+    </p>
+
     <h2 id="file-list">File List</h2>
-    <p>Total PMTiles size: <span id="total_size"></span>.</p>
+    <p>
+        For a full list of PMTiles download URLs in JSON format see <a
+            href="https://download.mapterhorn.com/download_urls.json">download_urls.json</a>.
+    </p>
+    <p>
+        Total PMTiles size: <span id="total-size"></span>.
+    </p>
+    <p>
+        Total number of PMTiles files: <span id="total-pmtiles-count"></span>.
+    </p>
+
     <table>
         <thead>
             <tr>
                 <th>name</th>
-                <th>zoom</th>
+                <th class="hide-mobile">zoom</th>
                 <th>size</th>
                 <th class="hide-mobile">md5sum</th>
                 <th>coverage</th>
+                <th>mirrors</th>
             </tr>
         </thead>
         <tbody id="table-body">
@@ -170,6 +190,10 @@
         const buildList = async () => {
             const request = await fetch('https://download.mapterhorn.com/download_urls.json');
             const data = await request.json();
+
+            const mirrorRequest = await fetch('https://download.mapterhorn.com/mirrorstatus.json')
+            const mirrorstatus = await mirrorRequest.json();
+
             const version = `v${data['version']}`;
             const items = [
                 ...data['items'].filter(item => item['name'] === 'planet.pmtiles'),
@@ -178,6 +202,12 @@
 
             const versionSpan = document.getElementById('version');
             versionSpan.textContent = version;
+
+            const totalPMTilesCountSpan = document.getElementById('total-pmtiles-count');
+            totalPMTilesCountSpan.textContent = data['items'].length;
+
+            const mirrorListSpan = document.getElementById('mirror-list');
+            mirrorListSpan.innerHTML = Object.entries(mirrorstatus['mirrors']).map(([name, mirror]) => `<a href="${mirror['homepage']}">${name}</a>`).join('<br>');
 
             const tableBody = document.getElementById('table-body');
 
@@ -193,6 +223,7 @@
                 tr.appendChild(nameTd);
 
                 const zoomTd = document.createElement('td');
+                zoomTd.classList.add('hide-mobile')
                 zoomTd.textContent = `z${item['min_zoom']}-z${item['max_zoom']}`;
                 tr.appendChild(zoomTd);
 
@@ -202,7 +233,7 @@
 
                 const md5Td = document.createElement('td');
                 md5Td.classList.add('hide-mobile');
-                md5Td.textContent = item['md5sum'];
+                md5Td.textContent = item['md5sum'].slice(0, 8) + '...';
                 tr.appendChild(md5Td);
 
                 const coverageTd = document.createElement('td');
@@ -219,10 +250,18 @@
                 }
                 tr.appendChild(coverageTd);
 
+                const mirrorTd = document.createElement('td');
+                const parts = [`<a href="${item['url']}">Primary</a>`];
+                for (const name of mirrorstatus['items'][item['name']]) {
+                    parts.push(`<a href="${mirrorstatus['mirrors'][name]['base_url']}${item['name']}">${name}</a>`);
+                }
+                mirrorTd.innerHTML = parts.join('<br>');
+                tr.appendChild(mirrorTd);
+
                 tableBody.appendChild(tr);
                 totalSize += item['size'];
             }
-            const sizeSpan = document.getElementById('total_size');
+            const sizeSpan = document.getElementById('total-size');
             sizeSpan.textContent = `${(totalSize / Math.pow(1024, 4)).toFixed(1)} TiB`;
         }
         buildList();
