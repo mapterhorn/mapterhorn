@@ -179,6 +179,7 @@ With this convention we can limit the total file size to roughly 1 terabyte assu
 - uv: `curl -LsSf https://astral.sh/uv/install.sh | sh`
 - just: https://github.com/casey/just?tab=readme-ov-file#installation
 - aws cli: https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
+- wget
 
 ## Debug Pipeline
 
