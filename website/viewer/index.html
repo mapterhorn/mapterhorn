@@ -6,6 +6,7 @@
     <meta charset="utf-8" />
     <script src="https://unpkg.com/maplibre-gl@5.6.0/dist/maplibre-gl.js"></script>
     <link href="https://unpkg.com/maplibre-gl@5.6.0/dist/maplibre-gl.css" rel="stylesheet" />
+    <script src="https://unpkg.com/pmtiles@4.3.0/dist/pmtiles.js"></script>
     <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
     <link rel="icon" href="https://mapterhorn.github.io/.github/brand/screen/mapterhorn-icon.png">
     <style>
@@ -20,12 +21,32 @@
             bottom: 0;
             width: 100%;
         }
+
+        #form {
+            position: absolute;
+            z-index: 1;
+            background: white;
+            padding: 0.3rem;
+        }
+
+        #input {
+            width: 500px;
+        }
     </style>
 </head>
 
 <body>
+    <form id="form">
+      <input id="input" type="text" placeholder="TileJSON or .pmtiles" />
+      <button type="submit">View</button>
+    </form>
     <div id="map"></div>
     <script type="text/javascript">
+        const form = document.getElementById('form');
+        const input = document.getElementById('input');
+
+        let protocol = new pmtiles.Protocol();
+        maplibregl.addProtocol("pmtiles",protocol.tile);
 
         const map = new maplibregl.Map({
             container: 'map',
@@ -66,6 +87,23 @@
             }
         }
         map.addControl(new LogoControl(), 'bottom-left');
+
+        form.addEventListener('submit', function (e) {
+            e.preventDefault(); // prevent page reload
+            const value = input.value.trim();
+            console.log("Submitted value:", value);
+        });
+
+        document.addEventListener("dragover", (e) => {
+            e.preventDefault(); // Required for drop to work
+        });
+
+        document.addEventListener('drop', function (e) {
+            e.preventDefault(); // prevent page reload
+            console.log("DROP");
+        });
+
+        // parse the URL hash and keep it in sync
     </script>
 </body>
 
