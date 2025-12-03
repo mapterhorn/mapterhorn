@@ -7,6 +7,7 @@
     <title>Coverage | Mapterhorn</title>
     <script src='https://unpkg.com/maplibre-gl@5.6.2/dist/maplibre-gl.js'></script>
     <link href='https://unpkg.com/maplibre-gl@5.6.2/dist/maplibre-gl.css' rel='stylesheet' />
+    <script src="https://unpkg.com/@protomaps/basemaps@5/dist/basemaps.js" crossorigin="anonymous"></script>
     <link rel="icon" href="https://mapterhorn.github.io/.github/brand/screen/mapterhorn-icon.png">
     <style>
         body {
@@ -35,7 +36,19 @@
         const map = new maplibregl.Map({
             container: 'map',
             hash: 'map',
-            style: 'style.json',
+            style: {
+                version: 8,
+                sprite: "https://protomaps.github.io/basemaps-assets/sprites/v4/white",
+                glyphs: "https://protomaps.github.io/basemaps-assets/fonts/{fontstack}/{range}.pbf",
+                sources: {
+                    protomaps: {
+                        type: "vector",
+                        "attribution": "<a href=\"https://github.com/protomaps/basemaps\">Protomaps</a> © <a href=\"https://openstreetmap.org\">OpenStreetMap</a>",
+                        url: "https://single-archive-tiles.mapterhorn.com/protomaps_v4.json"
+                    }
+                },
+                layers: basemaps.layers("protomaps",basemaps.namedFlavor("white"),{lang:"en"})
+            },
             center: [0, 0],
             zoom: 0,
         });
