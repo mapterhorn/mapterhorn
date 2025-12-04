@@ -7,8 +7,8 @@
     <title>Coverage | Mapterhorn</title>
     <script src='https://unpkg.com/maplibre-gl@5.6.2/dist/maplibre-gl.js'></script>
     <link href='https://unpkg.com/maplibre-gl@5.6.2/dist/maplibre-gl.css' rel='stylesheet' />
-    <script src="https://unpkg.com/@protomaps/basemaps@5/dist/basemaps.js" crossorigin="anonymous"></script>
-    <link rel="icon" href="https://mapterhorn.github.io/.github/brand/screen/mapterhorn-icon.png">
+    <script src='https://unpkg.com/@protomaps/basemaps@5/dist/basemaps.js' crossorigin='anonymous'></script>
+    <link rel='icon' href='https://mapterhorn.github.io/.github/brand/screen/mapterhorn-icon.png'>
     <style>
         body {
             margin: 0;
@@ -38,16 +38,16 @@
             hash: 'map',
             style: {
                 version: 8,
-                sprite: "https://protomaps.github.io/basemaps-assets/sprites/v4/white",
-                glyphs: "https://protomaps.github.io/basemaps-assets/fonts/{fontstack}/{range}.pbf",
+                sprite: 'https://protomaps.github.io/basemaps-assets/sprites/v4/white',
+                glyphs: 'https://protomaps.github.io/basemaps-assets/fonts/{fontstack}/{range}.pbf',
                 sources: {
                     protomaps: {
-                        type: "vector",
-                        "attribution": "<a href=\"https://github.com/protomaps/basemaps\">Protomaps</a> © <a href=\"https://openstreetmap.org\">OpenStreetMap</a>",
-                        url: "https://single-archive-tiles.mapterhorn.com/protomaps_v4.json"
+                        type: 'vector',
+                        attribution: '<a href=\"https://github.com/protomaps/basemaps\">Protomaps</a> © <a href=\"https://openstreetmap.org\">OpenStreetMap</a>',
+                        url: 'https://single-archive-tiles.mapterhorn.com/protomaps_v4.json',
                     }
                 },
-                layers: basemaps.layers("protomaps",basemaps.namedFlavor("white"),{lang:"en"})
+                layers: basemaps.layers('protomaps', basemaps.namedFlavor('white'), { lang: 'en' }),
             },
             center: [0, 0],
             zoom: 0,
@@ -99,7 +99,7 @@
                         'rgba(26, 188, 156, 0.3)'
                     ]
                 }
-            }, 'water_waterway_label');
+            });
             map.addLayer({
                 'id': 'coverage-line',
                 'type': 'line',
@@ -114,7 +114,7 @@
                         'rgba(26, 188, 156, 0.6)'
                     ]
                 }
-            }, 'water_waterway_label');
+            });
 
             const request = await fetch('https://download.mapterhorn.com/download_urls.json');
             const data = await request.json();
@@ -148,7 +148,7 @@
                 'paint': {
                     'fill-color': 'rgba(255, 0, 255, 0.0)'
                 }
-            }, 'water_waterway_label');
+            });
             map.addLayer({
                 'id': 'pmtiles-line',
                 'type': 'line',
@@ -157,7 +157,7 @@
                     'line-width': 1.0,
                     'line-color': 'rgba(155, 89, 182, 1.0)'
                 }
-            }, 'water_waterway_label');
+            });
             map.addLayer({
                 'id': 'pmtiles-label',
                 'type': 'symbol',
@@ -242,7 +242,7 @@
                     'line-width': 10,
                     'line-color': 'rgba(155, 89, 182, 0.5)'
                 }
-            }, 'water_waterway_label')
+            });
         };
 
         const addHighlightSource = () => {
