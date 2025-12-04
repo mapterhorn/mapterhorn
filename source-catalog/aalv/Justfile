@@ -1,0 +1,9 @@
+# Source preparation pipeline to be run from mapterhorn/pipelines folder
+[no-cd]
+default:
+    uv run python source_download.py aalv
+    uv run python source_unzip.py aalv # sparse txt file, convert to tif by filling a matrix
+    uv run python source_to_cog.py aalv
+    uv run python source_bounds.py aalv
+    uv run python source_polygonize.py aalv 32
+    uv run python source_create_tarball.py aalv

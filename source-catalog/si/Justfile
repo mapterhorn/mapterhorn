@@ -1,0 +1,11 @@
+# Source preparation pipeline to be run from mapterhorn/pipelines folder
+[no-cd]
+default:
+    uv run python source_download.py si
+    uv run python source_to_cog.py si
+    uv run python source_set_crs.py si EPSG:3794
+    uv run python source_set_nodata.py si -9999
+    uv run python source_fix_orientation.py si
+    uv run python source_bounds.py si
+    uv run python source_polygonize.py si 32
+    uv run python source_create_tarball.py si

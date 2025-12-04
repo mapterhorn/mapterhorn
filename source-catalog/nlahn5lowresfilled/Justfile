@@ -1,0 +1,9 @@
+# Source preparation pipeline to be run from mapterhorn/pipelines folder
+[no-cd]
+default:
+    uv run python source_download.py nlahn5lowresfilled
+    # fill holes with gdal
+    uv run python source_to_cog.py nlahn5lowresfilled
+    uv run python source_bounds.py nlahn5lowresfilled
+    uv run python source_polygonize.py nlahn5lowresfilled 32 # fix compound CRS: ogr2ogr -f GPKG nlahn5lowresfilledfixed.gpkg nlahn5lowresfilled.gpkg -a_srs EPSG:28992
+    uv run python source_create_tarball.py nlahn5lowresfilled

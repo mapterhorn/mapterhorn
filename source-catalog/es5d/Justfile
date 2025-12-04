@@ -1,0 +1,8 @@
+# Source preparation pipeline to be run from mapterhorn/pipelines folder
+[no-cd]
+default:
+    # no public download yet
+    uv run python source_to_cog.py es5d
+    uv run python source_bounds.py es5d
+    uv run python source_polygonize.py es5d 32
+    uv run python source_create_tarball.py es5d

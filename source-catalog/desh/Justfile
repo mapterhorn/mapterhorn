@@ -1,0 +1,10 @@
+# Source preparation pipeline to be run from mapterhorn/pipelines folder
+[no-cd]
+default:
+    uv run python source_download.py desh # rename files after download
+    uv run python source_to_cog.py desh
+    uv run python source_set_crs.py desh EPSG:25832
+    uv run python source_set_nodata.py desh 0.0
+    uv run python source_bounds.py desh
+    uv run python source_polygonize.py desh 32
+    uv run python source_create_tarball.py desh

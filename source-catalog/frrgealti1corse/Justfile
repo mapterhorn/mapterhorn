@@ -1,0 +1,9 @@
+# Source preparation pipeline to be run from mapterhorn/pipelines folder
+[no-cd]
+default:
+    uv run python source_download.py frrgealti1corse
+    uv run python source_unzip.py frrgealti1corse # translate only the .asc files
+    uv run python source_set_crs.py frrgealti1corse EPSG:2154
+    uv run python source_bounds.py frrgealti1corse
+    uv run python source_polygonize.py frrgealti1corse 32
+    uv run python source_create_tarball.py frrgealti1corse

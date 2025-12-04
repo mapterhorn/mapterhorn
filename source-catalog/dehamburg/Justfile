@@ -1,0 +1,12 @@
+# Source preparation pipeline to be run from mapterhorn/pipelines folder
+[no-cd]
+default:
+    uv run python source_download.py dehamburg
+    # unzip dehamburg unzip by hand, it has a nested zip file
+    uv run python source_to_cog.py dehamburg
+    uv run python source_set_crs.py dehamburg EPSG:25832
+    uv run python source_set_nodata.py dehamburg 0.0
+    uv run python source_fix_orientation.py dehamburg
+    uv run python source_bounds.py dehamburg
+    uv run python source_polygonize.py dehamburg 32
+    uv run python source_create_tarball.py dehamburg

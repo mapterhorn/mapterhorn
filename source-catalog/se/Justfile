@@ -1,0 +1,9 @@
+# Source preparation pipeline to be run from mapterhorn/pipelines folder
+[no-cd]
+default:
+    uv run python source_download.py se
+    uv run python source_to_cog.py se
+    uv run python source_bounds.py se
+    uv run python source_polygonize.py se 32 # fix compound CRS: ogr2ogr -f GPKG sefixed.gpkg se.gpkg -a_srs EPSG:3006
+    uv run python source_create_tarball.py se
+

@@ -1,0 +1,7 @@
+# Source preparation pipeline to be run from mapterhorn/pipelines folder
+[no-cd]
+default:
+    uv run python source_download.py glo30
+    uv run python source_bounds.py glo30
+    uv run python source_polygonize.py glo30 32
+    uv run python source_create_tarball.py glo30

@@ -1,0 +1,9 @@
+# Source preparation pipeline to be run from mapterhorn/pipelines folder
+[no-cd]
+default:
+    # no public download yet
+    uv run python source_unzip.py itbozen
+    uv run python source_set_nodata.py itbozen -9999
+    uv run python source_bounds.py itbozen
+    uv run python source_polygonize.py itbozen 32
+    uv run python source_create_tarball.py itbozen

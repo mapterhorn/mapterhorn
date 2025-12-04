@@ -1,0 +1,8 @@
+# Source preparation pipeline to be run from mapterhorn/pipelines folder
+[no-cd]
+default:
+    uv run python source_download.py cz
+    uv run python source_unzip.py cz
+    uv run python source_bounds.py cz
+    uv run python source_polygonize.py cz 32
+    uv run python source_create_tarball.py cz

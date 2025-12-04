@@ -11,10 +11,12 @@ source-catalog
 ├── README.md
 ├── glo30
 │   ├── file_list.txt
+│   ├── Justfile
 │   ├── LICENSE.pdf
 │   └── metadata.json
 ├── swissalti3d
 │   ├── file_list.txt
+│   ├── Justfile
 │   ├── LICENSE.pdf
 │   └── metadata.json
 ...    
@@ -32,6 +34,26 @@ https://data.geo.admin.ch/ch.swisstopo.swissalti3d/swissalti3d_2019_2501-1121/sw
 https://data.geo.admin.ch/ch.swisstopo.swissalti3d/swissalti3d_2019_2501-1122/swissalti3d_2019_2501-1122_0.5_2056_5728.tif
 ...
 ```
+
+### `Justfile`
+
+Contains instructions about which scripts to use to download and normalize the source data. Should be run from the `mapterhorn/pipelines` folder.
+
+Example `desachsenanhalt/Justfile`:
+
+```
+# Source preparation pipeline to be run from mapterhorn/pipelines folder
+[no-cd]
+default:
+    uv run python source_download.py desachsenanhalt
+    uv run python source_unzip.py desachsenanhalt
+    uv run python source_set_crs.py desachsenanhalt EPSG:25832
+    uv run python source_bounds.py desachsenanhalt
+    uv run python source_polygonize.py desachsenanhalt 32
+    uv run python source_create_tarball.py desachsenanhalt
+```
+
+You would run this Justfile from the pipelines folder with `just ../source-catalog/desachsenanhalt/`.
 
 ### `LICENSE.pdf`
 
@@ -56,12 +78,13 @@ Example `swissalti3d/metadata.json`:
 
 ## Adding a Source
 
-Add a source by creating a new subfolder. The folder name will be the source name. Create the files `file_list.txt`, `LICENSE.pdf`, and `metadata.json`. 
+Add a source by creating a new subfolder. The folder name will be the source name. Create the files `file_list.txt`, `Justfile`, `LICENSE.pdf`, and `metadata.json`. 
 
 Notes:
 - Each file must have a unique name. 
-- Only sources with open licenses are accepted.
+- Licenses which are share-alike or which do not allow commercial usage will not be accepted.
 - The metadata should include precise references to the producer.
+- Individual GeoTiffs in the source should not be larger than say 10 GB, otherwise the polygonize step gets slow. You can slice a larger tif into multiple smaller ones with `source_slice.py`.
 
 ## Updating a Source
 
