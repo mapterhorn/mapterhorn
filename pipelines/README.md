@@ -180,8 +180,7 @@ With this convention we can limit the total file size to roughly 1 terabyte assu
 - just: https://github.com/casey/just?tab=readme-ov-file#installation
 - aws cli: https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
 - wget
-
-## Debug Pipeline
-
-Run `just debug`. This should download one image of swissalti3d and one of glo30, reproject them to web mercator, aggregate and downsample, and bundle them in two pmtiles files in the bundle store.
+- curl
+- un7z
+- unzip
 
