@@ -16,21 +16,41 @@
         }
 
         #map {
-            position: absolute;
             top: 0;
             bottom: 0;
             width: 100%;
+            height: calc(100vh - 30px);
         }
 
         #form {
-            position: absolute;
+            box-sizing: border-box;
             z-index: 1;
             background: white;
             padding: 0.3rem;
+            width: 100vw;
+            display: flex;
+            height:30px;
+            align-items: center;
         }
 
         #input {
-            width: 500px;
+            flex-grow: 1;
+            margin-right: 0.5rem;
+        }
+
+        #dragInfo {
+            flex-shrink: 0;
+            font-size: 14px;
+            font-family: sans-serif;
+            color: #777;
+            margin-left: 0.5rem;
+            display: none;
+        }
+
+        @media (min-width: 640px) {
+          #dragInfo {
+            display: inline;
+          }
         }
     </style>
 </head>
@@ -39,6 +59,7 @@
     <form id="form">
       <input id="input" type="text" placeholder="TileJSON or .pmtiles" />
       <button type="submit">View</button>
+      <span id="dragInfo">or drag-and-drop .pmtiles</span>
     </form>
     <div id="map"></div>
     <script type="text/javascript">
