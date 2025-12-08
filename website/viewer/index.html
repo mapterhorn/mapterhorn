@@ -29,7 +29,7 @@
             padding: 0.3rem;
             width: 100vw;
             display: flex;
-            height:30px;
+            height: 30px;
             align-items: center;
         }
 
@@ -48,55 +48,52 @@
         }
 
         @media (min-width: 640px) {
-          #dragInfo {
-            display: inline;
-          }
+            #dragInfo {
+                display: inline;
+            }
         }
     </style>
 </head>
 
 <body>
     <form id="form">
-      <input id="input" type="text" placeholder="TileJSON or .pmtiles" />
-      <button type="submit">View</button>
-      <span id="dragInfo">or drag-and-drop .pmtiles</span>
+        <input id="input" type="text" placeholder="TileJSON or .pmtiles" />
+        <button type="submit">View</button>
+        <span id="dragInfo">or drag-and-drop .pmtiles</span>
     </form>
     <div id="map"></div>
     <script type="text/javascript">
-        // parseHash and createHash needed to properly handle #map=1/2/3
         function parseHash(hash) {
-          const retval = {};
-          for (const pair of hash.replace("#", "").split("&")) {
-            const parts = pair.split("=");
-            retval[parts[0]] = parts[1];
-          }
-          return retval;
+            const retval = {};
+            for (const pair of hash.replace('#', '').split('&')) {
+                const parts = pair.split('=');
+                retval[parts[0]] = parts[1];
+            }
+            return retval;
         }
 
-        function createHash(currentHash,newHash) {
-          const current = parseHash(currentHash);
-          const combined = { ...current, ...newHash };
-          return `#${Object.entries(combined)
-            .filter(([_, value]) => {
-              return value !== undefined;
-            })
-            .map(([key, value]) => {
-              return `${key}=${value}`;
-            })
-            .join("&")}`;
+        function createHash(currentHash, newHash) {
+            const current = parseHash(currentHash);
+            const combined = { ...current, ...newHash };
+            return `#${Object.entries(combined)
+                .filter(([_, value]) => {
+                    return value !== undefined;
+                })
+                .map(([key, value]) => {
+                    return `${key}=${value}`;
+                })
+                .join('&')}`;
         }
 
-        // add pmtiles protocol
         let protocol = new pmtiles.Protocol();
-        maplibregl.addProtocol("pmtiles",protocol.tile);
+        maplibregl.addProtocol('pmtiles', protocol.tile);
 
         const form = document.getElementById('form');
         const input = document.getElementById('input');
 
-        // load initial URL state
         const params = parseHash(location.hash);
         let url = params.url || 'https://tiles.mapterhorn.com/tilejson.json';
-        document.getElementById("input").value = url;
+        document.getElementById('input').value = url;
 
         const map = new maplibregl.Map({
             container: 'map',
@@ -108,8 +105,8 @@
                 sources: {
                     hillshadeSource: {
                         type: 'raster-dem',
-                        url: url.endsWith(".pmtiles") ? "pmtiles://" + url : url,
-                        encoding: "terrarium"
+                        url: url.endsWith('.pmtiles') ? 'pmtiles://' + url : url,
+                        encoding: 'terrarium',
                     },
                 },
                 layers: [
@@ -140,28 +137,28 @@
         map.addControl(new LogoControl(), 'bottom-left');
 
         const setHashUrl = (url) => {
-            location.hash = createHash(location.hash, {url:url})
+            location.hash = createHash(location.hash, { url: url })
         }
 
         form.addEventListener('submit', (e) => {
-            e.preventDefault(); // prevent page reload
+            e.preventDefault();
             const value = input.value.trim();
             setHashUrl(value);
-            map.getSource("hillshadeSource").setUrl(value.endsWith(".pmtiles") ? "pmtiles://" + value : value);
+            map.getSource('hillshadeSource').setUrl(value.endsWith('.pmtiles') ? 'pmtiles://' + value : value);
         });
 
-        document.addEventListener("dragover", (e) => {
-            e.preventDefault(); // Required for drop to work
+        document.addEventListener('dragover', (e) => {
+            e.preventDefault();
         });
 
         document.addEventListener('drop', (e) => {
-            e.preventDefault(); // prevent page reload
+            e.preventDefault();
             setHashUrl();
-            document.getElementById("input").value = "";
+            document.getElementById('input').value = '';
             const file = e.dataTransfer.files[0];
             const archive = new pmtiles.PMTiles(new pmtiles.FileSource(file));
             protocol.add(archive);
-            map.getSource("hillshadeSource").setUrl(`pmtiles://${file.name}`);
+            map.getSource('hillshadeSource').setUrl(`pmtiles://${file.name}`);
         });
     </script>
 </body>
