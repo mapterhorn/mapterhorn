@@ -9,8 +9,8 @@ SILENT = False
 
 def polygonize_tif(source, filename):
     mask_filepath = f'polygon-store/{source}/{filename}'
-    utils.run_command(f'GDAL_CACHEMAX=4096 /usr/bin/gdal_calc.py -A source-store/{source}/{filename} --outfile={mask_filepath} --calc="A*0+1" --type=Byte --overwrite', silent=SILENT)
-    utils.run_command(f'GDAL_CACHEMAX=4096 /usr/bin/gdal_polygonize.py {mask_filepath} -b 1 -f "GPKG" polygon-store/{source}/{filename}.gpkg -overwrite', silent=SILENT)
+    utils.run_command(f'GDAL_CACHEMAX=1024 /usr/bin/gdal_calc.py -A source-store/{source}/{filename} --outfile={mask_filepath} --calc="A*0+1" --type=Byte --overwrite', silent=SILENT)
+    utils.run_command(f'GDAL_CACHEMAX=1024 /usr/bin/gdal_polygonize.py {mask_filepath} -b 1 -f "GPKG" polygon-store/{source}/{filename}.gpkg -overwrite', silent=SILENT)
     os.remove(mask_filepath)
 
 def get_filenames(source):
