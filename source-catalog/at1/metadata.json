@@ -1,0 +1,8 @@
+{
+    "name": "Digitales Geländehöhenmodell (ALS-DGM) - Höhenraster",
+    "website": "https://www.bev.gv.at/Services/Produkte/Digitales-Gelaendehoehenmodell/ALS-Hoehenraster.html",
+    "license": "CC-BY-4.0",
+    "producer": "BEV - Bundesamt für Eich- und Vermessungswesen",
+    "resolution": 1.0,
+    "access_year": 2025
+}
