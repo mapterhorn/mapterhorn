@@ -3,6 +3,7 @@ import json
 import time
 
 import upload
+import utils
 
 def get_size_by_filename():
     size_by_filename = {}
@@ -45,6 +46,8 @@ def main():
 
     print(json.dumps(mirrorstatus, indent=2))
 
+    utils.create_folder('bundle-store')
+
     with open('bundle-store/mirrorstatus.json', 'w') as f:
         json.dump(mirrorstatus, f, indent=2)
 
@@ -58,4 +61,15 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    while True:
+        try:
+            main()
+        except requests.exceptions.ReadTimeout as e:
+            print(e)
+            print('Sleeping for 1 minute...')
+            time.sleep(60)
+            continue
+        sleep_minutes = 15
+        for i in range(2 * sleep_minutes):
+            print(f'Sleeping for {(2 * sleep_minutes - i) / 2} more minutes...')
+            time.sleep(30)

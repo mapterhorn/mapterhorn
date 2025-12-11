@@ -27,6 +27,7 @@ def has_expected_size_and_md5sum(url, expected_size, expected_md5sum):
     return True
 
 def print_check(url, expected_size, expected_md5sum):
+    print('working on', url)
     if has_expected_size_and_md5sum(url, expected_size, expected_md5sum):
         print(url, 'good')
     else:
