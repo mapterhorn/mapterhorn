@@ -1,3 +1,14 @@
+## 0.0.6
+
+### ✨ Features and improvements
+
+- Add source at1: Austria country-wide 1 m (#146)
+- Reorganize source preparation (#145)
+
+### 🐞 Bug fixes
+
+- create tar-store directory before attempting to access it (#149)
+
 ## 0.0.5
 
 ### ✨ Features and improvements
