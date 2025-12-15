@@ -5,6 +5,8 @@ import math
 import rasterio
 from rasterio.warp import transform_bounds
 
+import utils
+
 def main():
     source = None
     if len(sys.argv) > 1:
@@ -23,6 +25,13 @@ def main():
             if src.crs is None:
                 raise ValueError(f'crs not defined on {filepath}')
             left, bottom, right, top = transform_bounds(src.crs, 'EPSG:3857', *src.bounds)
+
+            if right - left > 0.9 * 2 * utils.X_MAX_3857:
+                # probably the image crosses the antimeridian
+                # in this case rasterio.warp.transform_bounds mixes up left and right
+                # and we need to flip it back
+                left, right = right, left
+
             for num in [left, bottom, right, top]:
                 if not math.isfinite(num):
                     raise ValueError(f'Number in bounds is not finite. src.bounds={src.bounds} src.crs={src.crs} bounds={(left, bottom, right, top)}')

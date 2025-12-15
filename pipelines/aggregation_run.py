@@ -20,7 +20,7 @@ def run(filepath):
     utils.run_command(f'touch {filepath.replace("-aggregation.csv", "-aggregation.done")}')
     print(f'{item} end')
 
-def main():    
+def main():
     aggregation_ids = utils.get_aggregation_ids()
     aggregation_id = aggregation_ids[-1]
 

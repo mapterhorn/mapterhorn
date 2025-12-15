@@ -13,7 +13,7 @@ def get_mercator_resolutions(minzoom, maxzoom):
         resolutions.append((bounds.right - bounds.left) / 512)
     return resolutions
 
-def bounds_intersect(a, b):
+def bounds_intersect_no_anitmeridian_crossing(a, b):
     left_a, bottom_a, right_a, top_a = a
     left_b, bottom_b, right_b, top_b = b
     dont_intersect = False
@@ -22,6 +22,21 @@ def bounds_intersect(a, b):
     dont_intersect |= top_a <= bottom_b
     dont_intersect |= top_b <= bottom_a
     return not dont_intersect
+
+def split_at_antimeridian(bbox):
+    left, bottom, right, top = bbox
+    if left < right:
+        return [bbox]
+    bbox_1 = (left, bottom, utils.X_MAX_3857, top)
+    bbox_2 = (utils.X_MIN_3857, bottom, right, top)
+    return [bbox_1, bbox_2]
+
+def bounds_intersect(a, b):
+    for aa in split_at_antimeridian(a):
+        for bb in split_at_antimeridian(b):
+            if bounds_intersect_no_anitmeridian_crossing(aa, bb):
+                return True
+    return False
 
 def get_intersecting_tiles_dfs(bounds, tile, zoom):
     tile_bounds = mercantile.xy_bounds(tile)
@@ -85,7 +100,7 @@ def get_macrotile_map():
     return macrotile_map
 
 def get_smallest_overzoom(left, bottom, right, top, width, height, mercator_resolutions):
-    horizontal_resolution = (right - left) / width
+    horizontal_resolution = (right - left) / width if left < right else (left - right) / width
     vertical_resolution = (top - bottom) / height
 
     for z in range(len(mercator_resolutions)):
