@@ -16,19 +16,21 @@ def set_crs(filepath, crs):
 def main():
     source = None
     crs = None
+
     if len(sys.argv) == 3:
         source = sys.argv[1]
         crs = sys.argv[2]
         print(f'setting crs="{crs}" for source {source}...')
+    elif len(sys.argv) == 2:
+        source = sys.argv[1]
+        print(f'only listing crses for source {source}...')
     else:
-        print('wrong number of arguments: source_set_crs.py source crs')
+        print('wrong number of arguments: source_set_crs.py source [crs]')
         exit()
     
     filepaths = sorted(glob(f'source-store/{source}/*.tif'))
 
-    only_list_crses = False
-    if only_list_crses:
-        print('will only list crs(es) and then exit...')
+    if crs is None:
         crses = set({})
         for j, filepath in enumerate(filepaths):
             if j % 100 == 0:
