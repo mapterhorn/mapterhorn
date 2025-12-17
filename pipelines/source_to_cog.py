@@ -16,6 +16,10 @@ def to_cog(filepath):
         utils.run_command(f'mv {filepath} {filepath}.bak', silent=SILENT)
         filepath_in = f'{filepath}.bak'
         filepath_out = filepath.replace('.TIF', '.tif')
+    elif filepath.endswith('.tiff'):
+        utils.run_command(f'mv {filepath} {filepath}.bak', silent=SILENT)
+        filepath_in = f'{filepath}.bak'
+        filepath_out = filepath.replace('.tiff', '.tif')
     elif filepath.endswith('.xyz'):
         filepath_in = filepath
         filepath_out = filepath.replace('.xyz', '.tif')
@@ -44,6 +48,7 @@ def main():
     filepaths = []
     filepaths += glob(f'source-store/{source}/*.tif')
     filepaths += glob(f'source-store/{source}/*.TIF')
+    filepaths += glob(f'source-store/{source}/*.tiff')
     filepaths += glob(f'source-store/{source}/*.xyz')
     filepaths += glob(f'source-store/{source}/*.asc')
     filepaths += glob(f'source-store/{source}/*.ASC')
