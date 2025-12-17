@@ -1,0 +1,8 @@
+{
+    "name": "Wales DTM 1m",
+    "website": "https://datamap.gov.wales/maps/lidar-data-download/",
+    "license": "Open Government License",
+    "producer": "Welsh Government and NRW",
+    "resolution": 1.0,
+    "access_year": 2025
+}
