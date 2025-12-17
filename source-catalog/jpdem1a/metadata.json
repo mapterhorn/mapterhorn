@@ -1,0 +1,8 @@
+{
+    "name": "基盤地図情報（数値標高モデル）",
+    "website": "https://service.gsi.go.jp/kiban/app/",
+    "license": "国土地理院コンテンツ利用規約／測量法に基づく国土地理院長承認（使用）R 7JHs 542",
+    "producer": "国土交通省国土地理院",
+    "resolution": 1.0,
+    "access_year": 2025
+}

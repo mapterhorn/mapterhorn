@@ -1,0 +1,7 @@
+# Source preparation pipeline to be run from mapterhorn/pipelines folder
+[no-cd]
+default:
+    uv run python source_to_cog.py jpdem1a
+    uv run python source_bounds.py jpdem1a
+    uv run python source_polygonize.py jpdem1a 32
+    uv run python source_create_tarball.py jpdem1a
