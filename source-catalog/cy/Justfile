@@ -1,0 +1,9 @@
+# Source preparation pipeline to be run from mapterhorn/pipelines folder
+[no-cd]
+default:
+    uv run python source_download.py cy
+    rm source-store/cy/ETRS89_2000_3250.tif # this is a 1x1 pixel sized file
+    uv run python source_to_cog.py cy
+    uv run python source_bounds.py cy
+    uv run python source_polygonize.py cy 32
+    uv run python source_create_tarball.py cy
