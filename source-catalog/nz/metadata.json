@@ -1,0 +1,8 @@
+{
+    "name": "New Zealand LiDAR 1m DEM",
+    "website": "https://www.linz.govt.nz/products-services/data/types-linz-data/elevation-data/access-elevation-data",
+    "license": "CC BY 4.0",
+    "producer": "Toitū Te Whenua Land Information New Zealand",
+    "resolution": 1.0,
+    "access_year": 2025
+}
