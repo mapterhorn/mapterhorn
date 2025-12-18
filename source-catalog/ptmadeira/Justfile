@@ -1,0 +1,8 @@
+# Source preparation pipeline to be run from mapterhorn/pipelines folder
+[no-cd]
+default:
+    uv run python source_to_cog.py ptmadeira
+    uv run python source_set_crs.py ptmadeira EPSG:3061
+    uv run python source_bounds.py ptmadeira
+    uv run python source_polygonize.py ptmadeira 32
+    uv run python source_create_tarball.py ptmadeira
