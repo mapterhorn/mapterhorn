@@ -1,0 +1,8 @@
+{
+    "name": "Digital Elevation Models of mainland Portugal",
+    "website": "https://cdd.dgterritorio.gov.pt/dgt-fe/catalogos/colecoes?filter=LiDAR+-+Modelos+Digitais+do+Relevo&language=en",
+    "license": "CC BY 4.0",
+    "producer": "Direção-Geral do Território",
+    "resolution": 0.5,
+    "access_year": 2025
+}
