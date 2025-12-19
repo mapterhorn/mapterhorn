@@ -1,7 +1,8 @@
 # Source preparation pipeline to be run from mapterhorn/pipelines folder
 [no-cd]
 default:
-    uv run python source_download.py nz # then rename from .tiff to .tif
+    uv run python source_download.py nz
+    uv run python source_to_cog.py nz
     uv run python source_bounds.py nz
     uv run python source_polygonize.py nz 32
     uv run python source_create_tarball.py nz
