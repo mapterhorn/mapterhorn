@@ -1,4 +1,4 @@
-# es2a,b,c
+# es2a
 
 First run `python3 list_files.py > files.txt` to get a list of valid file numbers.
 
