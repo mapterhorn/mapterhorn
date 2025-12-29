@@ -1,3 +1,31 @@
+## 0.0.7
+
+### ✨ Features and improvements
+
+- Add source ukengland: UK, England 1m (#174)
+- Add source dkgreenland: Denmark, Greenland 2m (#173)
+- Add source ukscotland: UK, Scotland 1m (#172)
+- Add sources es2*: Spain 2m (#171)
+- Add New Zealand 1m DEM source (#159)
+- Add source ptmadeira: Portugal, Madeira 10m (#170)
+- Add source pt: Portugal, mainland 0.5m (#169)
+- Add source no: Norway 1m (#168)
+- Add source novalbard: Norway, Svalbard 20m (#167)
+- Add sources jp*: Japan, 1m, 5m, and 10m (#165)
+- Add source usgs3dep13: United States regions 1/3rd arc-second (#150)
+- Include .tiff files in source_to_cog.py (#166)
+- Add source dkfaroe: Denmark, Faroe Islands 10m (#164)
+- Add source is: Island, 10 m (#163)
+- Add source cy: Cyprus, 1m (#162)
+- Add option to only list crses in source_set_crs.py (#161)
+- Add source ukwales: UK, Wales 1m (#160)
+- website: add pmtiles merge to interlaken example (#158)
+- Update homepage resolutions (#153)
+
+### 🐞 Bug fixes
+
+- Fix antimeridian handling (#157)
+
 ## 0.0.6
 
 ### ✨ Features and improvements
