@@ -260,7 +260,8 @@
 
                 const mirrorTd = document.createElement('td');
                 const parts = [`<a href="${item['url']}">Primary</a>`];
-                for (const name of mirrorstatus['items'][item['name']]) {
+                const mirrorNames = mirrorstatus['items'][item['name']] ? mirrorstatus['items'][item['name']] : [];
+                for (const name of mirrorNames) {
                     parts.push(`<a href="${mirrorstatus['mirrors'][name]['base_url']}${item['name']}">${name}</a>`);
                 }
                 mirrorTd.innerHTML = parts.join('<br>');
