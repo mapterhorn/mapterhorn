@@ -1,0 +1,8 @@
+[no-cd]
+default:
+    uv run python source_download.py ca-mrdem-30m
+    uv run python source_slice.py ca-mrdem-30m 16384
+    uv run python source_to_cog.py ca-mrdem-30m
+    uv run python source_bounds.py ca-mrdem-30m
+    uv run python source_polygonize.py ca-mrdem-30m 32
+    uv run python source_create_tarball.py ca-mrdem-30m
