@@ -4,7 +4,7 @@
 
 This directory contains Canadian elevation data sourcing for the [Mapterhorn](https://github.com/mapterhorn/mapterhorn/) project. It provides access to high-resolution Digital Terrain Models (DTM) and related elevation datasets from Canada's official STAC catalog, defaulting to the 1m hrdem-mosaic collection (~7.3TB). The **stac-crawl.py** utility makes it easy to discover and list specific data sources from multiple Canadian elevation collections (DTM, DSM, hillshade variants, etc.).
 
-> **Note:** The 1m Digital Terrain Model (DTM) for Canada is ~7.3TB in size.
+> **Note:** The combined Elevation Model for Canada is over 100 TB in size.
 
 **Quick Start:**
 ```bash
