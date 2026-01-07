@@ -1,0 +1,8 @@
+[no-cd]
+default:
+    uv run python source_download.py ca-hrdsm-02m
+    uv run python source_slice.py ca-hrdsm-02m 16384
+    uv run python source_to_cog.py ca-hrdsm-02m
+    uv run python source_bounds.py ca-hrdsm-02m
+    uv run python source_polygonize.py ca-hrdsm-02m 32
+    uv run python source_create_tarball.py ca-hrdsm-02m
