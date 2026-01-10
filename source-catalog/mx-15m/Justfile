@@ -1,0 +1,7 @@
+[no-cd]
+default:
+    uv run python source_download.py mx-15m
+    uv run python source_unzip.py mx-15m
+    uv run python source_bounds.py mx-15m
+    uv run python source_polygonize.py mx-15m 32
+    uv run python source_create_tarball.py mx-15m
