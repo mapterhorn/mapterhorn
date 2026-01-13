@@ -30,7 +30,7 @@ Public terrain tiles for interactive web map visualizations
 
 ## Contributing
 
-See [source-catalog/README.md](source-catalog/README.md) and [pipelines/README.md](pipelines/README.md).
+[CONTRIBUTING.md](./CONTRIBUTING.md)
 
 ## License
 
