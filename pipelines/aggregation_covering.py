@@ -51,7 +51,7 @@ def get_intersecting_tiles_dfs(bounds, tile, zoom):
 
 def get_macrotile_map():
     macrotile_map = {}
-    filepaths = sorted(glob(f'source-store/*/bounds.csv'))
+    filepaths = sorted(glob('source-store/*/bounds.csv'))
     mercator_resolutions = get_mercator_resolutions(0, 32)
     for filepath in filepaths:
         print(f'reading {filepath}...')

@@ -40,7 +40,7 @@ def get_aggregation_ids():
     '''
     returns aggregation ids ordered from oldest to newest
     '''
-    return list(sorted([path.split('/')[-1] for path in glob(f'aggregation-store/*')]))
+    return list(sorted([path.split('/')[-1] for path in glob('aggregation-store/*')]))
 
 def get_vertical_rounding_multiplier(z):
     return int(2 ** ((10 - z) / 2) / (1 / 256))
@@ -146,7 +146,7 @@ def get_dirty_aggregation_filenames(current_aggregation_id, last_aggregation_id)
 
 def get_pmtiles_folder(x, y, z):
     if z < 7:
-        return f'pmtiles-store'
+        return 'pmtiles-store'
     if z == 7:
         return f'pmtiles-store/{z}-{x}-{y}'
     else:

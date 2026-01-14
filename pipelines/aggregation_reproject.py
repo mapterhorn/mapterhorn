@@ -33,21 +33,21 @@ def create_warp(vrt_filepath, vrt_3857_filepath, zoom, aggregation_tile, buffer)
     right += buffer
     top += buffer
     resolution = get_resolution(zoom)
-    command = f'gdalwarp -of vrt -overwrite '
-    command += f'-t_srs EPSG:3857 '
+    command = 'gdalwarp -of vrt -overwrite '
+    command += '-t_srs EPSG:3857 '
     command += f'-tr {resolution} {resolution} '
     command += f'-te {left} {bottom} {right} {top} '
-    command += f'-r cubicspline '
-    command += f'-dstnodata -9999 '
+    command += '-r cubicspline '
+    command += '-dstnodata -9999 '
     command += f'{vrt_filepath} {vrt_3857_filepath}'
     out, err = utils.run_command(command, silent=SILENT)
     if err.strip() != '':
         raise Exception(f'gdalwarp failed for {vrt_filepath}:\n{out}\n{err}')
 
 def translate(in_filepath, out_filepath):
-    command = f'GDAL_CACHEMAX=512 gdal_translate -of COG '
-    command += f'-co BIGTIFF=IF_NEEDED -co ADD_ALPHA=YES -co OVERVIEWS=NONE '
-    command += f'-co SPARSE_OK=YES -co BLOCKSIZE=512 -co COMPRESS=NONE '
+    command = 'GDAL_CACHEMAX=512 gdal_translate -of COG '
+    command += '-co BIGTIFF=IF_NEEDED -co ADD_ALPHA=YES -co OVERVIEWS=NONE '
+    command += '-co SPARSE_OK=YES -co BLOCKSIZE=512 -co COMPRESS=NONE '
     command += f'{in_filepath} '
     command += f'{out_filepath}'
     out, err = utils.run_command(command, silent=SILENT)

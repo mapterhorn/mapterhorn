@@ -12,7 +12,7 @@ for filepath in filepaths:
     filename = filepath.split('/')[-1]
     expected_pmtiles_filenames.append(filename.replace('-aggregation.csv', '.pmtiles').replace('-downsampling.csv', '.pmtiles'))
 
-pmtiles_filepaths = glob(f'pmtiles-store/*.pmtiles') + glob(f'pmtiles-store/*/*.pmtiles')
+pmtiles_filepaths = glob('pmtiles-store/*.pmtiles') + glob('pmtiles-store/*/*.pmtiles')
 
 print(len(expected_pmtiles_filenames))
 print(len(pmtiles_filepaths))
