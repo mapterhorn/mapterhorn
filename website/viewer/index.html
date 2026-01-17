@@ -16,13 +16,14 @@
         }
 
         #map {
+            position: absolute;
             top: 0;
             bottom: 0;
             width: 100%;
-            height: calc(100vh - 30px);
         }
 
         #form {
+            position: fixed;
             box-sizing: border-box;
             z-index: 1;
             background: white;
@@ -56,12 +57,12 @@
 </head>
 
 <body>
+    <div id="map"></div>
     <form id="form">
         <input id="input" type="text" placeholder="TileJSON or .pmtiles" />
         <button type="submit">View</button>
         <span id="dragInfo">or drag-and-drop .pmtiles</span>
     </form>
-    <div id="map"></div>
     <script type="text/javascript">
         function parseHash(hash) {
             const retval = {};
