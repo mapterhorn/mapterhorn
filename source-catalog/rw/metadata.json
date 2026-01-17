@@ -1,0 +1,8 @@
+{
+    "name": "Rwanda 10m Digital Elevation Model",
+    "website": "https://github.com/WASAC/rwanda-dem",
+    "license": "Creative Commons Namensnennung 4.0 International (CC BY 4.0)",
+    "producer": "the National Land Authority (NLA), Water and Sanitation Corporation (WASAC) Ltd., Rwanda through UNDP, EMD, and windPRO",
+    "resolution": 10.0,
+    "access_year": 2026
+}
