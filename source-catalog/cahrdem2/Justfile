@@ -1,0 +1,8 @@
+[no-cd]
+default:
+    uv run python source_download.py cahrdem2
+    uv run python source_slice.py cahrdem2 16384
+    uv run python source_to_cog.py cahrdem2
+    uv run python source_bounds.py cahrdem2
+    uv run python source_polygonize.py cahrdem2 32
+    uv run python source_create_tarball.py cahrdem2
