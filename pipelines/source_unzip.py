@@ -49,7 +49,7 @@ def translate_images(filepath, source, suffix):
         j += 1
 
     with Pool() as pool:
-        pool.starmap(translate_image, argument_tuples)
+        pool.starmap(translate_image, argument_tuples, chunksize=1)
 
 def is_7z_head_file(filepath):
     return filepath.endswith('.7z') or filepath.endswith('.7z.001')

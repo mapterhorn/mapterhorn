@@ -58,7 +58,7 @@ def main():
 
     print(f'num files: {len(filepaths)}')
     with Pool() as pool:
-        pool.starmap(to_cog, filepaths)
+        pool.starmap(to_cog, filepaths, chunksize=1)
             
 if __name__ == '__main__':
     main()

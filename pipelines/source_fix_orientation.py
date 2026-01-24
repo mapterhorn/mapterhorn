@@ -28,7 +28,7 @@ def main():
         argument_tuples.append((filepath,))
     
     with Pool() as pool:
-        pool.starmap(fix_orientation, argument_tuples)
+        pool.starmap(fix_orientation, argument_tuples, chunksize=1)
 
 if __name__ == '__main__':
     main()
