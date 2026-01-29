@@ -4,6 +4,7 @@ import tarfile
 
 import utils
 
+
 def main():
     source = None
     if len(sys.argv) == 2:
@@ -14,8 +15,10 @@ def main():
         exit()
 
     utils.create_folder('tar-store/')
+    tar_path = f'tar-store/{source}.tar'
+
     checksum = None
-    with open(f'tar-store/{source}.tar', 'wb') as f:
+    with open(tar_path, 'wb') as f:
         writer = utils.HashWriter(f)
         with tarfile.open(fileobj=writer, mode='w') as tar:
             tar.add(f'../source-catalog/{source}/LICENSE.pdf', 'LICENSE.pdf')
@@ -30,9 +33,12 @@ def main():
                 tar.add(filepath, f'files/{filename}')
         checksum = writer.md5.hexdigest()
 
-    with open(f'tar-store/{source}.tar.md5', 'w') as f:
+    with open(f'{tar_path}.md5', 'w') as f:
         f.write(f'{checksum} {source}.tar\n')
+
+    print(f'tarball created: {tar_path}')
+    print(f'checksum: {checksum}')
+
 
 if __name__ == '__main__':
     main()
-
