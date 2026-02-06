@@ -1,3 +1,11 @@
+## 0.0.8
+
+### ✨ Features and improvements
+
+- Add the Canadian 2m dem (#201)
+- Add source au5: Australian regions 5 m (#181)
+- Add source us1: US 1m (#208, #209)
+
 ## 0.0.7
 
 ### ✨ Features and improvements
