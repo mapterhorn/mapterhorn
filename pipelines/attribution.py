@@ -31,9 +31,9 @@ def main():
                 'resolution': metadata['resolution'],
                 'access_year': metadata['access_year'],
             }
-        tar_filepath = f'tar-store/{source}.tar'
+        tar_filepath = f'tar-store/{source}/{source}.tar'
         if not os.path.isfile(tar_filepath):
-            print('Error: tar file missing for source {source}')
+            print(f'Error: tar file missing for source {source}')
             return
         item['tarball_size'] = os.path.getsize(tar_filepath)
         with open(f'{tar_filepath}.md5') as f:

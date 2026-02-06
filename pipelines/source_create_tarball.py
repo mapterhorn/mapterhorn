@@ -14,8 +14,9 @@ def main():
         exit()
 
     utils.create_folder('tar-store/')
+    utils.create_folder(f'tar-store/{source}')
     checksum = None
-    with open(f'tar-store/{source}.tar', 'wb') as f:
+    with open(f'tar-store/{source}/{source}.tar', 'wb') as f:
         writer = utils.HashWriter(f)
         with tarfile.open(fileobj=writer, mode='w') as tar:
             tar.add(f'../source-catalog/{source}/LICENSE.pdf', 'LICENSE.pdf')
@@ -30,7 +31,7 @@ def main():
                 tar.add(filepath, f'files/{filename}')
         checksum = writer.md5.hexdigest()
 
-    with open(f'tar-store/{source}.tar.md5', 'w') as f:
+    with open(f'tar-store/{source}/{source}.tar.md5', 'w') as f:
         f.write(f'{checksum} {source}.tar\n')
 
 if __name__ == '__main__':
