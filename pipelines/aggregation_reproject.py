@@ -3,6 +3,7 @@ import os
 
 import rasterio
 import mercantile
+import numpy as np
 
 import utils
 
@@ -66,7 +67,7 @@ def contains_nodata_pixels(filepath):
                         width=min(block_size, src.width - col),
                         height=min(block_size, src.height - row)
                     )
-                    data = src.read(1, window=window)
+                    data = np.nan_to_num(src.read(1, window=window), nan=-9999)
                     if -9999 in data:
                         return True
     return False

@@ -71,7 +71,7 @@ def merge(filepath):
                         
                         merged_tile = None
                         with rasterio.open(tiff_filepaths[0]) as src:
-                            merged_tile = src.read(1, window=window)
+                            merged_tile = np.nan_to_num(src.read(1, window=window), nan=-9999)
                         
                         filled_from_start = (-9999 not in merged_tile)
                         
@@ -108,7 +108,7 @@ def merge(filepath):
                             if 1 in boundary_tile:
                                 merged_tile[merged_tile == -9999] = 0
                                 truncate = 4
-                                sigma = int(overlap / truncate) - 1
+                                sigma = max(int(overlap / truncate) - 1, 1)
                                 boundary_tile_blurred = ndimage.gaussian_filter(boundary_tile.astype(float), sigma=sigma, truncate=truncate)
                                 boundary_tile_blurred /= (1.0 / (np.sqrt(2 * np.pi) * sigma))
                                 boundary_tile_blurred = np.clip(boundary_tile_blurred, 0, 1)
