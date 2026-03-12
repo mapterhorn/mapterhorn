@@ -74,7 +74,7 @@ def merge(filepath):
                             merged_tile = np.nan_to_num(src.read(1, window=window), nan=-9999)
                         
                         filled_from_start = (-9999 not in merged_tile)
-                        
+
                         if not filled_from_start:
 
                             binary_mask = (merged_tile != -9999).astype('int32')
@@ -82,9 +82,9 @@ def merge(filepath):
                             boundary_tile = binary_mask.astype(bool) & ~eroded
 
                             for tiff_filepath in tiff_filepaths[1:]:
-                                    
+                                current_tile = None
                                 with rasterio.open(tiff_filepath) as src:
-                                    current_tile = src.read(1, window=window)
+                                    current_tile = np.nan_to_num(src.read(1, window=window), nan=-9999)
                                 
                                 copy_mask = (merged_tile == -9999) & (current_tile != -9999)
                                 merged_tile[copy_mask] = current_tile[copy_mask]

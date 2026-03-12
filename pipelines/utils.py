@@ -57,9 +57,14 @@ def save_terrarium_tile(data, filepath):
 
     data += 32768
     rgb = np.zeros((512, 512, 3), dtype=np.uint8)
-    rgb[..., 0] = data // 256
-    rgb[..., 1] = data % 256
-    rgb[..., 2] = (data - np.floor(data)) * 256
+    np.seterr(all='raise')
+    try:
+        rgb[..., 0] = data // 256
+        rgb[..., 1] = data % 256
+        rgb[..., 2] = (data - np.floor(data)) * 256
+    except FloatingPointError:
+        print(f'FloatingPointError raised in {filepath}')
+        raise FloatingPointError()
     with open(filepath, 'wb') as f:
         f.write(imagecodecs.webp_encode(rgb, lossless=True))
 
