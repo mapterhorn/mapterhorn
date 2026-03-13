@@ -1,3 +1,11 @@
+## 0.0.9
+
+### 🐞 Bug fixes
+
+- More NaN handling (#221)
+- Fix invalid data holes (#220)
+- Nest tar-store folders by one level (#213)
+
 ## 0.0.8
 
 ### ✨ Features and improvements
