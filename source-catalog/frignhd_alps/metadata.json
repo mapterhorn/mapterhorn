@@ -1,0 +1,8 @@
+{
+    "name": "LiDAR HD MNT Alps",
+    "website": "https://geoservices.ign.fr/lidarhd",
+    "license": "Licence Ouverte / Open Licence version 2.0",
+    "producer": "Institut national de l'information géographique et forestière IGN",
+    "resolution": 0.5,
+    "access_year": 2026
+}

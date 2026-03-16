@@ -1,0 +1,8 @@
+{
+    "name": "Lombardia DTM 5X5 - Modello digitale del terreno (ed. 2015) 12/31/2015",
+    "website": "https://www.geoportale.regione.lombardia.it/en/metadati?p_p_id=detailSheetMetadata_WAR_gptmetadataportlet&p_p_lifecycle=0&p_p_state=normal&p_p_mode=view&_detailSheetMetadata_WAR_gptmetadataportlet_identifier=r_lombar%3Adfc98d60-5f02-4a2b-8113-5ad24cc53a9c&_jsfBridgeRedirect=true",
+    "license": "CC BY 4.0",
+    "producer": "Regione Lombardia",
+    "resolution": 5.0,
+    "access_year": 2015
+}

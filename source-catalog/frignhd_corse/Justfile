@@ -1,0 +1,9 @@
+[no-cd]
+default:
+    uv run python source_file_list_ign_lidarhd.py frignhd_corse
+    uv run python source_download.py frignhd_corse
+    uv run python source_to_cog.py frignhd_corse
+    uv run python source_set_crs.py frignhd_corse EPSG:2154
+    uv run python source_bounds.py frignhd_corse
+    uv run python source_polygonize.py frignhd_corse 32
+    uv run python source_create_tarball.py frignhd_corse
