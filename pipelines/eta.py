@@ -3,7 +3,6 @@ from datetime import datetime
 import os
 import math
 
-
 import utils
 
 def count_children(suffix):
@@ -25,24 +24,27 @@ def eta(progress, start_time):
     eta = start_time + total_duration
     return eta
 
-# kind = 'aggregation'
-kind = 'downsampling'
+def compute(kind):
+    print()
+    print(kind)
 
-print('kind', kind)
+    children_done = count_children(f'-{kind}.done')
+    children_total = count_children(f'-{kind}.csv')
 
-children_done = count_children(f'-{kind}.done')
-children_total = count_children(f'-{kind}.csv')
+    print('time now:', datetime.now())
+    print('done, all, percentage:', children_done, children_total, f'{(children_done / children_total):.1%}')
 
-print('time now:', datetime.now())
-print('done, all, percentage:', children_done, children_total, f'{(children_done / children_total):.1%}')
+    filepaths = glob(f'aggregation-store/{utils.get_aggregation_ids()[-1]}/*-{kind}.done')
+    if len(filepaths) == 0:
+        print('nothing done yet')
+        exit()
+    first_timestamp = math.inf
+    for filepath in filepaths:
+        first_timestamp = min(first_timestamp, os.path.getmtime(filepath))
+    start_time = datetime.fromtimestamp(first_timestamp)
+    print('start time:', start_time)
+    print('eta:', eta(children_done / children_total, start_time))
 
-filepaths = glob(f'aggregation-store/{utils.get_aggregation_ids()[-1]}/*-{kind}.done')
-if len(filepaths) == 0:
-    print('nothing done yet')
-    exit()
-first_timestamp = math.inf
-for filepath in filepaths:
-    first_timestamp = min(first_timestamp, os.path.getmtime(filepath))
-start_time = datetime.fromtimestamp(first_timestamp)
-print('start time:', start_time)
-print('eta:', eta(children_done / children_total, start_time))
+if __name__ == '__main__':
+    compute('aggregation')
+    compute('downsampling')
