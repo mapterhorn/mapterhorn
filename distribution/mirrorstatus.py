@@ -1,9 +1,9 @@
 import requests
 import json
 import time
+import os
 
-import upload
-import utils
+from mirror import upload
 
 def get_size_by_filename():
     size_by_filename = {}
@@ -25,12 +25,15 @@ def main():
 
     items = {}
 
-    for filename in size_by_filename:
+    filenames = list(size_by_filename.keys())
+    filenames.sort()
+
+    for filename in filenames:
         print(filename)
         items[filename] = []
         for mirror_name, mirror in mirrors.items():
             url = f'{mirror["base_url"]}{filename}'
-            r = requests.head(url, timeout=5)
+            r = requests.head(url, timeout=60)
             mirror_size = int(r.headers.get('Content-Length', 0))
             if mirror_size == size_by_filename[filename]:
                 print(f'  found matching filesize on {mirror_name}')
@@ -46,30 +49,20 @@ def main():
 
     print(json.dumps(mirrorstatus, indent=2))
 
-    utils.create_folder('bundle-store')
+    folder = 'data'
+    os.makedirs(folder, exist_ok=True)
 
-    with open('bundle-store/mirrorstatus.json', 'w') as f:
+    filepath = f'{folder}/mirrorstatus.json'
+    with open(filepath, 'w') as f:
         json.dump(mirrorstatus, f, indent=2)
 
-    directory = 'bundle-store'
     filename = 'mirrorstatus.json'
     key = filename
     bucket = 'mapterhorn'
     region = 'auto'
     endpoint = 'https://5521f1c60beed398e82b05eabc341142.r2.cloudflarestorage.com/'
-    upload.upload_local_resource_to_s3(directory, filename, bucket, key, region, endpoint)
 
+    upload(filepath, bucket, key, region, endpoint)
 
 if __name__ == '__main__':
-    while True:
-        try:
-            main()
-        except requests.exceptions.ReadTimeout as e:
-            print(e)
-            print('Sleeping for 1 minute...')
-            time.sleep(60)
-            continue
-        sleep_minutes = 15
-        for i in range(2 * sleep_minutes):
-            print(f'Sleeping for {(2 * sleep_minutes - i) / 2} more minutes...')
-            time.sleep(30)
+    main()
