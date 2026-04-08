@@ -19,10 +19,12 @@ num_overviews = 6
 
 X_MIN_3857, _, X_MAX_3857, __ = transform_bounds('EPSG:4326', 'EPSG:3857', -180, 0, 180, 0)
 
-def run_command(command, silent=True):
+def run_command(command, silent=True, env=None):
+    if env is None:
+        env = os.environ.copy()
     if not silent:
         print(command)
-    p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
     stdout, stderr = p.communicate()
     err = stderr.decode()
     if err != '' and not silent:
