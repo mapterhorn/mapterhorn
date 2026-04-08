@@ -1,3 +1,18 @@
+## 0.0.10
+
+### ✨ Features and improvements
+
+- add Rwanda 10m DEM source (#197)
+- Document distribution architechture, add health check script (#236)
+- Add source ittrentino: Trentino, Italy 5m (#235)
+- Add source itpiemonte: Piemonte, Italy 5m (#234)
+- Add source itlombardia: Lombardia, Italy 5m (#233)
+
+
+### 🐞 Bug fixes
+
+- Fix nodata in ukscotland (#243)
+
 ## 0.0.9
 
 ### 🐞 Bug fixes
