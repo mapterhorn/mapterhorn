@@ -152,13 +152,20 @@ def get_dirty_aggregation_filenames(current_aggregation_id, last_aggregation_id)
     return dirty_filenames
 
 def get_pmtiles_folder(x, y, z):
+    return get_target_folder(x, y, z, 'pmtiles-store')
+
+def get_geotiff_folder(x, y, z):
+    return get_target_folder(x, y, z, 'geotiff-store')
+
+def get_target_folder(x: int, y: int, z: int, base_path: str) -> str:
     if z < 7:
-        return 'pmtiles-store'
+        return base_path
+
     if z == 7:
-        return f'pmtiles-store/{z}-{x}-{y}'
-    else:
-        parent = mercantile.parent(mercantile.Tile(x=x, y=y, z=z), zoom=7)
-        return f'pmtiles-store/{parent.z}-{parent.x}-{parent.y}'
+        return f'{base_path}/{z}-{x}-{y}'
+
+    parent = mercantile.parent(mercantile.Tile(x=x, y=y, z=z), zoom=7)
+    return f'{base_path}/{parent.z}-{parent.x}-{parent.y}'
 
 # group source items by maxzoom and source
 def get_grouped_source_items(filepath):
