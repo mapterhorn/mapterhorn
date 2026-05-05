@@ -2,7 +2,7 @@
     "name": "10 meter Digital Elevation Model (DEM) of Israel",
     "website": "https://www.jspacesystems.or.jp/ersdac/GDEM/E/",
     "license": "ASTER GDEM Public Domain",
-    "producer": "ASTER GDEM (or ASTWBD) courtesy of METI and NASA processed by 4cast LTD using VTbuilder",
+    "producer": "ASTER GDEM courtesy of METI and NASA processed by 4cast LTD using VTbuilder",
     "resolution": 10.0,
     "access_year": 2026
 }
