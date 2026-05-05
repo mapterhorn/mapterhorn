@@ -2,6 +2,7 @@
 [no-cd]
 default:
     uv run python source_download.py chzh
+    uv run python source_to_cog.py chzh
     uv run python source_bounds.py chzh
     uv run python source_polygonize.py chzh 32
     uv run python source_create_tarball.py chzh

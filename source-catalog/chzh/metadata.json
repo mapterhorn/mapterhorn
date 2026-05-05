@@ -1,6 +1,6 @@
 {
     "name": "DTM Kanton Zürich",
-    "website": "https://geo.zh.ch/data/datasets/9dbb9f87-dd0a-4685-8a86-9d2073643766",
+    "website": "https://data.stadt-zuerich.ch/dataset/ktzh_digitales_terrainmodell__dtm__2021_bis_2022__ogd_",
     "license": "CC0",
     "producer": "Kanton Zürich, Amt für Raumentwicklung, Abteilung Geoinformation",
     "resolution": 0.25,
