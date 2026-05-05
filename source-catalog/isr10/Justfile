@@ -1,0 +1,8 @@
+# Source preparation pipeline to be run from mapterhorn/pipelines folder
+
+[no-cd]
+default:
+    uv run python source_to_cog.py isr10
+    uv run python source_bounds.py isr10
+    uv run python source_polygonize.py isr10 32
+    uv run python source_create_tarball.py isr10
