@@ -47,9 +47,10 @@ def main():
     print(f'Found these nodata value(s):')
     for v in nodata_values:
         print(f'  {v}')
-    if dry_run or nodata is None:
-        exit()
     print(f'Will set nodata on {len(argument_tuples)} files. Nothing to do for the remaining {len(filepaths) - len(argument_tuples)} files...')
+    if dry_run or nodata is None:
+        print('This is a dry run. Exit now...')
+        exit()
     with Pool() as pool:
         pool.starmap(set_nodata, argument_tuples, chunksize=1)
 
