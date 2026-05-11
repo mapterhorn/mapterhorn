@@ -1,6 +1,7 @@
 from glob import glob
 import math
 import time
+import sys
 
 import mercantile
 from pmtiles.tile import zxy_to_tileid, TileType, Compression
@@ -9,11 +10,11 @@ from pmtiles.writer import Writer
 
 import utils
 
-def get_parent_to_filepaths(only_dirty=True):
+def get_parent_to_filepaths(only_dirty, num_aggregations):
     filepaths = sorted(glob('pmtiles-store/*.pmtiles') + glob('pmtiles-store/*/*.pmtiles'))
 
     parent_to_filepath = {}
-    dirty_parents = get_dirty_parents()
+    dirty_parents = get_dirty_parents(num_aggregations)
 
     for filepath in filepaths:
         filename = filepath.split('/')[-1]
@@ -39,18 +40,21 @@ def get_parent_to_filepaths(only_dirty=True):
 
     return parent_to_filepath
 
-def get_dirty_parents():
+def get_dirty_parents(num_aggregations):
     dirty_parents = set([mercantile.Tile(x=0, y=0, z=0)])
+
     aggregation_ids = utils.get_aggregation_ids()
-    assert len(aggregation_ids) > 0
-    current_aggregation_id = aggregation_ids[-1]
-    last_aggregation_id = None if len(aggregation_ids) == 1 else aggregation_ids[-2]
-    aggregation_filenames = utils.get_dirty_aggregation_filenames(current_aggregation_id, last_aggregation_id)
-    
-    for filename in aggregation_filenames:
-        z, x, y, child_z = [int(a) for a in filename.replace('-aggregation.csv', '').split('-')]
-        if child_z >= 13:
-            dirty_parents.add(mercantile.parent(mercantile.Tile(x=x, y=y, z=z), zoom=6))
+    assert len(aggregation_ids) >= num_aggregations
+
+    for offset in range(num_aggregations):
+        current_aggregation_id = aggregation_ids[-1 - offset]
+        last_aggregation_id = None if len(aggregation_ids) == 1 else aggregation_ids[-2 - offset]
+        aggregation_filenames = utils.get_dirty_aggregation_filenames(current_aggregation_id, last_aggregation_id)
+        
+        for filename in aggregation_filenames:
+            z, x, y, child_z = [int(a) for a in filename.replace('-aggregation.csv', '').split('-')]
+            if child_z >= 13:
+                dirty_parents.add(mercantile.parent(mercantile.Tile(x=x, y=y, z=z), zoom=6))
 
     return list(dirty_parents)
 
@@ -160,7 +164,16 @@ def get_name_from_parent(parent):
     return name
 
 def main():
-    parent_to_filepaths = get_parent_to_filepaths()
+    num_aggregations = None
+    if len(sys.argv) == 2:
+        num_aggregations = int(sys.argv[1])
+        print(f'bundling the last {num_aggregations} aggregation(s)...')
+    else:
+        print('Not enough arguments. Usage: bundle.py {{num_aggregations}}')
+        exit()
+    
+    dirty_only = True
+    parent_to_filepaths = get_parent_to_filepaths(dirty_only, num_aggregations)
     for parent in parent_to_filepaths:
         name = get_name_from_parent(parent)
         print(name)
@@ -168,6 +181,10 @@ def main():
         utils.create_folder(folder)
         out_filepath = f'{folder}/{name}.pmtiles'
         create_archive(parent_to_filepaths[parent], out_filepath)
+
+    print(f'The following {len(parent_to_filepaths.keys())} file(s) were created:')
+    for parent in parent_to_filepaths.keys():
+        print(f'{get_name_from_parent(parent)}.pmtiles')
 
 if __name__ == '__main__':
     main()
