@@ -1,3 +1,11 @@
+## 0.0.11
+
+### ✨ Features and improvements
+
+- Update swissalti3d (#251)
+- Add 0.25m DTM for the Canton of Zürich, Switzerland (#250)
+- Add source isr10: Israel 10 m (#252)
+
 ## 0.0.10
 
 ### ✨ Features and improvements
@@ -7,7 +15,6 @@
 - Add source ittrentino: Trentino, Italy 5m (#235)
 - Add source itpiemonte: Piemonte, Italy 5m (#234)
 - Add source itlombardia: Lombardia, Italy 5m (#233)
-
 
 ### 🐞 Bug fixes
 
