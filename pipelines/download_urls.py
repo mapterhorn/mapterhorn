@@ -25,7 +25,7 @@ def main():
         print('version argument missing...')
         exit()
 
-    parent_to_filepaths = bundle.get_parent_to_filepaths(False)
+    parent_to_filepaths = bundle.get_parent_to_filepaths(only_dirty=False, num_aggregations=1)
     parents = parent_to_filepaths.keys()
     names = [bundle.get_name_from_parent(parent) for parent in parents]
     filepaths = [f'bundle-store/{name}/{name}.pmtiles' for name in names]

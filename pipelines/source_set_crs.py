@@ -37,6 +37,8 @@ def main():
                 print(f'{j:_} / {len(filepaths):_}')
             with rasterio.open(filepath) as src:
                 crses.add(src.crs)
+                if src.crs is None:
+                    print(None, filepath)       
         print(f'\nfound {len(crses)} crs(es):')
         for crs in crses:
             print(f'  -> {crs}')
