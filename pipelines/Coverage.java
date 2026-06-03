@@ -20,7 +20,7 @@ public class Coverage implements Profile {
     var arguments = Arguments.fromArgs(args).withDefault("download", false);
     Path dir = Paths.get("polygon-store");
     var planetiler = Planetiler.create(arguments)
-      .overwriteOutput(Path.of("bundle-store", "coverage.pmtiles"))
+      .overwriteOutput(Path.of("meta-store", "coverage.pmtiles"))
       .setProfile(new Coverage());
 
     try (Stream<Path> stream = Files.list(dir)) {

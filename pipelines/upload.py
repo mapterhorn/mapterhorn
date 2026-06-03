@@ -29,7 +29,7 @@ def handle_pmtiles(bucket, region, endpoint):
         online_items[item['name']] = item
     
     download_urls = None
-    with open('bundle-store/download_urls.json') as f:
+    with open('meta-store/download_urls.json') as f:
         download_urls = json.load(f)
 
     for item in download_urls['items']:
@@ -38,7 +38,7 @@ def handle_pmtiles(bucket, region, endpoint):
         print(item['name'])
 
         filename = item['name']
-        directory = f'bundle-store/{filename.replace(".pmtiles", "")}'
+        directory = 'bundle-store'
         key = filename
         upload_local_resource_to_s3(directory, filename, bucket, key, region, endpoint)
 
@@ -54,7 +54,7 @@ def handle_tarballs(bucket, region, endpoint):
         online_source_md5sums[item['source']] = item['tarball_md5sum']
 
     attribution = None
-    with open('bundle-store/attribution.json') as f:
+    with open('meta-store/attribution.json') as f:
         attribution = json.load(f)
     
     for item in attribution:
@@ -63,7 +63,7 @@ def handle_tarballs(bucket, region, endpoint):
         print(item['source'])
         
         filename = f'{item["source"]}.tar'
-        directory = f'tar-store/{item["source"]}'
+        directory = 'tar-store'
         key = f'sources/{filename}'
         upload_local_resource_to_s3(directory, filename, bucket, key, region, endpoint)
     
@@ -78,7 +78,7 @@ if __name__ == '__main__':
 
     handle_tarballs(bucket, region, endpoint)
 
-    directory = 'bundle-store'
+    directory = 'meta-store'
 
     filename = 'attribution.json'
     key = filename

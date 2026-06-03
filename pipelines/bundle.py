@@ -2,6 +2,8 @@ from glob import glob
 import math
 import time
 import sys
+import json
+import os
 
 import mercantile
 from pmtiles.tile import zxy_to_tileid, TileType, Compression
@@ -67,18 +69,20 @@ def read_full_archive(filepath):
             tile_id_to_bytes[tile_id] = tile_bytes
     return tile_id_to_bytes
 
-def create_archive(filepaths, out_filepath):
+def create_archive(filepaths, name):
+    utils.create_folder('bundle-store')
+    out_filepath = f'bundle-store/{name}.pmtiles'
     checksum = None
+    min_z = math.inf
+    max_z = 0
+    min_lon = math.inf
+    min_lat = math.inf
+    max_lon = -math.inf
+    max_lat = -math.inf
     with open(out_filepath, 'wb') as f1:
         hash_writer = utils.HashWriter(f1)
         writer = Writer(hash_writer)
-        min_z = math.inf
-        max_z = 0
-        min_lon = math.inf
-        min_lat = math.inf
-        max_lon = -math.inf
-        max_lat = -math.inf
-
+        
         tile_ids_and_filepaths = []
 
         j = 0
@@ -152,8 +156,19 @@ def create_archive(filepaths, out_filepath):
         )
         checksum = hash_writer.md5.hexdigest()
 
-    with open(f'{out_filepath}.md5', 'w') as f:
-        f.write(f'{checksum} {out_filepath.split('/')[-1]}\n')
+    utils.create_folder('meta-store/bundle')
+    filesize = os.path.getsize(out_filepath)
+    with open(f'meta-store/bundle/{name}.json', 'w') as f:
+        json.dump({
+            'size': filesize,
+            'md5sum': checksum,
+            'min_lon': min_lon,
+            'min_lat': min_lat,
+            'max_lon': max_lon,
+            'max_lat': max_lat,
+            'min_zoom': min_z,
+            'max_zoom': max_z,
+        }, f, indent=2)
 
 def get_name_from_parent(parent):
     name = None
@@ -177,10 +192,7 @@ def main():
     for parent in parent_to_filepaths:
         name = get_name_from_parent(parent)
         print(name)
-        folder = f'bundle-store/{name}'
-        utils.create_folder(folder)
-        out_filepath = f'{folder}/{name}.pmtiles'
-        create_archive(parent_to_filepaths[parent], out_filepath)
+        create_archive(parent_to_filepaths[parent], name)
 
     print(f'The following {len(parent_to_filepaths.keys())} file(s) were created:')
     for parent in parent_to_filepaths.keys():

@@ -1,6 +1,8 @@
 from glob import glob
 import sys
 import tarfile
+import os
+import json
 
 import utils
 
@@ -14,9 +16,9 @@ def main():
         exit()
 
     utils.create_folder('tar-store/')
-    utils.create_folder(f'tar-store/{source}')
     checksum = None
-    with open(f'tar-store/{source}/{source}.tar', 'wb') as f:
+    filepath = f'tar-store/{source}.tar'
+    with open(filepath, 'wb') as f:
         writer = utils.HashWriter(f)
         with tarfile.open(fileobj=writer, mode='w') as tar:
             tar.add(f'../source-catalog/{source}/LICENSE.pdf', 'LICENSE.pdf')
@@ -31,8 +33,13 @@ def main():
                 tar.add(filepath, f'files/{filename}')
         checksum = writer.md5.hexdigest()
 
-    with open(f'tar-store/{source}/{source}.tar.md5', 'w') as f:
-        f.write(f'{checksum} {source}.tar\n')
+    filesize = os.path.getsize(filepath)
+    utils.create_folder('meta-store/tar/')
+    with open(f'meta-store/tar/{source}.json', 'w') as f:
+        json.dump({
+            'size': filesize,
+            'md5sum': checksum,
+        }, f, indent=2)
 
 if __name__ == '__main__':
     main()

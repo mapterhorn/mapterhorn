@@ -1,6 +1,5 @@
 from glob import glob
 import json
-import os
 
 import utils
 
@@ -30,19 +29,16 @@ def main():
                 'license_pdf': f'https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/{source}/LICENSE.pdf',
                 'resolution': metadata['resolution'],
                 'access_year': metadata['access_year'],
-            }
-        tar_filepath = f'tar-store/{source}/{source}.tar'
-        if not os.path.isfile(tar_filepath):
-            print(f'Error: tar file missing for source {source}')
-            return
-        item['tarball_size'] = os.path.getsize(tar_filepath)
-        with open(f'{tar_filepath}.md5') as f:
-            line = f.readline()
-            item['tarball_md5sum'] = line.strip().split(' ')[0]
+            }      
+        meta = None
+        with open(f'meta-store/tar/{source}.json') as f:
+            meta = json.load(f)
+        item['tarball_size'] = meta['size']
+        item['tarball_md5sum'] = meta['md5sum']
         item['tarball_url'] = f'https://download.mapterhorn.com/sources/{source}.tar'
         data.append(item)
 
-    with open('bundle-store/attribution.json', 'w') as f:
+    with open('meta-store/attribution.json', 'w') as f:
         json.dump(data, f, indent=2)
 
 if __name__ == '__main__':
