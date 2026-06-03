@@ -8,20 +8,36 @@ Mapterhorn has four main pipelines that run in sequence: Source, Aggregation, Do
 
 ## Source
 
-The source pipeline has two parts: download and bounds. 
+The source pipeline has multiple parts that are needed to bring source files into a normalized file format.
 
-In **download**, we take as the file_list.txt of a given source and download all the files from the internet to the local machine. The images are stored in `source-store/{source}/`.
+`source_download.py`: Downloads files from URLs in `file_list.txt` file to the folder `source-store/{source}`
 
-It is recommended to store the main repository on an SSD for fast random access, but to allow for large enough storage one can map the source-store subfolders with softlinks to mounted HDD folders. 
+`source_unzip.py`: If a source contains ZIP files, this script can be used to unpack them.
 
-Example: 
+`source_to_cog.py`: Use this script to make sure that all files are LERC compressed and tiled internally. Note that this is a bit of a mis-nomer because it does not actually create COGs since no overviews are added to the GeoTIFFs.
 
-`source-store/swissalti3d -> /mnt/hdd1/source-store/swissalti3d`
+`source_fix_orientation.py`: Use this if there are y-axis issues in GDAL.
 
-In **bounds**, we iterate over all the image files of a given source and query the bounding box of the image in web mercator coordinates epsg:3857, and the size in pixels. We write this information into a csv file with one line per source image. This file is located at source-store/{source}/bounds.csv.
+`source_set_crs.py`: Use this if the CRS is not well defined across all files. Note that per source there can only be a single CRS otherwise GDAL translate will complain in the aggregation_run.py stage.
 
-The source pipeline has to be executed on every source separately and runs single-threaded.
+`source_set_nodata.py`: Use this to set a NODATA value if it is missing.
 
+`source_normalize_filenames.py`: Use this if you have strange filenames.
+
+`source_bounds.py`: Required script. Creates `source-store/{source}/bounds.csv` needed for the aggregation covering stage.
+
+`source_polygonize.py`: Required script. Creates `polygon-store/{source}.gpkg` with the coverage polygon of the source. Needed for the tarball creation and the coverage pmtiles part.
+
+`source_slice.py`: Use this if polygonize is very slow. This happens sometimes with large (>10 GB) tifs.
+
+`source_remove_tifs.py`: Use this to delete the tifs from a `source-store/{source}` folder. The bounds.csv file will not be deleted.
+
+
+`source_create_tarball.py`: Required script. Creates a tarball in `tar-store/{source}.tar`. Metadata is stored in `meta-store/tar/{source}.json`. Tarball will be needed in the upload stage.
+
+`source_extract_tarball.py`: Extract tifs from a tarball in `tar-store/{source}.tar` to `source-store/{source}/`.
+
+The `source-store/` folder should point to a folder on an SSD since access is random from multiple threads in the source and aggregation stages.
 
 ## Aggregation
 
@@ -80,22 +96,9 @@ Now that we have reprojected the data to web mercator, we need to merge the tifs
 
 If there is only a single tif, nothing needs to be done.
 
-If there are multiple ones, loop through them by priority with the most important first. For each tif, read the data into a 2d array called "new" and apply the following steps to create an alpha mask for additive blending based on the data of the last iteration which is stored in "old":
+If there are multiple tifs, we check the best one if it has no-data values. If so, we paint the second best into the best at the no-data value pixels. We also remember the seams of the no-data area,i.e. the pixel boundary between best and second-best. If there are still no-data values, we continue with adding pixels from the third-best u.s.w.
 
-1. Create a binary mask with 1 = has data and 0 = nodata
-2. Use binary erosion to make the data area smaller. The number of iterations is proportional to the buffer size
-3. Blur to get a gentle transition between 1 and 0
-4. Apply a further smooth step to decrease the gradients close to 0 and 1
-
-<img src="readme_imgs/alpha-mask.svg">
-
-Use now the resulting alpha mask to additively blend new into old:
-
-`old = old * alpha_mask + new * (1 - alpha_mask)`
-
-Then check if old still contains nodata pixels, if so continue, else break the loop.
-
-In practice, the above method means that we paint better quality data on top of lower quality data and we transition between the datasets by eating a little into the higher quality data.
+Once this is done, we have a full-filled tif which might contain data from multiple sources. Since sources in general will have different measurement values at a given pixel, there will be a jump in elevation at the source pixel boundarys. To make that jump a little less pronounced, we apply a gaussian blur along the pixel boundary line.
 
 After having reprojected and merged the source data, we now have a tif that contains the aggregated data. What remains to be done in the aggregation pipeline is to store it as PMTiles. We use terrarium encoding since it has a finer resolution than mapbox encoding. Data is stored as webp RGB images which are  25 to 35 percent smaller than PNGs but they take longer to encode.
 
@@ -130,12 +133,7 @@ We store the PMTiles data in the pmtiles-store folder using the same filename co
 
 If the aggregation item has z &lt; 7, it is stored directly in the pmtiles-store folder. Else it is placed in a subfolder where the subfolder name is given by the zoom 7 parent of the aggregation item. Example: `pmtiles-store/7-67-44/12-2144-1434-17.pmtiles`
 
-The idea behind the zoom 7 parent folders is that they can be linked to folders on an HDD. Example:
-
-`pmtiles-store/7-67-44 -> /mnt/hdd1/pmtiles-store/7-67-44`
-
-Note on parallelism: the aggregation pipeline is parallelized in all parts, but the merging part requires roughly 20 gigabytes of memory per thread which on most systems will mean that only a few threads can merge in parallel. Reprojection and conversion to PMTiles on the other hand have memory footprints well below 1 gigabyte per thread and should reach high cpu utilization.
-
+The `pmtiles-store/` can point to a folder on a HDD since access is sequential.
 
 ## Downsampling
 
@@ -156,8 +154,6 @@ In **run**, we iterate over all downsampling items in descending child zoom orde
 
 First we create a map from child tile id to pmtiles file by expanding the children of each file. Then, for each parent tile we get the 4 children to fill a 1024 by 1024 float32 array. We half the size to 512 by 512 using 2 by 2 averaging. The tiles are then encoded as terrarium again and written as webp to disk. Then we pack the webps into a pmtiles archive and store it in the pmtiles-store folder with the same file location convention as for aggregation items.
 
-Note that also in downsampling we only store a single zoom level per PMTiles file. The downsampling pipeline is fully parallelized and has a low memory footprint as well as high cpu utilization.
-
 
 ## Bundle
 
@@ -165,13 +161,11 @@ The last task is to bundle the single zoom level PMTiles files from aggregation 
 
 The pmtiles-store folder contains thousands of files after aggregation and downsampling. They all have a single zoom level of tiles and they are at most 64 tiles wide, which means that their size can be at most around 1 gigabyte.
 
-We now bundle these files by creating tile pyramids with multiple zoom levels. Ideally, Mapterhorn would be distributed as a single PMTiles file, but typical object storage is limited to 5 terabytes per object and already with copernicus glo30 and swissalti3d only the total size is 1.4 terabytes. Therefore, we need to split the data into multiple files and this is done as follows:
+We now bundle these files by creating tile pyramids with multiple zoom levels. 
 
 **planet.pmtiles** contains all tiles from zoom 0 to zoom 12.
 
 **6-{x}-{y}.pmtiles** contains all zoom level 13+ children of tile 6-{x}-{y}.
-
-With this convention we can limit the total file size to roughly 1 terabyte assuming that we have a maxzoom of 17 which corresponds to about 0.5 m resolution.
 
 ## Requirements
 
@@ -184,3 +178,12 @@ With this convention we can limit the total file size to roughly 1 terabyte assu
 - un7z
 - unzip
 
+## Hardware
+
+The pipeline stages work well with 2 GiB of memory per thread. For example, 64 GiB memory are sufficient for a 32 core machine.
+
+The `aggregation-store` and `source-store` folders should be on SSDs because they get random access.
+
+The `pmtiles-store` and `bundle-store` and `tar-store` folders can be on HDDs. To get higher write and read speeds, you can combine multiple HDDs into a RAID0. In those folders you only need the files which are relevant to the current aggregation. It is fine to remove the tarballs and PMTiles that are not currently needed from those folders and have them for example in cold storage or on a remote network storage service.
+
+As a rule of thumb, with a 32 core machine you can process 100 GiB of normalized input data per hour.
