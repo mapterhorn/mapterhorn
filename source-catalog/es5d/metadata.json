@@ -3,6 +3,7 @@
     "website": "https://centrodedescargas.cnig.es/CentroDescargas/modelo-digital-terreno-mdt05-primera-cobertura",
     "license": "CC BY 4.0",
     "producer": "CC-BY 4.0 scne.es 2025",
+    "producer_short": "scne.es",
     "resolution": 5.0,
     "access_year": 2025
 }

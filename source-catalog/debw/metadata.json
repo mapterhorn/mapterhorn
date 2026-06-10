@@ -3,6 +3,7 @@
     "website": "https://www.lgl-bw.de/Produkte/Open-Data/",
     "license": "Datenlizenz Deutschland - Namensnennung - Version 2.0",
     "producer": "LGL, www.lgl-bw.de, dl-de/by-2-0",
+    "producer_short": "LGL",
     "resolution": 1.0,
     "access_year": 2025
 }

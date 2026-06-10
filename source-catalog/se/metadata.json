@@ -3,6 +3,7 @@
     "website": "https://www.lantmateriet.se/sv/geodata/vara-produkter/produktlista/markhojdmodell-nedladdning/",
     "license": "CC0",
     "producer": "Lantmäteriet",
+    "producer_short": "Lantmäteriet",
     "resolution": 1.0,
     "access_year": 2025
 }

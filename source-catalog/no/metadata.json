@@ -3,6 +3,7 @@
     "website": "https://www.kartverket.no/api-og-data/terrengdata",
     "license": "CC BY 4.0",
     "producer": "Kartverket",
+    "producer_short": "Kartverket",
     "resolution": 1.0,
     "access_year": 2025
 }

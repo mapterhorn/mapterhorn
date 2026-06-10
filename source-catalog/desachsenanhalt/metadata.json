@@ -3,6 +3,7 @@
     "website": "https://www.lvermgeo.sachsen-anhalt.de/de/gdp-dgm-dom-lsa.html",
     "license": "Datenlizenz Deutschland - Namensnennung - Version 2.0",
     "producer": "Landesamt für Vermessung und Geoinformation Sachsen-Anhalt (LVermGeo)",
+    "producer_short": "Sachsen-Anhalt",
     "resolution": 1.0,
     "access_year": 2025
 }

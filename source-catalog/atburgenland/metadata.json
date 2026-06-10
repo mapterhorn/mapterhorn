@@ -1,8 +1,9 @@
 {
     "name": "Digitales Geländemodell 5 Meter - Burgenland",
-    "website": "https://www.data.gv.at/katalog/dataset/f3ffdeed-a179-4243-b467-1956101d2394",
+    "website": "https://www.burgenland.at/service/open-government-data/bestandsliste/detail/digitales-gelaendemodell-5-meter-burgenland/",
     "license": "Creative Commons Namensnennung 4.0 International (CC BY 4.0)",
     "producer": "burgenland.at. Land Burgenland",
+    "producer_short": "burgenland.at",
     "resolution": 5.0,
     "access_year": 2025
 }

@@ -3,6 +3,7 @@
     "website": "https://webgis2.regione.sardegna.it/geonetwork/srv/ita/catalog.search#/metadata/R_SARDEG:BFPNM",
     "license": "CC-BY 4.0",
     "producer": "Regione Autonoma della Sardegna",
+    "producer_short": "sardegna.it",
     "resolution": 1.0,
     "access_year": 2025
 }

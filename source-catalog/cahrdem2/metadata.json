@@ -3,6 +3,7 @@
     "website": "https://open.canada.ca/data/en/dataset/0fe65119-e96e-4a57-8bfe-9d9245fba06b",
     "license": "Open Government Licence - Canada",
     "producer": "Natural Resources Canada",
+    "producer_short": "NRCan",
     "resolution": 2,
     "access_year": 2026
 }

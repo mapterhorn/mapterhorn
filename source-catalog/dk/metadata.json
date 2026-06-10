@@ -3,6 +3,7 @@
     "website": "https://dataforsyningen.dk/data/930",
     "license": "CC BY 4.0",
     "producer": "Klimadatastyrelsen Danmark",
+    "producer_short": "Klimadatastyrelsen",
     "resolution": 0.4,
     "access_year": 2025
 }

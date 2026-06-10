@@ -3,6 +3,7 @@
     "website": "https://www.geoportal.gov.pl/",
     "license": "Open Government Data (Art. 40a. geod. i kartogr.)",
     "producer": "Head Office of Geodesy and Cartography (GUGiK), National Geodetic and Cartographic Resource (PZGiK), Poland",
+    "producer_short": "GUGiK",
     "resolution": 1.0,
     "access_year": 2025
 }

@@ -3,6 +3,7 @@
     "website": "https://tinitaly.pi.ingv.it/Download_Area1_1.html",
     "license": "Creative Commons Namensnennung 4.0 International (CC BY 4.0)",
     "producer": "Istituto Nazionale di Geofisica e Vulcanologia (INGV)",
+    "producer_short": "INGV",
     "resolution": 10.0,
     "access_year": 2025
 }

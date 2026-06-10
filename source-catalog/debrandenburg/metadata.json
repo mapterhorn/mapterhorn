@@ -3,6 +3,7 @@
     "website": "https://data.geobasis-bb.de/geobasis/daten/dgm/tif/",
     "license": "Datenlizenz Deutschland - Namensnennung - Version 2.0",
     "producer": "GeoBasis-DE / LGB",
+    "producer_short": "LGB",
     "resolution": 1.0,
     "access_year": 2025
 }

@@ -3,6 +3,7 @@
     "website": "https://data.stadt-zuerich.ch/dataset/ktzh_digitales_terrainmodell__dtm__2021_bis_2022__ogd_",
     "license": "CC0",
     "producer": "Kanton Zürich, Amt für Raumentwicklung, Abteilung Geoinformation",
+    "producer_short": "Kanton Zürich",
     "resolution": 0.25,
     "access_year": 2026
 }

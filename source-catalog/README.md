@@ -71,6 +71,7 @@ Example `swissalti3d/metadata.json`:
     "website": "https://www.swisstopo.admin.ch/en/height-model-swissalti3d",
     "license": "Open Government Data",
     "producer": "Federal Office of Topography swisstopo",
+    "producer_short": "swisstopo",
     "resolution": 0.5,
     "access_year": 2025
 }

@@ -3,6 +3,7 @@
     "website": "https://geoportal.cuzk.cz/(S(rtmc0jv2tukm5cadwnkwsgd2))/Default.aspx?lng=EN&mode=TextMeta&side=vyskopis&metadataID=CZ-CUZK-EL&mapid=8&menu=304",
     "license": "CC-BY 4.0",
     "producer": "cuzk.gov.cz. Land Survey Office",
+    "producer_short": "ČÚZK",
     "resolution": 5.0,
     "access_year": 2025
 }

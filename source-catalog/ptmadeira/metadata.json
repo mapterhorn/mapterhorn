@@ -3,6 +3,7 @@
     "website": "https://catalogo-irig.madeira.gov.pt/geonetwork/srv/eng/catalog.search;jsessionid=38D04EB2937EF1FCD8FDC9E697BF4B3A#/metadata/74238358-6eee-45e1-a8fa-3a518321d4ba",
     "license": "CC BY 4.0",
     "producer": "Instituto Geográfico Portugês",
+    "producer_short": "madeira.gov.pt",
     "resolution": 10.0,
     "access_year": 2025
 }

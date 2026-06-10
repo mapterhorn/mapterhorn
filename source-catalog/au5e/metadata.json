@@ -3,6 +3,7 @@
     "website": "https://pid.geoscience.gov.au/dataset/ga/89644",
     "license": "CC BY 4.0",
     "producer": "Geoscience Australia",
+    "producer_short": "Geoscience Australia",
     "resolution": 5.0,
     "access_year": 2026
 }

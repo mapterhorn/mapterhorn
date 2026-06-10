@@ -3,6 +3,7 @@
     "website": "https://www.lgln.niedersachsen.de/startseite/geodaten_karten/3d_geobasisdaten/dgm/digitale-gelandemodelle-dgm-143150.html",
     "license": "CC BY 4.0",
     "producer": "Landesamtes für Geoinformation und Landesvermessung Niedersachsen (LGLN)",
+    "producer_short": "LGLN",
     "resolution": 1.0,
     "access_year": 2025
 }

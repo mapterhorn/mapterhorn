@@ -3,6 +3,7 @@
     "website": "https://www.ahn.nl/dataroom",
     "license": "CC BY 4.0",
     "producer": "AHN.nl",
+    "producer_short": "AHN.nl",
     "resolution": 5.0,
     "access_year": 2025
 }

@@ -3,6 +3,7 @@
     "website": "https://www.jspacesystems.or.jp/ersdac/GDEM/E/",
     "license": "ASTER GDEM Public Domain",
     "producer": "ASTER GDEM courtesy of METI and NASA processed by 4cast LTD using VTbuilder",
+    "producer_short": "Aster",
     "resolution": 10.0,
     "access_year": 2026
 }

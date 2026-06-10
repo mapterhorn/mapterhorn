@@ -3,6 +3,7 @@
     "website": "https://geodaten.bayern.de/opengeodata/OpenDataDetail.html?pn=dgm1",
     "license": "CC BY 4.0",
     "producer": "Bayerische Vermessungsverwaltung",
+    "producer_short": "LDBV",
     "resolution": 1.0,
     "access_year": 2025
 }

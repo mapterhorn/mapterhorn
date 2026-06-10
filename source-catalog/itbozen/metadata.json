@@ -3,6 +3,7 @@
     "website": "https://natur-raum.provinz.bz.it/de/digitale-hohenmodelle",
     "license": "Creative Commons CCZero",
     "producer": "Amt für Landesplanung und Kartografie, Autonome Provinz Bozen",
+    "producer_short": "provinz.bz.it",
     "resolution": 2.5,
     "access_year": 2025
 }
