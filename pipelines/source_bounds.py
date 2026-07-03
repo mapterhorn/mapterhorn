@@ -3,9 +3,30 @@ import sys
 import math
 
 import rasterio
-from rasterio.warp import transform_bounds
+from rasterio.warp import transform, transform_bounds
 
 import utils
+
+def get_resolutions_3857(src):
+    # Returns the true resolution of an image in EPSG:3857 units, measured at
+    # the raster center by reprojecting one pixel step in each axis direction.
+    # For an image whose CRS is rotated against web mercator, like polar
+    # stereographic, this is smaller than bounding box size / pixel count,
+    # because the bounding box of a rotated image is inflated by up to sqrt(2).
+    center_col = src.width / 2
+    center_row = src.height / 2
+    x0, y0 = src.transform * (center_col, center_row)
+    x1, y1 = src.transform * (center_col + 1, center_row)
+    x2, y2 = src.transform * (center_col, center_row + 1)
+    xs, ys = transform(src.crs, 'EPSG:3857', [x0, x1, x2], [y0, y1, y2])
+    dxs = []
+    for x in [xs[1], xs[2]]:
+        dx = abs(x - xs[0])
+        # a pixel step across the antimeridian wraps around in x
+        dxs.append(min(dx, 2 * utils.X_MAX_3857 - dx))
+    resolution_x = math.hypot(dxs[0], ys[1] - ys[0])
+    resolution_y = math.hypot(dxs[1], ys[2] - ys[0])
+    return resolution_x, resolution_y
 
 def main():
     source = None
@@ -35,8 +56,22 @@ def main():
             for num in [left, bottom, right, top]:
                 if not math.isfinite(num):
                     raise ValueError(f'Number in bounds is not finite. src.bounds={src.bounds} src.crs={src.crs} bounds={(left, bottom, right, top)}')
+
+            # width and height are effective pixel counts, chosen such that
+            # bounding box size / count gives the true resolution. With the raw
+            # raster counts, get_smallest_overzoom in aggregation_covering.py
+            # would overestimate the resolution of rotated images and could
+            # pick a maxzoom which does not fully resolve them.
+            resolution_x, resolution_y = get_resolutions_3857(src)
+            for num in [resolution_x, resolution_y]:
+                if not math.isfinite(num) or num <= 0:
+                    raise ValueError(f'Resolution is not finite and positive. src.crs={src.crs} resolutions={(resolution_x, resolution_y)}')
+            width_3857 = right - left if left < right else left - right
+            width = max(1, round(width_3857 / resolution_x))
+            height = max(1, round((top - bottom) / resolution_y))
+
             filename = filepath.split('/')[-1]
-            bounds_file_lines.append(f'{filename},{left},{bottom},{right},{top},{src.width},{src.height}\n')
+            bounds_file_lines.append(f'{filename},{left},{bottom},{right},{top},{width},{height}\n')
             if j % 100 == 0:
                 print(f'{j} / {len(filepaths)}')
 

@@ -24,7 +24,7 @@ The source pipeline has multiple parts that are needed to bring source files int
 
 `source_normalize_filenames.py`: Use this if you have strange filenames.
 
-`source_bounds.py`: Required script. Creates `source-store/{source}/bounds.csv` needed for the aggregation covering stage.
+`source_bounds.py`: Required script. Creates `source-store/{source}/bounds.csv` needed for the aggregation covering stage. The stored width and height are effective pixel counts, chosen such that bounding box size divided by count gives the true pixel size in EPSG:3857.
 
 `source_polygonize.py`: Required script. Creates `polygon-store/{source}.gpkg` with the coverage polygon of the source. Needed for the tarball creation and the coverage pmtiles part.
 
