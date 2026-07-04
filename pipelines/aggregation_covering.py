@@ -5,14 +5,6 @@ from ulid import ULID
 
 import utils
 
-def get_mercator_resolutions(minzoom, maxzoom):
-    resolutions = []
-    for z in range(minzoom, maxzoom + 1):
-        tile = mercantile.Tile(x=0, y=0, z=z)
-        bounds = mercantile.xy_bounds(tile)
-        resolutions.append((bounds.right - bounds.left) / 512)
-    return resolutions
-
 def bounds_intersect_no_anitmeridian_crossing(a, b):
     left_a, bottom_a, right_a, top_a = a
     left_b, bottom_b, right_b, top_b = b
@@ -52,17 +44,18 @@ def get_intersecting_tiles_dfs(bounds, tile, zoom):
 def get_macrotile_map():
     macrotile_map = {}
     filepaths = sorted(glob('source-store/*/bounds.csv'))
-    mercator_resolutions = get_mercator_resolutions(0, 32)
     for filepath in filepaths:
         print(f'reading {filepath}...')
         source = filepath.split('/')[1]
         with open(filepath) as f:
-            f.readline() # skip header
+            header = f.readline().strip()
+            if header != 'filename,left,bottom,right,top,zoom':
+                raise ValueError(f'Unexpected bounds.csv header. filepath={filepath} header={header}')
             line = f.readline().strip()
             while line != '':
-                filename, left, bottom, right, top, width, height = line.split(',')
-                width, height = [int(a) for a in [width, height]]
+                filename, left, bottom, right, top, source_zoom = line.split(',')
                 left, bottom, right, top = [float(a) for a in [left, bottom, right, top]]
+                source_zoom = int(source_zoom)
 
                 multiplier = 2
                 buffer = multiplier * utils.macrotile_buffer_3857
@@ -74,8 +67,6 @@ def get_macrotile_map():
                 )
 
                 tiles = get_intersecting_tiles_dfs(buffered_bounds, mercantile.Tile(x=0, y=0, z=0), utils.macrotile_z)
-                
-                maxzoom = get_smallest_overzoom(left, bottom, right, top, width, height, mercator_resolutions)
 
                 # Use at least a maxzoom of 12 (macrotile_z).
                 # Note that glo30 does not everywhere give a maxzoom of 12. Examples:
@@ -84,7 +75,7 @@ def get_macrotile_map():
                 # N50 native maxzoom 11
                 # N49 native maxzoom 12 (group has only ~30 percent of total macrotiles)
                 # Use gdal warp with cubicspline when maxzoom is 12
-                maxzoom = max(maxzoom, utils.macrotile_z)
+                maxzoom = max(source_zoom, utils.macrotile_z)
 
                 for tile in tiles:
                     if (tile.x, tile.y) not in macrotile_map:
@@ -98,15 +89,6 @@ def get_macrotile_map():
                 line = f.readline().strip()
 
     return macrotile_map
-
-def get_smallest_overzoom(left, bottom, right, top, width, height, mercator_resolutions):
-    horizontal_resolution = (right - left) / width if left < right else (left - right) / width
-    vertical_resolution = (top - bottom) / height
-
-    for z in range(len(mercator_resolutions)):
-        if mercator_resolutions[z] < horizontal_resolution and mercator_resolutions[z] < vertical_resolution:
-            return z
-    raise ValueError(f'No overzoom found. (left, bottom, right, top, width, height) = {(left, bottom, right, top, width, height)}')
 
 def add_group_ids(macrotile_map):
     for tile_tuple in macrotile_map:

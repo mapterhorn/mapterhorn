@@ -2,10 +2,27 @@ from glob import glob
 import sys
 import math
 
+import mercantile
 import rasterio
 from rasterio.warp import transform, transform_bounds
 
 import utils
+
+def get_mercator_resolutions(minzoom, maxzoom):
+    resolutions = []
+    for z in range(minzoom, maxzoom + 1):
+        tile = mercantile.Tile(x=0, y=0, z=z)
+        bounds = mercantile.xy_bounds(tile)
+        resolutions.append((bounds.right - bounds.left) / 512)
+    return resolutions
+
+def get_source_zoom(resolution_x, resolution_y, mercator_resolutions):
+    # Smallest web mercator zoom whose pixel size is finer than the source
+    # resolution in both raster-axis directions.
+    for z in range(len(mercator_resolutions)):
+        if mercator_resolutions[z] < resolution_x and mercator_resolutions[z] < resolution_y:
+            return z
+    raise ValueError(f'No source zoom found. resolutions = {(resolution_x, resolution_y)}')
 
 def get_resolutions_3857(src):
     # Returns the true resolution of an image in EPSG:3857 units, measured at
@@ -39,7 +56,9 @@ def main():
     
     filepaths = sorted(glob(f'source-store/{source}/*.tif'))
 
-    bounds_file_lines = ['filename,left,bottom,right,top,width,height\n']
+    mercator_resolutions = get_mercator_resolutions(0, 32)
+
+    bounds_file_lines = ['filename,left,bottom,right,top,zoom\n']
 
     for j, filepath in enumerate(filepaths):
         with rasterio.open(filepath) as src:
@@ -57,21 +76,19 @@ def main():
                 if not math.isfinite(num):
                     raise ValueError(f'Number in bounds is not finite. src.bounds={src.bounds} src.crs={src.crs} bounds={(left, bottom, right, top)}')
 
-            # width and height are effective pixel counts, chosen such that
-            # bounding box size / count gives the true resolution. With the raw
-            # raster counts, get_smallest_overzoom in aggregation_covering.py
-            # would overestimate the resolution of rotated images and could
-            # pick a maxzoom which does not fully resolve them.
+            # Store the source zoom directly rather than a pixel count. Measure
+            # the resolution in EPSG:3857 at the raster center because the
+            # transformed bounding box of a rotated image can be inflated and
+            # select a zoom one level too low. The aggregation applies its own
+            # macrotile_z floor.
             resolution_x, resolution_y = get_resolutions_3857(src)
             for num in [resolution_x, resolution_y]:
                 if not math.isfinite(num) or num <= 0:
                     raise ValueError(f'Resolution is not finite and positive. src.crs={src.crs} resolutions={(resolution_x, resolution_y)}')
-            width_3857 = right - left if left < right else left - right
-            width = max(1, round(width_3857 / resolution_x))
-            height = max(1, round((top - bottom) / resolution_y))
+            zoom = get_source_zoom(resolution_x, resolution_y, mercator_resolutions)
 
             filename = filepath.split('/')[-1]
-            bounds_file_lines.append(f'{filename},{left},{bottom},{right},{top},{width},{height}\n')
+            bounds_file_lines.append(f'{filename},{left},{bottom},{right},{top},{zoom}\n')
             if j % 100 == 0:
                 print(f'{j} / {len(filepaths)}')
 
