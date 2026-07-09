@@ -177,6 +177,21 @@ def write_aggregation_items(macrotile_map, aggregation_tiles, aggregation_id):
         with open(f'{folder}/{aggregation_tile.z}-{aggregation_tile.x}-{aggregation_tile.y}-{child_z}-aggregation.csv', 'w') as f:
             f.writelines(lines)
 
+def write_aggregation_todos():
+    aggregation_ids = utils.get_aggregation_ids()
+    aggregation_id = aggregation_ids[-1]
+
+    dirty_filepaths = None
+    if len(aggregation_ids) < 2:
+        dirty_filepaths = sorted(glob(f'aggregation-store/{aggregation_id}/*-aggregation.csv'))
+    else:
+        last_aggregation_id = aggregation_ids[-2]
+        dirty_filepaths = [f'aggregation-store/{aggregation_id}/{filename}' for filename in utils.get_dirty_aggregation_filenames(aggregation_id, last_aggregation_id)]
+    
+    for dirty_filepath in dirty_filepaths:
+        with open(f'{dirty_filepath}.todo', 'w') as f:
+            f.write('')
+
 def main():
 
     print('get_macrotile_map...')
@@ -193,6 +208,10 @@ def main():
 
     print('write aggregation items...')
     write_aggregation_items(macrotile_map, aggregation_tiles, aggregation_id)
+
+    print('write aggregation todos...')
+    write_aggregation_todos()
+
 
 if __name__ == '__main__':
     main()

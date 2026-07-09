@@ -10,12 +10,10 @@ from scipy import ndimage
 import utils
 
 
-def merge(filepath):
-    _, aggregation_id, filename = filepath.split('/')
+def merge(filepath, tmp_folder):
+    filename = filepath.split('/')[-1]
 
-    z, x, y, child_z = [int(a) for a in filename.replace('-aggregation.csv', '').split('-')]
-
-    tmp_folder = f'aggregation-store/{aggregation_id}/{z}-{x}-{y}-{child_z}-tmp'
+    _, x, y, __ = [int(a) for a in filename.replace('-aggregation.csv', '').split('-')]
 
     done_filepath = f'{tmp_folder}/merge-done'
     if os.path.isfile(done_filepath):

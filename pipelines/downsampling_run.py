@@ -13,7 +13,7 @@ from pmtiles.reader import Reader, MmapSource
 
 import utils
 
-def create_tile(parent_x, parent_y, parent_z, aggregation_id, tmp_folder, pmtiles_filenames):
+def create_tile(parent_x, parent_y, parent_z, tmp_folder, pmtiles_filenames):
     tile_to_pmtiles_filename = get_tile_to_pmtiles_filename(pmtiles_filenames)
     full_data = np.zeros((1024, 1024), dtype=np.float32)
     for row_offset in range(2):
@@ -65,87 +65,68 @@ def get_tile_to_pmtiles_filename(pmtiles_filenames):
             tile_to_pmtiles_filename[child] = pmtiles_filename
     return tile_to_pmtiles_filename
 
-def main(filepaths):
-    for j, filepath in enumerate(filepaths):
-        _, aggregation_id, filename = filepath.split('/')
-        print(f'downsampling {filename}. {datetime.now()}. {j + 1} / {len(filepaths)}.')
-        if os.path.isfile(filepath.replace("-downsampling.csv", "-downsampling.done")):
-            print('already done...')
-            continue
-        parts = filename.split('-')
-        extent_z, extent_x, extent_y, parent_zoom = [int(a) for a in parts[:4]]
+def downsample_single(filepath):
+    _, __, filename = filepath.split('/')
+    print(f'downsampling {filename}. {datetime.now()}')
+    if os.path.isfile(f'{filepath}.done'):
+        print('already done...')
+        return
+    parts = filename.split('-')
+    extent_z, extent_x, extent_y, parent_zoom = [int(a) for a in parts[:4]]
 
-        out_folder = utils.get_pmtiles_folder(extent_x, extent_y, extent_z)
-        utils.create_folder(out_folder)
-        out_filepath = f'{out_folder}/{extent_z}-{extent_x}-{extent_y}-{parent_zoom}.pmtiles'
+    out_folder = utils.get_pmtiles_folder(extent_x, extent_y, extent_z)
+    utils.create_folder(out_folder)
+    out_filepath = f'{out_folder}/{extent_z}-{extent_x}-{extent_y}-{parent_zoom}.pmtiles'
 
-        extent = mercantile.Tile(x=extent_x, y=extent_y, z=extent_z)
-        tmp_folder = filepath.replace('-downsampling.csv', '-tmp')
-        utils.create_folder(tmp_folder)
+    extent = mercantile.Tile(x=extent_x, y=extent_y, z=extent_z)
+    tmp_folder = f'tmp-store/{filename.replace("-downsampling.csv", "")}'
+    os.makedirs(tmp_folder, exist_ok=True)
 
-        pmtiles_filenames = None
-        with open(filepath) as f:
-            pmtiles_filenames = f.readlines()
-            pmtiles_filenames = pmtiles_filenames[1:] # skip header
-            pmtiles_filenames = [a.strip() for a in pmtiles_filenames]
+    pmtiles_filenames = None
+    with open(filepath) as f:
+        pmtiles_filenames = f.readlines()
+        pmtiles_filenames = pmtiles_filenames[1:] # skip header
+        pmtiles_filenames = [a.strip() for a in pmtiles_filenames]
 
-        parents = None
-        if extent_z == parent_zoom:
-            parents = [extent]
-        else:
-            parents = list(mercantile.children(extent, zoom=parent_zoom))
-        
-        argument_tuples = []
-        for parent in parents:
-            argument_tuples.append((parent.x, parent.y, parent.z, aggregation_id, tmp_folder, pmtiles_filenames))
+    parents = None
+    if extent_z == parent_zoom:
+        parents = [extent]
+    else:
+        parents = list(mercantile.children(extent, zoom=parent_zoom))
+    
+    for parent in parents:
+        create_tile(parent.x, parent.y, parent.z, tmp_folder, pmtiles_filenames)
+    
+    utils.create_archive(tmp_folder, out_filepath)
 
-        with Pool() as pool:
-            pool.starmap(create_tile, argument_tuples, chunksize=1)
-        
-        utils.create_archive(tmp_folder, out_filepath)
+    shutil.rmtree(tmp_folder)
+    os.rename(f'{filepath}.todo', f'{filepath}.done')
+    print(f'{filepath} done.')
 
-        shutil.rmtree(tmp_folder)
-        utils.run_command(f'touch {filepath.replace("-downsampling.csv", "-downsampling.done")}')
+def downsample_multiple(filepaths):
+    argument_tuples = [(filepath,) for filepath in filepaths]
+    with Pool() as pool:
+        pool.starmap(downsample_single, argument_tuples, chunksize=1)
 
-def tiles_intersect(a, b):
-    if a == b:
-        return True
-    if a.z < b.z and mercantile.parent(b, zoom=a.z) == a:
-        return True
-    if b.z < a.z and mercantile.parent(a, zoom=b.z) == b:
-        return True
-    return False
-
-def is_parent_of_dirty_aggregation_tile(tile, dirty_aggregation_tiles):
-    for dirty_aggregation_tile in dirty_aggregation_tiles:
-        if tiles_intersect(dirty_aggregation_tile, tile):
-            return True
-    return False
-
-def not_in_previous_aggregation(filename, aggregation_ids):
-    return len(glob(f'aggregation-store/{aggregation_ids[-2]}/{filename}')) == 0
-
-if __name__ == '__main__':
+def get_child_zoom_to_filepaths():
     child_zoom_to_filepaths = {}
     aggregation_ids = utils.get_aggregation_ids()
     aggregation_id = aggregation_ids[-1]
+    for todo_filepath in sorted(glob(f'aggregation-store/{aggregation_id}/*-downsampling.csv.todo')):
+        filename = todo_filepath.split('/')[-1]
+        _, __, ___, child_zoom = [int(a) for a in filename.replace('-downsampling.csv.todo', '').split('-')]
+        if child_zoom not in child_zoom_to_filepaths:
+            child_zoom_to_filepaths[child_zoom] = []
+        child_zoom_to_filepaths[child_zoom].append(todo_filepath.replace('.todo', ''))
+    return child_zoom_to_filepaths
 
-    dirty_aggregation_tiles = []
-    if len(aggregation_ids) >= 2:
-        dirty_aggregation_filenames = utils.get_dirty_aggregation_filenames(aggregation_id, aggregation_ids[-2])
-        for filename in dirty_aggregation_filenames:
-            z, x, y, _ = [int(a) for a in filename.replace('-aggregation.csv', '').split('-')]
-            dirty_aggregation_tiles.append(mercantile.Tile(x=x, y=y, z=z))
-
-    for filepath in sorted(glob(f'aggregation-store/{aggregation_id}/*-downsampling.csv')):
-        filename = filepath.split('/')[-1]
-        z, x, y, child_zoom = [int(a) for a in filename.replace('-downsampling.csv', '').split('-')]
-
-        if len(aggregation_ids) < 2 or is_parent_of_dirty_aggregation_tile(mercantile.Tile(x=x, y=y, z=z), dirty_aggregation_tiles) or not_in_previous_aggregation(filename, aggregation_ids):
-            if child_zoom not in child_zoom_to_filepaths:
-                child_zoom_to_filepaths[child_zoom] = []
-            child_zoom_to_filepaths[child_zoom].append(filepath)
-
+def main():
+    child_zoom_to_filepaths = get_child_zoom_to_filepaths()
     child_zooms = list(reversed(sorted(list(child_zoom_to_filepaths.keys()))))
     for child_zoom in child_zooms:
-        main(child_zoom_to_filepaths[child_zoom])
+        print(child_zoom)
+        print(len(child_zoom_to_filepaths[child_zoom]))
+        downsample_multiple(child_zoom_to_filepaths[child_zoom])
+
+if __name__ == '__main__':
+    main()

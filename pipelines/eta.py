@@ -28,13 +28,13 @@ def compute(kind):
     print()
     print(kind)
 
-    children_done = count_children(f'-{kind}.done')
+    children_done = count_children(f'-{kind}.csv.done')
     children_total = count_children(f'-{kind}.csv')
 
     print('time now:', datetime.now())
     print('done, all, percentage:', children_done, children_total, f'{(children_done / children_total):.1%}')
 
-    filepaths = glob(f'aggregation-store/{utils.get_aggregation_ids()[-1]}/*-{kind}.done')
+    filepaths = glob(f'aggregation-store/{utils.get_aggregation_ids()[-1]}/*-{kind}.csv.done')
     if len(filepaths) == 0:
         print('nothing done yet')
         exit()
@@ -47,4 +47,4 @@ def compute(kind):
 
 if __name__ == '__main__':
     compute('aggregation')
-    compute('downsampling')
+    # compute('downsampling')

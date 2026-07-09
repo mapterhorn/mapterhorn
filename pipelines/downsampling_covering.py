@@ -33,7 +33,44 @@ def get_simplified_extents(extents, zoom):
             simplified_extents += list(mercantile.children(unlimited, zoom=zoom - utils.num_overviews))
     return simplified_extents
 
-def main():
+def tiles_intersect(a, b):
+    if a == b:
+        return True
+    if a.z < b.z and mercantile.parent(b, zoom=a.z) == a:
+        return True
+    if b.z < a.z and mercantile.parent(a, zoom=b.z) == b:
+        return True
+    return False
+
+def is_parent_of_dirty_aggregation_tile(tile, dirty_aggregation_tiles):
+    for dirty_aggregation_tile in dirty_aggregation_tiles:
+        if tiles_intersect(dirty_aggregation_tile, tile):
+            return True
+    return False
+
+def not_in_previous_aggregation(filename, aggregation_ids):
+    return len(glob(f'aggregation-store/{aggregation_ids[-2]}/{filename}')) == 0
+
+def write_downlsampling_todos():
+    aggregation_ids = utils.get_aggregation_ids()
+    aggregation_id = aggregation_ids[-1]
+
+    dirty_aggregation_tiles = []
+    if len(aggregation_ids) >= 2:
+        dirty_aggregation_filenames = utils.get_dirty_aggregation_filenames(aggregation_id, aggregation_ids[-2])
+        for filename in dirty_aggregation_filenames:
+            z, x, y, _ = [int(a) for a in filename.replace('-aggregation.csv', '').split('-')]
+            dirty_aggregation_tiles.append(mercantile.Tile(x=x, y=y, z=z))
+
+    for filepath in sorted(glob(f'aggregation-store/{aggregation_id}/*-downsampling.csv')):
+        filename = filepath.split('/')[-1]
+        z, x, y, _ = [int(a) for a in filename.replace('-downsampling.csv', '').split('-')]
+
+        if len(aggregation_ids) < 2 or is_parent_of_dirty_aggregation_tile(mercantile.Tile(x=x, y=y, z=z), dirty_aggregation_tiles) or not_in_previous_aggregation(filename, aggregation_ids):
+            with open(f'{filepath}.todo', 'w') as f:
+                f.write('')
+    
+def write_downsampling_items():
     aggregation_ids = utils.get_aggregation_ids()
     aggregation_id = aggregation_ids[-1]
 
@@ -72,4 +109,5 @@ def main():
                 f.writelines(lines)
 
 if __name__ == '__main__':
-    main()
+    write_downsampling_items()
+    write_downlsampling_todos()

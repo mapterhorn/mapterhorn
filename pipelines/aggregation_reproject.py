@@ -8,6 +8,7 @@ import numpy as np
 import utils
 
 SILENT = True
+FAIL_ON_WARNING = False
 
 def create_virtual_raster(tmp_folder, i, source_items):
     source = source_items[0]['source']
@@ -42,7 +43,7 @@ def create_warp(vrt_filepath, vrt_3857_filepath, zoom, aggregation_tile, buffer)
     command += '-dstnodata -9999 '
     command += f'{vrt_filepath} {vrt_3857_filepath}'
     out, err = utils.run_command(command, silent=SILENT)
-    if err.strip() != '':
+    if err.strip() != '' and FAIL_ON_WARNING:
         raise Exception(f'gdalwarp failed for {vrt_filepath}:\n{out}\n{err}')
 
 def translate(in_filepath, out_filepath):
@@ -52,7 +53,7 @@ def translate(in_filepath, out_filepath):
     command += f'{in_filepath} '
     command += f'{out_filepath}'
     out, err = utils.run_command(command, silent=SILENT)
-    if err.strip() != '':
+    if err.strip() != '' and FAIL_ON_WARNING:
         raise Exception(f'gdal_translate failed for {in_filepath}:\n{out}\n{err}')
 
 def contains_nodata_pixels(filepath):
@@ -72,15 +73,12 @@ def contains_nodata_pixels(filepath):
                         return True
     return False
 
-def reproject(filepath):
-    _, aggregation_id, filename = filepath.split('/')
+def reproject(filepath, tmp_folder):
+    filename = filepath.split('/')[-1]
 
-    z, x, y, child_z = [int(a) for a in filename.replace('-aggregation.csv', '').split('-')]
+    z, x, y, _ = [int(a) for a in filename.replace('-aggregation.csv', '').split('-')]
     
     aggregation_tile = mercantile.Tile(x=x, y=y, z=z)
-
-    tmp_folder = f'aggregation-store/{aggregation_id}/{aggregation_tile.z}-{aggregation_tile.x}-{aggregation_tile.y}-{child_z}-tmp'
-    utils.create_folder(tmp_folder)
 
     metadata_filepath = f'{tmp_folder}/reprojection.json'
     if os.path.isfile(metadata_filepath):
