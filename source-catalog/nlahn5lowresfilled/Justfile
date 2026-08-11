@@ -2,8 +2,10 @@
 [no-cd]
 default:
     uv run python source_download.py nlahn5lowresfilled
-    # fill holes with gdal
+    # fill holes with gdal_fillnodata.py
+    uv run python source_fill_nodata.py nlahn5lowresfilled 1 100 2
     uv run python source_to_cog.py nlahn5lowresfilled
     uv run python source_bounds.py nlahn5lowresfilled
-    uv run python source_polygonize.py nlahn5lowresfilled 32 # fix compound CRS: ogr2ogr -f GPKG nlahn5lowresfilledfixed.gpkg nlahn5lowresfilled.gpkg -a_srs EPSG:28992
+    # also fix compound CRS EPSG:28992
+    uv run python source_polygonize.py nlahn5lowresfilled 32 EPSG:28992
     uv run python source_create_tarball.py nlahn5lowresfilled

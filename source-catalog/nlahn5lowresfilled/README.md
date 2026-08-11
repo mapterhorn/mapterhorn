@@ -4,4 +4,9 @@ The Dutch geospatial agency distributes surface and terrain models in the AHN se
 
 Here we download the low-resolution 5 m per pixel version of AHN5.
 
-We then created a mosaic with `gdalbuildvrt` and filled NODATA pixels by interpolation with `gdal_fillnodata.py` with default settings.
+See https://basisdata.nl/hwh-ahn/AUX/bladwijzer/index.html?
+
+* generate a file list using get-file-list.sh from OGC API Features metadata
+* assign Dutch CRS EPSG:28992 to GPKG polygons 
+* fill NODATA (or maybe: create mosaic with `gdalbuildvrt` and fill NODATA pixels by interpolation with `gdal_fillnodata.py`!)
+
