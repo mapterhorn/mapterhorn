@@ -23,8 +23,9 @@ SILENT = False
 #
 # Author: Just van den Broecke - justb4
 
-def fillnodata(filepath, band, max_dist, smooth_iters):
+def fill_nodata(filepath, band, max_dist, smooth_iters):
     utils.run_command(f'mv "{filepath}" "{filepath}.bak"', silent=SILENT)
+    print(f'gdal_fillnodata.py -b {band} -md {max_dist} -si {smooth_iters}  "{filepath}.bak" "{filepath}"....')
     utils.run_command(f'gdal_fillnodata.py -b {band} -md {max_dist} -si {smooth_iters} "{filepath}.bak" "{filepath}"', silent=SILENT)
     utils.run_command(f'rm "{filepath}.bak"', silent=SILENT)
 
@@ -46,15 +47,20 @@ def main():
         print('wrong number of arguments: source_fill_nodata.py source [band] [max_dist] [smooth_iters]')
         exit()
     
-    filepaths = sorted(glob(f'source-store/{source}/*.tif'))
+    filepaths = []
+    filepaths += glob(f'source-store/{source}/*.tif')
+    filepaths += glob(f'source-store/{source}/*.TIF')
+    filepaths += glob(f'source-store/{source}/*.tiff')
+    filepaths += glob(f'source-store/{source}/*.TIFF')
+
+    filepaths = [filepath for filepath in sorted(filepaths)]
 
     argument_tuples = []
     for filepath in filepaths:
         argument_tuples.append((filepath, band, max_dist, smooth_iters))
 
-    print(f'fillnodata for  {source}: -b {band} -md {max_dist} -si {smooth_iters}')
     with Pool() as pool:
-        pool.starmap(fillnodata, argument_tuples, chunksize=1)
+        pool.starmap(fill_nodata, argument_tuples, chunksize=1)
 
 if __name__ == '__main__':
     main()

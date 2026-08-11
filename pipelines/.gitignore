@@ -4,6 +4,7 @@ source-store
 aggregation-store
 pmtiles-store
 bundle-store
+meta-store
 polygon-store
 tar-store
 planetiler.jar
