@@ -3,7 +3,7 @@ name = "pipelines"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.12"
 dependencies = [
     "imagecodecs>=2023.3.16",
     "mercantile>=1.2.1",
@@ -17,3 +17,18 @@ dependencies = [
     "scipy>=1.10.1",
     "supermercado>=0.2.0",
 ]
+
+[tool.pixi.workspace]
+channels = ["conda-forge"]
+platforms = ["osx-arm64", "linux-64", "linux-aarch64"]
+
+# Packages sourced from conda-forge under pixi: `python` plus the native/geo
+# libs (lxml, pyproj). The same names in [project.dependencies] are the PyPI
+# fallback for non-pixi installs. `invoke` is pixi-only admin tooling.
+[tool.pixi.dependencies]
+gdal = ">=3.13"
+
+[tool.pixi.pypi-dependencies]
+pipelines = { path = ".", editable = true }
+
+[tool.pixi.tasks]

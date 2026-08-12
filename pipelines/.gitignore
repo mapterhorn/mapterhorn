@@ -10,3 +10,7 @@ planetiler.jar
 index.md
 index.pmtiles
 data
+# pixi environments
+.pixi/*
+!.pixi/config.toml
+pipelines.egg-info
