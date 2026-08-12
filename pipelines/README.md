@@ -169,10 +169,9 @@ We now bundle these files by creating tile pyramids with multiple zoom levels.
 
 ## Requirements
 
-- gdal: https://mothergeo-py.readthedocs.io/en/latest/development/how-to/gdal-ubuntu-pkg.html#install-gdal-ogr
-- uv: `curl -LsSf https://astral.sh/uv/install.sh | sh`
-- just: https://github.com/casey/just?tab=readme-ov-file#installation
-- aws cli: https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
+See also [INSTALL.md](../INSTALL.md).
+
+- curl -fsSL https://pixi.sh/install.sh | sh
 - wget
 - curl
 - un7z

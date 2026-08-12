@@ -1,7 +1,7 @@
 [project]
 name = "pipelines"
 version = "0.1.0"
-description = "Add your description here"
+description = "Pipelines for Mapterhorn processing"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
@@ -18,15 +18,23 @@ dependencies = [
     "supermercado>=0.2.0",
 ]
 
+[project.urls]
+Homepage = "https://mapterhorn.com"
+Documentation = "https://github.com/mapterhorn/mapterhorn/blob/main/pipelines/README.md"
+Repository = "https://github.com/mapterhorn/mapterhorn"
+
 [tool.pixi.workspace]
 channels = ["conda-forge"]
 platforms = ["osx-arm64", "linux-64", "linux-aarch64"]
 
-# Packages sourced from conda-forge under pixi: `python` plus the native/geo
-# libs (lxml, pyproj). The same names in [project.dependencies] are the PyPI
-# fallback for non-pixi installs. `invoke` is pixi-only admin tooling.
+# Packages sourced from conda-forge under pixi.
+# The same names in [project.dependencies] are the PyPI
+# fallback for non-pixi installs.
 [tool.pixi.dependencies]
 gdal = ">=3.13"
+just = ">=1.58.0,<2"
+openjdk = ">=25.0.2,<26"
+awscli = ">=2.36.20,<3"
 
 [tool.pixi.pypi-dependencies]
 pipelines = { path = ".", editable = true }
