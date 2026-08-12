@@ -16,9 +16,13 @@ def create_virtual_raster(tmp_folder, i, source_items):
     input_file_list_path = f'{tmp_folder}/{i}-file-list.txt'
     with open(input_file_list_path, 'w') as f:
         for source_item in source_items:
-            f.write(f'source-store/{source}/{source_item["filename"]}\n')
+            f.write(f'tmp-store/source/{source}/{source_item["filename"]}\n')
     command = f'gdalbuildvrt -overwrite -input_file_list {input_file_list_path} {vrt_filepath}'
     out, err = utils.run_command(command, silent=SILENT)
+
+    if 'heterogeneous projection' in err:
+        raise Exception(f'heterogenous projection found in {tmp_folder}')
+
     if not SILENT:
         print(out, err)
     return vrt_filepath
@@ -47,9 +51,9 @@ def create_warp(vrt_filepath, vrt_3857_filepath, zoom, aggregation_tile, buffer)
         raise Exception(f'gdalwarp failed for {vrt_filepath}:\n{out}\n{err}')
 
 def translate(in_filepath, out_filepath):
-    command = 'GDAL_CACHEMAX=512 gdal_translate -of COG '
+    command = 'GDAL_CACHEMAX=64 GDAL_NUM_THREADS=1 gdal_translate --config GDAL_MAX_DATASET_POOL_SIZE 1 -of COG '
     command += '-co BIGTIFF=IF_NEEDED -co ADD_ALPHA=YES -co OVERVIEWS=NONE '
-    command += '-co SPARSE_OK=YES -co BLOCKSIZE=512 -co COMPRESS=NONE '
+    command += '-co SPARSE_OK=YES -co BLOCKSIZE=512 -co COMPRESS=LERC -co MAX_Z_ERROR=0.001 '
     command += f'{in_filepath} '
     command += f'{out_filepath}'
     out, err = utils.run_command(command, silent=SILENT)

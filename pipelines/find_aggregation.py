@@ -7,7 +7,7 @@ aggregation_id = utils.get_aggregation_ids()[-1]
 
 filepaths = glob(f'aggregation-store/{aggregation_id}/*-aggregation.csv')
 
-target = mercantile.Tile(x=70583, y=45695, z=17)
+target = mercantile.Tile(x=65061, y=45600, z=17)
 
 for filepath in filepaths:
     filename = filepath.split('/')[-1]

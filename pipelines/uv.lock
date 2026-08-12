@@ -809,6 +809,9 @@ dependencies = [
     { name = "scipy", version = "1.13.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.9.*'" },
     { name = "scipy", version = "1.15.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.10.*'" },
     { name = "scipy", version = "1.16.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
+    { name = "supermercado", version = "0.2.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
+    { name = "supermercado", version = "0.3.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10' and python_full_version < '3.12'" },
+    { name = "supermercado", version = "0.4.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
 ]
 
 [package.metadata]
@@ -823,6 +826,7 @@ requires-dist = [
     { name = "rasterio", specifier = ">=1.3.11" },
     { name = "requests", specifier = ">=2.32.4" },
     { name = "scipy", specifier = ">=1.10.1" },
+    { name = "supermercado", specifier = ">=0.2.0" },
 ]
 
 [[package]]
@@ -1423,6 +1427,73 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/93/19/0d11ab370735dde61076a0e41644e5593821776e69e3b0344626cfa0e56a/snuggs-1.4.7.tar.gz", hash = "sha256:501cf113fe3892e14e2fee76da5cd0606b7e149c411c271898e6259ebde2617b", size = 8196, upload-time = "2019-09-18T18:54:51.598Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/cc/0e/d27d6e806d6c0d1a2cfdc5d1f088e42339a0a54a09c3343f7f81ec8947ea/snuggs-1.4.7-py3-none-any.whl", hash = "sha256:988dde5d4db88e9d71c99457404773dabcc7a1c45971bfbe81900999942d9f07", size = 5370, upload-time = "2019-09-18T18:54:49.829Z" },
+]
+
+[[package]]
+name = "supermercado"
+version = "0.2.0"
+source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version == '3.9.*'",
+    "python_full_version < '3.9'",
+]
+dependencies = [
+    { name = "affine", marker = "python_full_version < '3.10'" },
+    { name = "click", version = "8.1.8", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
+    { name = "click-plugins", marker = "python_full_version < '3.10'" },
+    { name = "cligj", marker = "python_full_version < '3.10'" },
+    { name = "mercantile", marker = "python_full_version < '3.10'" },
+    { name = "numpy", version = "1.24.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.9'" },
+    { name = "numpy", version = "2.0.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.9.*'" },
+    { name = "rasterio", version = "1.3.11", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.9'" },
+    { name = "rasterio", version = "1.4.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.9.*'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/94/5a/095e804f00d621831e2e896d38168ecec18dfd6238ef0c3da6b1d2e7a83e/supermercado-0.2.0.tar.gz", hash = "sha256:639372b946c31d63196a8fc38dde7eafa4c28ba9472a7a754996eb43b9e8a69b", size = 8206, upload-time = "2020-10-14T18:27:26.318Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/55/d3/26d557543a6fa3a9dc90c8a67059b455a4de7ea73fd85df290f4259c08d9/supermercado-0.2.0-py3-none-any.whl", hash = "sha256:c3aab2a0992e324cee83653fb5166781bed92c35d29ae4181125d6a9da1bf222", size = 8096, upload-time = "2020-10-14T18:27:24.098Z" },
+]
+
+[[package]]
+name = "supermercado"
+version = "0.3.0"
+source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version == '3.11.*'",
+    "python_full_version == '3.10.*'",
+]
+dependencies = [
+    { name = "affine", marker = "python_full_version >= '3.10' and python_full_version < '3.12'" },
+    { name = "click", version = "8.2.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10' and python_full_version < '3.12'" },
+    { name = "click-plugins", marker = "python_full_version >= '3.10' and python_full_version < '3.12'" },
+    { name = "cligj", marker = "python_full_version >= '3.10' and python_full_version < '3.12'" },
+    { name = "mercantile", marker = "python_full_version >= '3.10' and python_full_version < '3.12'" },
+    { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10' and python_full_version < '3.12'" },
+    { name = "rasterio", version = "1.4.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10' and python_full_version < '3.12'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/63/24/e5b34a27e9e015e920e4c7850762cf8fb3503e00055fc878f1ae0f402d26/supermercado-0.3.0.tar.gz", hash = "sha256:d8cc7519cb25f1142ee0e7c9e40b9be9a5688c3ac1f90a87d165286c3bfe44b6", size = 10507, upload-time = "2025-10-16T18:04:44.62Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/48/6a/bf37cd2aefb2f00584d29dff7d1b4f6a4c9addeecba082cf96b0777d8a21/supermercado-0.3.0-py3-none-any.whl", hash = "sha256:69f2c9240eb6bcb2f2af04215a950f5773dcf3fd6bde392941c7fb7e44da9172", size = 8864, upload-time = "2025-10-16T18:04:43.817Z" },
+]
+
+[[package]]
+name = "supermercado"
+version = "0.4.0"
+source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "python_full_version >= '3.12'",
+]
+dependencies = [
+    { name = "affine", marker = "python_full_version >= '3.12'" },
+    { name = "click", version = "8.2.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
+    { name = "click-plugins", marker = "python_full_version >= '3.12'" },
+    { name = "cligj", marker = "python_full_version >= '3.12'" },
+    { name = "mercantile", marker = "python_full_version >= '3.12'" },
+    { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
+    { name = "rasterio", version = "1.4.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/d4/cb/a27f0e78482e2de59d48f36c54951c0066768c74c0e628c313f17bd6c2d1/supermercado-0.4.0.tar.gz", hash = "sha256:48dde7bba62fa492f6dc0edaa8c3e70286f85531edd15e35fb5b638d534b6a5a", size = 11204, upload-time = "2026-01-07T18:20:15.292Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c1/6b/d9c8424de13ead0f72f4f65b85c0604cd22bc20cc0b578a78ba8890063a1/supermercado-0.4.0-py3-none-any.whl", hash = "sha256:afefff2fdc52e05076be3fae95372343214d2a29d79828979ff0d8ef0a5270ec", size = 9183, upload-time = "2026-01-07T18:20:16.363Z" },
 ]
 
 [[package]]
