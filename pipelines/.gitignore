@@ -1,5 +1,6 @@
 __pycache__
 .venv
+data
 source-store
 aggregation-store
 pmtiles-store
@@ -7,7 +8,8 @@ bundle-store
 meta-store
 polygon-store
 tar-store
+tmp-store
+tmp
 planetiler.jar
 index.md
 index.pmtiles
-data

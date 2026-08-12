@@ -8,14 +8,14 @@ AHN6_ITEMS="https://api.ellipsis-drive.com/v3/ogc/features/0820faae-5240-499b-84
 
 # Get via OGC API Features AHN5
 curl ${AHN5_ITEMS} | jq > file_list_ahn5.json
-grep 'Maaiveldmodel (DTM) ½m'   file_list_ahn5.json | sort -u | cut -d '"' -f4 > file-list-AHN5-DTM-50cm.txt
+grep 'Maaiveldmodel (DTM) 5m'   file_list_ahn5.json | sort -u | cut -d '"' -f4 | sed '/^$/d' > file-list-AHN5-DTM-5m.txt
 /bin/rm file_list_ahn5.json
 
 # Get via OGC API Features AHN6
 curl ${AHN6_ITEMS} | jq > file_list_ahn6.json
-grep 'Maaiveldmodel (DTM) ½m'   file_list_ahn6.json | sort -u | cut -d '"' -f4 > file-list-AHN6-DTM-50cm.txt
+grep 'Maaiveldmodel (DTM) 5m'   file_list_ahn6.json | sort -u | cut -d '"' -f4 | sed '/^$/d' > file-list-AHN6-DTM-5m.txt
 /bin/rm file_list_ahn6.json
 
-echo "merging: AHN5-DTM-50cm: $(wc -l file-list-AHN5-DTM-50cm.txt) files + AHN6-DTM-50cm: $(wc -l file-list-AHN6-DTM-50cm.txt) files"
-cat file-list-AHN5-DTM-50cm.txt file-list-AHN6-DTM-50cm.txt | sort -u > file_list.txt
-/bin/rm file-list-AHN5-DTM-50cm.txt file-list-AHN6-DTM-50cm.txt
+echo "merging: AHN5-DTM-5m: $(wc -l file-list-AHN5-DTM-5m.txt) files + AHN6-DTM-5m: $(wc -l file-list-AHN6-DTM-5m.txt) files"
+cat file-list-AHN5-DTM-5m.txt file-list-AHN6-DTM-5m.txt | sort -u > file_list.txt
+/bin/rm file-list-AHN5-DTM-5m.txt file-list-AHN6-DTM-5m.txt
