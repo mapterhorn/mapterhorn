@@ -5,9 +5,7 @@ import os
 def main():
     aggregation_ids = utils.get_aggregation_ids()
     aggregation_id = aggregation_ids[-1]
-    last_aggregation_id = None if len(aggregation_ids) < 2 else aggregation_ids[-2]
-    dirty_filepaths = set([f'aggregation-store/{aggregation_id}/{filename}' for filename in utils.get_dirty_aggregation_filenames(aggregation_id, last_aggregation_id)])
-    
+    dirty_filepaths = set([filepath.replace('.todo', '') for filepath in glob(f'aggregation-store/{aggregation_id}/*-aggregation.csv.todo')])
     all_sources = set({})
     dirty_sources = set({})
 

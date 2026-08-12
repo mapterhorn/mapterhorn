@@ -61,7 +61,7 @@ def manage_aggregation():
 
 def manage_downsampling():
 
-    print('manage aggregation...')
+    print('manage downsampling...')
 
     child_zoom_to_filepaths = downsampling_run.get_child_zoom_to_filepaths()
     child_zooms = list(reversed(sorted(list(child_zoom_to_filepaths.keys()))))
@@ -84,5 +84,5 @@ def manage_downsampling():
         print('downsampling done.')
     
 if __name__ == '__main__':
-    # manage_aggregation()
+    manage_aggregation()
     manage_downsampling()
