@@ -11,7 +11,7 @@ SILENT = False
 
 def unzip(filepath, source):
     filename = filepath.split('/')[-1]
-    utils.run_command(f'unzip -o "{filepath}" -d "source-store/{source}/{filename}-tmp/"', silent=SILENT)
+    utils.run_command(f'unzip -o "{filepath}" -d utils.store_dir("source-store") + "/{source}/{filename}-tmp/"', silent=SILENT)
     utils.run_command(f'rm "{filepath}"', silent=False)
 
 def un7z(filepath, source):
@@ -42,7 +42,7 @@ def translate_images(filepath, source, suffix):
         image_filename = image_filepath.split('/')[-1]
 
         filepath_in = image_filepath
-        filepath_out = f'source-store/{source}/{image_filename}'
+        filepath_out = f'{utils.store_dir("source-store")}/{source}/{image_filename}'
         suffix_length = len(suffix)
         filepath_out = filepath_out[:-suffix_length] + 'tif'
         argument_tuples.append((filepath_in, filepath_out, j, len(image_filepaths)))
@@ -64,7 +64,7 @@ def main():
         print('source argument missing...')
         exit()
     
-    filepaths = sorted(glob(f'source-store/{source}/*'))
+    filepaths = sorted(glob(f'{utils.store_dir("source-store")}/{source}/*'))
 
     for filepath in filepaths:
         if zipfile.is_zipfile(filepath):
@@ -78,6 +78,7 @@ def main():
         translate_images(filepath, source, 'ASC')
         translate_images(filepath, source, 'xyz')
         translate_images(filepath, source, 'grd')
+        translate_images(filepath, source, 'img')
         
         tmpdir = f'{filepath}-tmp'
         if os.path.isdir(tmpdir):

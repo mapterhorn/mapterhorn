@@ -1,0 +1,9 @@
+{
+    "name": "LINZ Bathymetry",
+    "website": "https://data.linz.govt.nz/",
+    "license": "CC BY 4.0",
+    "producer": "Land Information New Zealand (LINZ)",
+    "resolution": 10.0,
+    "access_year": 2026,
+    "domain": "ocean"
+}

@@ -1,18 +1,100 @@
-# Run full pipeline
-default:
-    # uv run python aggregation_covering.py
-    # uv run python downsampling_covering.py
- 
-    # uv run python aggregation_run.py
-    # uv run python downsampling_run.py
-    # uv run python remove_dangling_pmtiles.py
-    # uv run python create_index.py
+# Operator recipes for the Mapterhorn bathymetry-aware pipeline.
+# Run from the pipelines/ directory.
+# Loads pipelines/.env if present (copy from env.example).
+set dotenv-load := true
 
-    # TMPDIR=/tmp uv run python bundle.py
-    # uv run python download_urls.py 0.0.0
-    # uv run python attribution.py
-    # java -cp planetiler.jar Coverage.java # cf https://github.com/onthegomap/planetiler-examples
+# Show high-level progress
+status:
+    uv run python status.py
 
-# Upload to object storage. 
+# Dependency / data readiness checks
+preflight:
+    uv run python preflight.py
+
+# Build shoreline land/ocean mask (required before aggregation with bathymetry)
+shoreline:
+    uv run python source_prepare_shoreline.py
+
+# Prepare selected sources (override with just sources SOURCES="gebco emodnet")
+SOURCES := "gebco"
+sources:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    for s in {{SOURCES}}; do
+      echo "=== preparing $s ==="
+      just ../source-catalog/$s/
+    done
+
+# Clear / load / reload source data
+#   just manage list
+#   just manage clear gebco -y
+#   just manage reload gebco -y
+#   just manage reload --ocean -y
+manage *ARGS:
+    uv run python source_manage.py {{ARGS}}
+
+# Show which disk each store directory resolves to
+storage:
+    uv run python storage_layout.py
+
+covering:
+    uv run python aggregation_covering.py
+    uv run python downsampling_covering.py
+
+# Stage source files for aggregation (run in a separate terminal during aggregate)
+downloader:
+    uv run python downloader.py
+
+aggregate:
+    uv run python aggregation_run.py
+
+downsample:
+    uv run python downsampling_run.py
+
+bundle VERSION="1":
+    uv run python remove_dangling_pmtiles.py
+    TMPDIR=/tmp uv run python bundle.py {{VERSION}}
+    uv run python download_urls.py {{VERSION}}
+    uv run python attribution.py
+
+retry-failed:
+    uv run python retry_failed.py
+
+# Full resumable sequence (expects sources + shoreline already prepared)
+all VERSION="1":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    uv run python preflight.py
+    uv run python aggregation_covering.py
+    uv run python downsampling_covering.py
+    # Start downloader in background for this session
+    uv run python downloader.py &
+    DL_PID=$!
+    trap 'kill $DL_PID 2>/dev/null || true' EXIT
+    uv run python aggregation_run.py
+    uv run python downsampling_run.py
+    uv run python remove_dangling_pmtiles.py
+    TMPDIR=/tmp uv run python bundle.py {{VERSION}}
+    uv run python download_urls.py {{VERSION}}
+    uv run python attribution.py
+    uv run python status.py
+
 upload:
     uv run python upload.py
+
+# Default: print help
+default:
+    @echo "Mapterhorn pipeline commands:"
+    @echo "  just preflight       # check tools, disk, shoreline, sources"
+    @echo "  just shoreline       # build land/ocean mask"
+    @echo "  just sources SOURCES='gebco emodnet'  # prepare catalog sources"
+    @echo "  just manage list|clear|load|reload ...  # clear/load source data"
+    @echo "  just storage         # which disk each store is on"
+    @echo "  just covering        # plan aggregation + downsampling"
+    @echo "  just downloader      # stage source files (separate terminal)"
+    @echo "  just aggregate       # run aggregation"
+    @echo "  just downsample      # run downsampling"
+    @echo "  just bundle VERSION=1"
+    @echo "  just status          # progress / ETA / failures"
+    @echo "  just retry-failed    # requeue .failed items"
+    @echo "  just all VERSION=1   # covering -> aggregate -> downsample -> bundle"

@@ -1,0 +1,4 @@
+# Shoreline mask preparation (not an elevation source)
+[no-cd]
+default:
+    uv run python source_prepare_shoreline.py

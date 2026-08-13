@@ -1,46 +1,52 @@
-### About this `mapterhorn-bathymetry` fork
+# Mapterhorn (bathymetry)
 
-This fork is a (WIP) attempt to build a combined elevation + bathymetry model by adding GEBCO and other bathymetry datasets into the Mapterhorn pipeline. All credit goes to the [mapterhorn](https://github.com/mapterhorn/mapterhorn) team for their work so far! Use at your own risk.
+Public terrain **and** bathymetry tiles for interactive web map visualizations. This workspace extends [Mapterhorn](https://github.com/mapterhorn/mapterhorn) so the same Terrarium PMTiles surface can show seafloor depths as well as land elevations.
 
+## What changed vs upstream
 
----
+- **Shoreline masking** — S2Coast-2023 + GSHHG Antarctica decide land vs ocean so land DEMs (often ocean=`0`) do not block bathymetry.
+- **Source `domain`** — `land` (default), `ocean`, `both`, or `mask` in `source-catalog/*/metadata.json`.
+- **Bathymetry catalog** — GEBCO 2026, BathDNN25, EMODnet, NOAA BlueTopo, GMRT, plus helpers for NONNA / AusSeabed / LINZ.
+- **Unattended ops** — `just status`, heartbeats in `meta-store/run-status.json`, `.failed` items with `just retry-failed`, and `just preflight`.
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://mapterhorn.github.io/.github/brand/screen/mapterhorn-logo-darkmode.png">
-  <source media="(prefers-color-scheme: light)" srcset="https://mapterhorn.github.io/.github/brand/screen/mapterhorn-logo.png">
-  <img alt="Logo" src="https://mapterhorn.github.io/.github/brand/screen/mapterhorn-logo.png">
-</picture>
+## Repository layout
 
-Public terrain tiles for interactive web map visualizations
+| Path | Role |
+|------|------|
+| [source-catalog/](source-catalog/) | Per-source download lists, metadata, Justfiles |
+| [pipelines/](pipelines/) | Download → aggregate → downsample → bundle |
+| [website/](website/) | Static site (viewer, coverage, attribution) |
 
-## Viewer
+## Run the pipeline
 
-[https://mapterhorn.com/viewer](https://mapterhorn.com/viewer)
-
-## Examples
-
-[https://mapterhorn.com/examples](https://mapterhorn.com/examples)
-
-## Migrate from AWS Elevation Tiles (Tilezen Joerd)
-
-```diff
-"hillshadeSource": {
-    "type": "raster-dem",
--   "tiles": ["https://elevation-tiles-prod.s3.amazonaws.com/terrarium/{z}/{x}/{y}.png"],
-+   "tiles": ["https://tiles.mapterhorn.com/{z}/{x}/{y}.webp"],
-    "encoding": "terrarium",
--   "tileSize": 256,
-+   "tileSize": 512,
-}
-
+```bash
+cd pipelines
+uv sync
+just preflight
+just shoreline
+just manage list
+just manage reload gebco -y    # clear stale source-store data and re-prep
+just sources SOURCES="glo30 gebco emodnet"
+just covering
+# separate terminals:
+just downloader
+just aggregate
+just downsample
+just bundle VERSION=1
+just status
 ```
 
-## Contributing
+See [pipelines/README.md](pipelines/README.md) for stage details, hardware notes, and bathymetry behavior. See [source-catalog/README.md](source-catalog/README.md) for how to add sources and the land/ocean merge rules.
 
-[CONTRIBUTING.md](./CONTRIBUTING.md)
+## Requirements
 
-## License
+- GDAL (`gdalwarp`, `gdal_translate`, `gdal_rasterize`, `ogr2ogr`, …)
+- [uv](https://github.com/astral-sh/uv), [just](https://github.com/casey/just), wget
+- **SSD** for `source-store/`, `aggregation-store/`, `tmp-store/` (~2 GiB RAM per worker thread)
+- **HDD** for `pmtiles-store/`, `bundle-store/`, `tar-store/` (large sequential output)
 
-Code: BSD-3, see [LICENSE](https://github.com/mapterhorn/mapterhorn/blob/main/LICENSE).
+Set `MAPTERHORN_DATA_ROOT` (see [`pipelines/env.example`](pipelines/env.example)) so all stores live **outside the git checkout** — no in-repo symlinks. Check with `just storage`. Details in [pipelines/README.md](pipelines/README.md) → Hardware.
 
-Terrain data: various open-data sources, for a full list see [https://mapterhorn.com/attribution](https://mapterhorn.com/attribution).
+## License notes
+
+Catalog policy is unchanged: commercial-OK, no share-alike. OSM coastlines (ODbL) are not used; S2Coast (CC BY 4.0) is the primary shoreline. Always verify per-product attribution in each source's `LICENSE.pdf` / `metadata.json`.

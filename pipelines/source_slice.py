@@ -5,6 +5,7 @@ from multiprocessing import Pool
 
 import numpy as np
 import rasterio
+import utils
 
 def make_tile(filepath, x, y, w, h):
     with rasterio.open(filepath) as src:
@@ -57,7 +58,7 @@ def main():
         print('wrong number of arguments: source_slice.py {{source}} {{tile_size}}')
         exit()
     
-    filepaths = sorted(glob(f'source-store/{source}/*.tif'))
+    filepaths = sorted(glob(f'{utils.store_dir("source-store")}/{source}/*.tif'))
 
     for filepath in filepaths:
         slice_tif(filepath, tile_size)

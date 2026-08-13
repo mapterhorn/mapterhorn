@@ -1,0 +1,9 @@
+{
+    "name": "EMODnet Bathymetry DTM 2024",
+    "website": "https://emodnet.ec.europa.eu/en/bathymetry",
+    "license": "CC BY 4.0",
+    "producer": "EMODnet Bathymetry Consortium",
+    "resolution": 115.0,
+    "access_year": 2024,
+    "domain": "ocean"
+}

@@ -1,12 +1,11 @@
 from glob import glob
 import json
-import os
 
 import utils
 
 def main():
     aggregation_id = utils.get_aggregation_ids()[-1]
-    filepaths = glob(f'aggregation-store/{aggregation_id}/*-aggregation.csv')
+    filepaths = glob(utils.store_dir('aggregation-store') + '/{}/*-aggregation.csv'.format(aggregation_id))
 
     sources = set({})
     for filepath in filepaths:
@@ -19,7 +18,7 @@ def main():
     data = []
     for source in sources:
         item = None
-        with open(f'../source-catalog/{source}/metadata.json') as f:
+        with open(utils.catalog_path(source, 'metadata.json')) as f:
             metadata = json.load(f)
             item = {
                 'source': source,
@@ -27,22 +26,20 @@ def main():
                 'website': metadata['website'],
                 'license': metadata['license'],
                 'producer': metadata['producer'],
-                'license_pdf': f'https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/{source}/LICENSE.pdf',
+                'license_pdf': 'https://github.com/mapterhorn/mapterhorn/blob/main/source-catalog/{}/LICENSE.pdf'.format(source),
                 'resolution': metadata['resolution'],
                 'access_year': metadata['access_year'],
+                'domain': metadata.get('domain', 'land'),
             }
-        tar_filepath = f'tar-store/{source}/{source}.tar'
-        if not os.path.isfile(tar_filepath):
-            print(f'Error: tar file missing for source {source}')
-            return
-        item['tarball_size'] = os.path.getsize(tar_filepath)
-        with open(f'{tar_filepath}.md5') as f:
-            line = f.readline()
-            item['tarball_md5sum'] = line.strip().split(' ')[0]
-        item['tarball_url'] = f'https://download.mapterhorn.com/sources/{source}.tar'
+        meta = None
+        with open(utils.store_dir('meta-store') + '/tar/{}.json'.format(source)) as f:
+            meta = json.load(f)
+        item['tarball_size'] = meta['size']
+        item['tarball_md5sum'] = meta['md5sum']
+        item['tarball_url'] = 'https://download.mapterhorn.com/sources/{}.tar'.format(source)
         data.append(item)
 
-    with open('bundle-store/attribution.json', 'w') as f:
+    with open(utils.store_dir('meta-store') + '/attribution.json', 'w') as f:
         json.dump(data, f, indent=2)
 
 if __name__ == '__main__':

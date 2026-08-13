@@ -1,0 +1,8 @@
+https://dap.ceda.ac.uk/bodc/gebco/global/gebco_2026/ice_surface_elevation/geotiff/gebco_2026_n0.0_s-90.0_w-180.0_e-90.0_geotiff.tif?download=1
+https://dap.ceda.ac.uk/bodc/gebco/global/gebco_2026/ice_surface_elevation/geotiff/gebco_2026_n0.0_s-90.0_w-90.0_e0.0_geotiff.tif?download=1
+https://dap.ceda.ac.uk/bodc/gebco/global/gebco_2026/ice_surface_elevation/geotiff/gebco_2026_n0.0_s-90.0_w0.0_e90.0_geotiff.tif?download=1
+https://dap.ceda.ac.uk/bodc/gebco/global/gebco_2026/ice_surface_elevation/geotiff/gebco_2026_n0.0_s-90.0_w90.0_e180.0_geotiff.tif?download=1
+https://dap.ceda.ac.uk/bodc/gebco/global/gebco_2026/ice_surface_elevation/geotiff/gebco_2026_n90.0_s0.0_w-180.0_e-90.0_geotiff.tif?download=1
+https://dap.ceda.ac.uk/bodc/gebco/global/gebco_2026/ice_surface_elevation/geotiff/gebco_2026_n90.0_s0.0_w-90.0_e0.0_geotiff.tif?download=1
+https://dap.ceda.ac.uk/bodc/gebco/global/gebco_2026/ice_surface_elevation/geotiff/gebco_2026_n90.0_s0.0_w0.0_e90.0_geotiff.tif?download=1
+https://dap.ceda.ac.uk/bodc/gebco/global/gebco_2026/ice_surface_elevation/geotiff/gebco_2026_n90.0_s0.0_w90.0_e180.0_geotiff.tif?download=1

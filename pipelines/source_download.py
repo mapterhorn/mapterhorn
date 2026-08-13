@@ -3,27 +3,30 @@ import sys
 
 def download_from_internet(source):
     urls = []
-    with open(f'../source-catalog/{source}/file_list.txt') as f:
-        urls = [l.strip() for l in f.readlines()]
-    j = 0
-    for url in urls:
-        j += 1
-        if j % 100 == 0:
-            print(f'downloaded {j} / {len(urls)}')
-
-        command = f'cd source-store/{source} && wget --no-verbose --continue "{url}"'
-        utils.run_command(command, silent=False)
+    with open(utils.catalog_path(source, 'file_list.txt')) as f:
+        for line in f.readlines():
+            line = line.strip()
+            if not line or line.startswith('#'):
+                continue
+            urls.append(line)
+    if len(urls) == 0:
+        print('no download URLs in file_list.txt for {}'.format(source))
+        return
+    total = len(urls)
+    for j, url in enumerate(urls, start=1):
+        print('[{}/{}] {}'.format(j, total, url))
+        utils.wget_download(url, cwd=utils.store_dir('source-store') + '/{}'.format(source))
 
 def main():
     source = None
     if len(sys.argv) > 1:
         source = sys.argv[1]
-        print(f'downloading {source}...')
+        print('downloading {}...'.format(source))
     else:
         print('source argument missing...')
         exit()
 
-    utils.create_folder( f'source-store/{source}/')
+    utils.create_folder(utils.store_dir('source-store') + '/{}/'.format(source))
     download_from_internet(source)
 
 if __name__ == '__main__':

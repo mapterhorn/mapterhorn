@@ -8,14 +8,14 @@ import utils
 SILENT = False
 
 def polygonize_tif(source, filename):
-    mask_filepath = f'polygon-store/{source}/{filename}'
+    mask_filepath = f'{utils.store_dir("polygon-store")}/{source}/{filename}'
     utils.run_command(f'GDAL_CACHEMAX=1024 gdal_calc.py -A source-store/{source}/{filename} --outfile={mask_filepath} --calc="A*0+1" --type=Byte --overwrite', silent=SILENT)
     utils.run_command(f'GDAL_CACHEMAX=1024 gdal_polygonize.py {mask_filepath} -b 1 -f "GPKG" polygon-store/{source}/{filename}.gpkg -overwrite', silent=SILENT)
     os.remove(mask_filepath)
 
 def get_filenames(source):
     lines = None
-    with open(f'source-store/{source}/bounds.csv') as f:
+    with open(f'{utils.store_dir("source-store")}/{source}/bounds.csv') as f:
         lines = f.readlines()
     lines = [l.strip() for l in lines[1:]]
     filenames = [line.split(',')[0] for line in lines]
@@ -23,7 +23,7 @@ def get_filenames(source):
 
 def polygonize_source(source, processes):
     filenames = get_filenames(source)
-    utils.create_folder(f'polygon-store/{source}/')
+    utils.create_folder(f'{utils.store_dir("polygon-store")}/{source}/')
     argument_tuples = []
     for filename in filenames:
         argument_tuples.append((source, filename))
@@ -32,7 +32,7 @@ def polygonize_source(source, processes):
 
 def merge_source(source):
     filenames = get_filenames(source)
-    merged_filepath = f'polygon-store/{source}/merged.gpkg'
+    merged_filepath = f'{utils.store_dir("polygon-store")}/{source}/merged.gpkg'
     if os.path.isfile(merged_filepath):
         os.remove(merged_filepath)
     command = f'ogr2ogr -f GPKG {merged_filepath} polygon-store/{source}/{filenames[0]}.gpkg'
@@ -42,7 +42,7 @@ def merge_source(source):
             print(f'{j:_} / {len(filenames):_}')
         command = f'ogr2ogr -f GPKG -update -append {merged_filepath} polygon-store/{source}/{filename}.gpkg -nln out -append -addfields'
         utils.run_command(command, silent=True)
-    union_filepath = f'polygon-store/{source}.gpkg'
+    union_filepath = f'{utils.store_dir("polygon-store")}/{source}.gpkg'
     if os.path.isfile(union_filepath):
         os.remove(union_filepath)
     utils.run_command(f'ogr2ogr -f GPKG {union_filepath} {merged_filepath} -nln union -dialect sqlite -sql "SELECT ST_Union(ST_MakeValid(geom)) AS geom FROM out"', silent=False)
@@ -59,7 +59,7 @@ def main():
         exit()
     polygonize_source(source, processes)
     merge_source(source)
-    shutil.rmtree(f'polygon-store/{source}')
+    shutil.rmtree(f'{utils.store_dir("polygon-store")}/{source}')
 
 if __name__ == '__main__':
     main()

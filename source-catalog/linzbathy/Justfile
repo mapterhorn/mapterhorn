@@ -1,0 +1,7 @@
+[no-cd]
+default:
+    uv run python source_download.py linzbathy
+    uv run python source_unzip.py linzbathy
+    uv run python source_bounds.py linzbathy
+    uv run python source_polygonize.py linzbathy 32
+    uv run python source_create_tarball.py linzbathy

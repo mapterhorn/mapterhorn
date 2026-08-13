@@ -4,15 +4,15 @@ import utils
 
 aggregation_id = utils.get_aggregation_ids()[-1]
 
-filepaths = glob(f'aggregation-store/{aggregation_id}/*-aggregation.csv')
-filepaths += glob(f'aggregation-store/{aggregation_id}/*-downsampling.csv')
+filepaths = glob(f'{utils.store_dir("aggregation-store")}/{aggregation_id}/*-aggregation.csv')
+filepaths += glob(f'{utils.store_dir("aggregation-store")}/{aggregation_id}/*-downsampling.csv')
 
 expected_pmtiles_filenames = []
 for filepath in filepaths:
     filename = filepath.split('/')[-1]
     expected_pmtiles_filenames.append(filename.replace('-aggregation.csv', '.pmtiles').replace('-downsampling.csv', '.pmtiles'))
 
-pmtiles_filepaths = glob('pmtiles-store/*.pmtiles') + glob('pmtiles-store/*/*.pmtiles')
+pmtiles_filepaths = glob(utils.store_dir('pmtiles-store') + '/*.pmtiles') + glob(utils.store_dir('pmtiles-store') + '/*/*.pmtiles')
 
 print(len(expected_pmtiles_filenames))
 print(len(pmtiles_filepaths))

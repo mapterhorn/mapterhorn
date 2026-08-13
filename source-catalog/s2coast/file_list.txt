@@ -1,0 +1,2 @@
+https://zenodo.org/api/records/17092775/files/S2Coast2023_ERSIShapeFile_vector.zip/content
+https://www.soest.hawaii.edu/pwessel/gshhg/gshhg-shp-2.3.7.zip

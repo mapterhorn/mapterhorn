@@ -1,0 +1,4 @@
+# AusSeabed bathymetry compilations (CC BY 4.0)
+# Discover current GeoTIFF products at https://www.ausseabed.gov.au/
+# and https://nationalmap.gov.au/ or AusSeabed AWS open data.
+# Paste one HTTPS GeoTIFF URL per line below.

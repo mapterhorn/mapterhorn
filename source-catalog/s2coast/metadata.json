@@ -1,0 +1,9 @@
+{
+    "name": "S2Coast-2023 + GSHHG Antarctica",
+    "website": "https://doi.org/10.5281/zenodo.17092775",
+    "license": "CC BY 4.0 (S2Coast); LGPL (GSHHG)",
+    "producer": "Duan et al. (S2Coast-2023); Wessel and Smith (GSHHG)",
+    "resolution": 10.0,
+    "access_year": 2026,
+    "domain": "mask"
+}

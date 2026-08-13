@@ -3,12 +3,12 @@ from datetime import datetime
 import os
 import math
 
-
 import utils
+import status as status_mod
 
 def count_children(suffix):
     aggregation_id = utils.get_aggregation_ids()[-1]
-    filepaths = glob(f'aggregation-store/{aggregation_id}/*{suffix}')
+    filepaths = glob(utils.store_dir('aggregation-store') + '/{}/*{}'.format(aggregation_id, suffix))
 
     total_children = 0
     for filepath in filepaths:
@@ -25,24 +25,34 @@ def eta(progress, start_time):
     eta = start_time + total_duration
     return eta
 
-# kind = 'aggregation'
-kind = 'downsampling'
+def compute(kind):
+    print()
+    print(kind)
 
-print('kind', kind)
+    children_done = count_children('-{}.csv.done'.format(kind))
+    children_total = count_children('-{}.csv'.format(kind))
 
-children_done = count_children(f'-{kind}.done')
-children_total = count_children(f'-{kind}.csv')
+    print('time now:', datetime.now())
+    if children_total == 0:
+        print('no items')
+        return
+    print('done, all, percentage:', children_done, children_total, '{:.1%}'.format(children_done / children_total))
 
-print('time now:', datetime.now())
-print('done, all, percentage:', children_done, children_total, f'{(children_done / children_total):.1%}')
+    filepaths = glob(utils.store_dir('aggregation-store') + '/{}/*-{}.csv.done'.format(utils.get_aggregation_ids()[-1], kind))
+    if len(filepaths) == 0:
+        print('nothing done yet')
+        return
+    first_timestamp = math.inf
+    for filepath in filepaths:
+        first_timestamp = min(first_timestamp, os.path.getmtime(filepath))
+    start_time = datetime.fromtimestamp(first_timestamp)
+    print('start time:', start_time)
+    if children_done > 0:
+        print('eta:', eta(children_done / children_total, start_time))
 
-filepaths = glob(f'aggregation-store/{utils.get_aggregation_ids()[-1]}/*-{kind}.done')
-if len(filepaths) == 0:
-    print('nothing done yet')
-    exit()
-first_timestamp = math.inf
-for filepath in filepaths:
-    first_timestamp = min(first_timestamp, os.path.getmtime(filepath))
-start_time = datetime.fromtimestamp(first_timestamp)
-print('start time:', start_time)
-print('eta:', eta(children_done / children_total, start_time))
+if __name__ == '__main__':
+    # Prefer the unified status command; keep this script for quick ETAs
+    compute('aggregation')
+    compute('downsampling')
+    print()
+    status_mod.print_status(status_mod.refresh())

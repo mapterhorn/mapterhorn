@@ -29,17 +29,16 @@ def handle_pmtiles(bucket, region, endpoint):
         online_items[item['name']] = item
     
     download_urls = None
-    with open('bundle-store/download_urls.json') as f:
+    with open(utils.store_dir('meta-store') + '/download_urls.json') as f:
         download_urls = json.load(f)
 
     for item in download_urls['items']:
-        print(item['name'])
         if item['name'] in online_items and online_items[item['name']]['md5sum'] == item['md5sum']:
-            print('Nothing changed. Skipping...')
             continue
+        print(item['name'])
 
         filename = item['name']
-        directory = f'bundle-store/{filename.replace(".pmtiles", "")}/'
+        directory = utils.store_dir('bundle-store')
         key = filename
         upload_local_resource_to_s3(directory, filename, bucket, key, region, endpoint)
 
@@ -55,17 +54,16 @@ def handle_tarballs(bucket, region, endpoint):
         online_source_md5sums[item['source']] = item['tarball_md5sum']
 
     attribution = None
-    with open('bundle-store/attribution.json') as f:
+    with open(utils.store_dir('meta-store') + '/attribution.json') as f:
         attribution = json.load(f)
     
     for item in attribution:
-        print(item['source'])
-        if item['source'] != 'at1' and item['source'] in online_source_md5sums and online_source_md5sums[item['source']] == item['tarball_md5sum']:
-            print('Nothing changed. Skipping...')
+        if item['source'] in online_source_md5sums and online_source_md5sums[item['source']] == item['tarball_md5sum']:
             continue
-
+        print(item['source'])
+        
         filename = f'{item["source"]}.tar'
-        directory = 'tar-store/'
+        directory = utils.store_dir('tar-store')
         key = f'sources/{filename}'
         upload_local_resource_to_s3(directory, filename, bucket, key, region, endpoint)
     
@@ -79,8 +77,8 @@ if __name__ == '__main__':
     handle_pmtiles(bucket, region, endpoint)
 
     handle_tarballs(bucket, region, endpoint)
-    exit()
-    directory = 'bundle-store/'
+
+    directory = utils.store_dir('meta-store')
 
     filename = 'attribution.json'
     key = filename

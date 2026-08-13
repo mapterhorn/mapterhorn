@@ -3,8 +3,9 @@ from glob import glob
 import mercantile
 from pmtiles.tile import zxy_to_tileid, TileType, Compression
 from pmtiles.writer import Writer
+import utils
 
-filepaths = glob('pmtiles-store/*.pmtiles') + glob('pmtiles-store/*/*.pmtiles')
+filepaths = glob(utils.store_dir('pmtiles-store') + '/*.pmtiles') + glob(utils.store_dir('pmtiles-store') + '/*/*.pmtiles')
 out_filepath = 'index.pmtiles'
 with open(out_filepath, 'wb') as f:
     writer = Writer(f)

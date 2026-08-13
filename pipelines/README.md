@@ -2,26 +2,104 @@
 
 # Mapterhorn Pipelines
 
-Mapterhorn has four main pipelines that run in sequence: Source, Aggregation, Downsampling, and Bundle. The input is a set of tifs containing elevation data and the output are PMTiles files with terrain RGB.
+Mapterhorn has four main pipelines that run in sequence: Source, Aggregation, Downsampling, and Bundle. The input is a set of tifs containing elevation data and the output are PMTiles files with terrain RGB (Terrarium-encoded WebP). This fork also merges public bathymetry into the same elevation surface using a shoreline land/ocean mask.
 
 <img src="readme_imgs/pipeline.svg">
 
+## Quick start (operator)
+
+All commands below are run from `pipelines/`.
+
+```bash
+uv sync
+just preflight          # tools, disk, shoreline, land/ocean sources
+just shoreline          # build mask-store/shoreline vectors (once)
+just sources SOURCES="gebco emodnet"   # prepare catalog sources
+just manage list                       # what's loaded vs catalog
+just manage reload gebco -y            # clear stale data + re-download/prep
+just covering
+# terminal A:
+just downloader
+# terminal B:
+just aggregate
+just downsample
+just bundle VERSION=1
+just status             # progress, ETA, failures
+just retry-failed       # requeue *.csv.failed -> *.todo
+```
+
+Or run the resumable full sequence (starts downloader in the background):
+
+```bash
+just all VERSION=1
+```
+
+Progress is written to `meta-store/run-status.json` and `meta-store/logs/{run_id}.log`. Failed items become `*.csv.failed` without aborting the whole worker pool (set `MAPTERHORN_ABORT_ON_WORKER_FAILURE=1` for legacy abort-all behavior).
+
+### Bathymetry-specific steps
+
+1. Prepare the shoreline mask (`just shoreline` / `source_prepare_shoreline.py`).
+2. Prepare ocean sources (`gebco`, `emodnet`, `bluetopo`, …) with `"domain": "ocean"` in their `metadata.json`.
+3. Aggregation masks land vs ocean **after** each reproject and **before** the early-exit “fully filled” check, so land DEMs that encode ocean as `0` do not block bathymetry.
+4. Web Mercator bounds are clamped to ±85.051° so polar GEBCO tiles do not explode `bounds.csv`.
+
+Debug land+ocean smoke test:
+
+```bash
+bash debug.sh
+```
+
 ## Source
 
-The source pipeline has two parts: download and bounds. 
+The source pipeline has multiple parts that are needed to bring source files into a normalized file format.
 
-In **download**, we take as the file_list.txt of a given source and download all the files from the internet to the local machine. The images are stored in `source-store/{source}/`.
+`source_download.py`: Downloads files from URLs in `file_list.txt` file to the folder `source-store/{source}`
 
-It is recommended to store the main repository on an SSD for fast random access, but to allow for large enough storage one can map the source-store subfolders with softlinks to mounted HDD folders. 
+`source_unzip.py`: If a source contains ZIP files, this script can be used to unpack them.
 
-Example: 
+`source_to_cog.py`: Use this script to make sure that all files are LERC compressed and tiled internally. Note that this is a bit of a mis-nomer because it does not actually create COGs since no overviews are added to the GeoTIFFs.
 
-`source-store/swissalti3d -> /mnt/hdd1/source-store/swissalti3d`
+`source_fix_orientation.py`: Use this if there are y-axis issues in GDAL.
 
-In **bounds**, we iterate over all the image files of a given source and query the bounding box of the image in web mercator coordinates epsg:3857, and the size in pixels. We write this information into a csv file with one line per source image. This file is located at source-store/{source}/bounds.csv.
+`source_set_crs.py`: Use this if the CRS is not well defined across all files. Note that per source there can only be a single CRS otherwise GDAL translate will complain in the aggregation_run.py stage.
 
-The source pipeline has to be executed on every source separately and runs single-threaded.
+`source_set_nodata.py`: Use this to set a NODATA value if it is missing.
 
+`source_normalize_filenames.py`: Use this if you have strange filenames.
+
+`source_prepare_shoreline.py`: Downloads S2Coast + GSHHG and builds `mask-store/shoreline/land_3857.gpkg`. Aggregation rasterizes these land polygons per tile to separate terrain from bathymetry.
+
+`source_bathdnn_convert.py` / `source_bluetopo_extract.py` / `source_gmrt_download.py`: Bathymetry-specific ingest helpers.
+
+`source_bounds.py`: Required script. Creates `source-store/{source}/bounds.csv` needed for the aggregation covering stage.
+
+`source_polygonize.py`: Required script. Creates `polygon-store/{source}.gpkg` with the coverage polygon of the source. Needed for the tarball creation and the coverage pmtiles part.
+
+`source_slice.py`: Use this if polygonize is very slow. This happens sometimes with large (>10 GB) tifs.
+
+`source_remove_tifs.py`: Use this to delete the tifs from a `source-store/{source}` folder. The bounds.csv file will not be deleted.
+
+`source_manage.py`: Clear and load source / shoreline data. Prefer this when replacing a product (e.g. GEBCO 2025 → 2026):
+
+```bash
+uv run python source_manage.py list
+uv run python source_manage.py clear gebco --yes
+uv run python source_manage.py load gebco --yes
+# or in one step:
+uv run python source_manage.py reload gebco --yes
+uv run python source_manage.py reload --ocean --yes
+uv run python source_manage.py clear-shoreline --yes
+uv run python source_manage.py load-shoreline --force --yes
+```
+
+Also available as `just manage ...`. Clear removes `source-store/{source}` plus polygon/tar/meta unless `--keep-derived`. Load runs the source's catalog Justfile.
+
+
+`source_create_tarball.py`: Required script. Creates a tarball in `tar-store/{source}.tar`. Metadata is stored in `meta-store/tar/{source}.json`. Tarball will be needed in the upload stage.
+
+`source_extract_tarball.py`: Extract tifs from a tarball in `tar-store/{source}.tar` to `source-store/{source}/`.
+
+The `source-store/` folder should point to a folder on an SSD since access is random from multiple threads in the source and aggregation stages.
 
 ## Aggregation
 
@@ -80,22 +158,9 @@ Now that we have reprojected the data to web mercator, we need to merge the tifs
 
 If there is only a single tif, nothing needs to be done.
 
-If there are multiple ones, loop through them by priority with the most important first. For each tif, read the data into a 2d array called "new" and apply the following steps to create an alpha mask for additive blending based on the data of the last iteration which is stored in "old":
+If there are multiple tifs, we check the best one if it has no-data values. If so, we paint the second best into the best at the no-data value pixels. We also remember the seams of the no-data area,i.e. the pixel boundary between best and second-best. If there are still no-data values, we continue with adding pixels from the third-best u.s.w.
 
-1. Create a binary mask with 1 = has data and 0 = nodata
-2. Use binary erosion to make the data area smaller. The number of iterations is proportional to the buffer size
-3. Blur to get a gentle transition between 1 and 0
-4. Apply a further smooth step to decrease the gradients close to 0 and 1
-
-<img src="readme_imgs/alpha-mask.svg">
-
-Use now the resulting alpha mask to additively blend new into old:
-
-`old = old * alpha_mask + new * (1 - alpha_mask)`
-
-Then check if old still contains nodata pixels, if so continue, else break the loop.
-
-In practice, the above method means that we paint better quality data on top of lower quality data and we transition between the datasets by eating a little into the higher quality data.
+Once this is done, we have a full-filled tif which might contain data from multiple sources. Since sources in general will have different measurement values at a given pixel, there will be a jump in elevation at the source pixel boundarys. To make that jump a little less pronounced, we apply a gaussian blur along the pixel boundary line.
 
 After having reprojected and merged the source data, we now have a tif that contains the aggregated data. What remains to be done in the aggregation pipeline is to store it as PMTiles. We use terrarium encoding since it has a finer resolution than mapbox encoding. Data is stored as webp RGB images which are  25 to 35 percent smaller than PNGs but they take longer to encode.
 
@@ -130,12 +195,7 @@ We store the PMTiles data in the pmtiles-store folder using the same filename co
 
 If the aggregation item has z &lt; 7, it is stored directly in the pmtiles-store folder. Else it is placed in a subfolder where the subfolder name is given by the zoom 7 parent of the aggregation item. Example: `pmtiles-store/7-67-44/12-2144-1434-17.pmtiles`
 
-The idea behind the zoom 7 parent folders is that they can be linked to folders on an HDD. Example:
-
-`pmtiles-store/7-67-44 -> /mnt/hdd1/pmtiles-store/7-67-44`
-
-Note on parallelism: the aggregation pipeline is parallelized in all parts, but the merging part requires roughly 20 gigabytes of memory per thread which on most systems will mean that only a few threads can merge in parallel. Reprojection and conversion to PMTiles on the other hand have memory footprints well below 1 gigabyte per thread and should reach high cpu utilization.
-
+The `pmtiles-store/` can point to a folder on a HDD since access is sequential.
 
 ## Downsampling
 
@@ -156,8 +216,6 @@ In **run**, we iterate over all downsampling items in descending child zoom orde
 
 First we create a map from child tile id to pmtiles file by expanding the children of each file. Then, for each parent tile we get the 4 children to fill a 1024 by 1024 float32 array. We half the size to 512 by 512 using 2 by 2 averaging. The tiles are then encoded as terrarium again and written as webp to disk. Then we pack the webps into a pmtiles archive and store it in the pmtiles-store folder with the same file location convention as for aggregation items.
 
-Note that also in downsampling we only store a single zoom level per PMTiles file. The downsampling pipeline is fully parallelized and has a low memory footprint as well as high cpu utilization.
-
 
 ## Bundle
 
@@ -165,13 +223,11 @@ The last task is to bundle the single zoom level PMTiles files from aggregation 
 
 The pmtiles-store folder contains thousands of files after aggregation and downsampling. They all have a single zoom level of tiles and they are at most 64 tiles wide, which means that their size can be at most around 1 gigabyte.
 
-We now bundle these files by creating tile pyramids with multiple zoom levels. Ideally, Mapterhorn would be distributed as a single PMTiles file, but typical object storage is limited to 5 terabytes per object and already with copernicus glo30 and swissalti3d only the total size is 1.4 terabytes. Therefore, we need to split the data into multiple files and this is done as follows:
+We now bundle these files by creating tile pyramids with multiple zoom levels. 
 
 **planet.pmtiles** contains all tiles from zoom 0 to zoom 12.
 
 **6-{x}-{y}.pmtiles** contains all zoom level 13+ children of tile 6-{x}-{y}.
-
-With this convention we can limit the total file size to roughly 1 terabyte assuming that we have a maxzoom of 17 which corresponds to about 0.5 m resolution.
 
 ## Requirements
 
@@ -183,4 +239,102 @@ With this convention we can limit the total file size to roughly 1 terabyte assu
 - curl
 - un7z
 - unzip
+
+## Hardware
+
+The pipeline stages work well with **~2 GiB RAM per worker thread**. Example: 64 GiB RAM for a 32-core machine. Throughput rule of thumb: ~100 GiB of normalized input per hour on a 32-core box.
+
+### Keep data outside the git repo
+
+Do **not** symlink store folders into `pipelines/` (that fights git). Point all stores at a directory outside the checkout:
+
+```bash
+cp env.example .env
+# edit .env:
+#   MAPTERHORN_DATA_ROOT=/mnt/ssd/mapterhorn
+#   MAPTERHORN_PMTILES_STORE=/mnt/hdd/mapterhorn/pmtiles-store   # optional
+#   MAPTERHORN_BUNDLE_STORE=/mnt/hdd/mapterhorn/bundle-store
+#   MAPTERHORN_TAR_STORE=/mnt/hdd/mapterhorn/tar-store
+
+# just loads .env automatically; otherwise:
+source .env   # or export vars in your shell profile
+just storage
+```
+
+| Variable | Purpose |
+|----------|---------|
+| `MAPTERHORN_DATA_ROOT` | Base dir for every store (`$ROOT/source-store`, `$ROOT/tmp-store`, …) |
+| `MAPTERHORN_PMTILES_STORE` etc. | Optional absolute override for one store (SSD/HDD split) |
+| `MAPTERHORN_CATALOG_ROOT` | Rarely needed; defaults to `../source-catalog` next to `pipelines/` |
+
+Store folders under `pipelines/` are **gitignored**. Prefer an empty `pipelines/` working tree plus `MAPTERHORN_DATA_ROOT` on your disks.
+
+### What goes on SSD vs HDD
+
+| Directory | Access pattern | Put on | Why |
+|-----------|----------------|--------|-----|
+| `source-store/` | Many random reads during prep + aggregation | **SSD** | Workers and GDAL hit many GeoTIFFs concurrently |
+| `aggregation-store/` | Lots of small CSVs + markers | **SSD** | High metadata / small-file traffic |
+| `tmp-store/` | Hot scratch (queue, copied sources, per-tile warps) | **SSD** | Fastest disk you have; size spikes during aggregate |
+| `mask-store/` | Shoreline vectors + overview | SSD preferred | Modest size (~7 GB); read during every aggregation tile |
+| `pmtiles-store/` | Large sequential writes/reads | **HDD** (or RAID0 HDDs) | Biggest intermediate output |
+| `bundle-store/` | Final `planet.pmtiles` / `6-x-y.pmtiles` | **HDD** | Multi-TB distribution artifacts |
+| `tar-store/` | Source tarballs for upload/archive | **HDD** | Cold-ish; not on the hot path |
+| `polygon-store/`, `meta-store/`, `task-store/` | Small metadata | SSD or with `DATA_ROOT` | Tiny |
+
+```
+     MAPTERHORN_DATA_ROOT=/mnt/ssd/mapterhorn
+                 │
+                 ├─ source-store/        ┐
+                 ├─ aggregation-store/   │ SSD (default under DATA_ROOT)
+                 ├─ tmp-store/           │
+                 └─ mask-store/          ┘
+     MAPTERHORN_PMTILES_STORE=/mnt/hdd/.../pmtiles-store
+     MAPTERHORN_BUNDLE_STORE=/mnt/hdd/.../bundle-store
+     MAPTERHORN_TAR_STORE=/mnt/hdd/.../tar-store
+```
+
+If the SSD is large enough for sources **and** you set `MAPTERHORN_SOFTLINK_SOURCE=1`, the downloader can symlink from `source-store` into `tmp-store` instead of copying (saves SSD space and copy time). Default is copy (`0`).
+
+### Mount the disks
+
+```bash
+sudo mkdir -p /mnt/ssd /mnt/hdd
+sudo mount /dev/nvme0n1p1 /mnt/ssd    # example SSD
+sudo mount /dev/sda1 /mnt/hdd         # example HDD
+
+# Persist with UUIDs from `blkid` in /etc/fstab:
+# UUID=....-ssd  /mnt/ssd  ext4  defaults,noatime  0  2
+# UUID=....-hdd  /mnt/hdd  ext4  defaults,noatime  0  2
+
+mkdir -p /mnt/ssd/mapterhorn /mnt/hdd/mapterhorn/{pmtiles-store,bundle-store,tar-store}
+```
+
+Then set `.env` as above. No symlinks inside the git tree.
+
+### How big should each disk be?
+
+| Disk | Bathymetry / regional experiment | Full planet (land + ocean) |
+|------|----------------------------------|----------------------------|
+| **SSD** | 200 GB–1 TB | **several TB** (`source-store` alone can be multi-TB; upstream cites ~14.5 TiB sources for the full land catalog) |
+| **HDD** | 500 GB–2 TB | **10+ TiB** (`pmtiles-store` + bundles; published planet PMTiles ~10 TiB scale) |
+
+On a constrained SSD you can still put individual huge sources on HDD via a per-source directory under an overridden layout, or keep `MAPTERHORN_SOFTLINK_SOURCE=0` so aggregation copies hot tiles into SSD `tmp-store` (capped by `MAPTERHORN_MAX_TMP_SOURCE_SIZE`, default **100** GiB).
+
+### Environment knobs
+
+| Variable | Default | Meaning |
+|----------|---------|---------|
+| `MAPTERHORN_DATA_ROOT` | cwd (`pipelines/`) | Where stores live (set this to leave git) |
+| `MAPTERHORN_NUM_WORKERS` | 32 | Aggregation/downsampling worker processes |
+| `MAPTERHORN_MAX_TMP_SOURCE_SIZE` | 100 | Max GiB of `tmp-store/source` before pruning |
+| `MAPTERHORN_SOFTLINK_SOURCE` | 0 | `1` = symlink sources into tmp instead of copying |
+| `MAPTERHORN_MIN_FREE_GB` | 50 | Preflight minimum free space |
+
+### Check before a long run
+
+```bash
+just storage     # mount points + free space per store
+just preflight
+```
 

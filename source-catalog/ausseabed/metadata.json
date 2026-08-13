@@ -1,0 +1,9 @@
+{
+    "name": "AusSeabed",
+    "website": "https://www.ausseabed.gov.au/",
+    "license": "CC BY 4.0",
+    "producer": "AusSeabed / Geoscience Australia",
+    "resolution": 30.0,
+    "access_year": 2026,
+    "domain": "ocean"
+}

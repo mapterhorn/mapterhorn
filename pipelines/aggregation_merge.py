@@ -10,12 +10,10 @@ from scipy import ndimage
 import utils
 
 
-def merge(filepath):
-    _, aggregation_id, filename = filepath.split('/')
+def merge(filepath, tmp_folder):
+    filename = filepath.split('/')[-1]
 
-    z, x, y, child_z = [int(a) for a in filename.replace('-aggregation.csv', '').split('-')]
-
-    tmp_folder = f'aggregation-store/{aggregation_id}/{z}-{x}-{y}-{child_z}-tmp'
+    _, x, y, __ = [int(a) for a in filename.replace('-aggregation.csv', '').split('-')]
 
     done_filepath = f'{tmp_folder}/merge-done'
     if os.path.isfile(done_filepath):
@@ -57,6 +55,8 @@ def merge(filepath):
                 tiled=True,
                 blockxsize=512,
                 blockysize=512,
+                compress='LERC',
+                max_z_error=0.001,
             )
             
             with rasterio.open(output_path, 'w', **profile) as dst:
@@ -71,10 +71,10 @@ def merge(filepath):
                         
                         merged_tile = None
                         with rasterio.open(tiff_filepaths[0]) as src:
-                            merged_tile = src.read(1, window=window)
+                            merged_tile = np.nan_to_num(src.read(1, window=window), nan=-9999)
                         
                         filled_from_start = (-9999 not in merged_tile)
-                        
+
                         if not filled_from_start:
 
                             binary_mask = (merged_tile != -9999).astype('int32')
@@ -82,9 +82,9 @@ def merge(filepath):
                             boundary_tile = binary_mask.astype(bool) & ~eroded
 
                             for tiff_filepath in tiff_filepaths[1:]:
-                                    
+                                current_tile = None
                                 with rasterio.open(tiff_filepath) as src:
-                                    current_tile = src.read(1, window=window)
+                                    current_tile = np.nan_to_num(src.read(1, window=window), nan=-9999)
                                 
                                 copy_mask = (merged_tile == -9999) & (current_tile != -9999)
                                 merged_tile[copy_mask] = current_tile[copy_mask]
@@ -108,7 +108,7 @@ def merge(filepath):
                             if 1 in boundary_tile:
                                 merged_tile[merged_tile == -9999] = 0
                                 truncate = 4
-                                sigma = int(overlap / truncate) - 1
+                                sigma = max(int(overlap / truncate) - 1, 1)
                                 boundary_tile_blurred = ndimage.gaussian_filter(boundary_tile.astype(float), sigma=sigma, truncate=truncate)
                                 boundary_tile_blurred /= (1.0 / (np.sqrt(2 * np.pi) * sigma))
                                 boundary_tile_blurred = np.clip(boundary_tile_blurred, 0, 1)
@@ -128,6 +128,6 @@ def merge(filepath):
     utils.run_command(command)
 
 if __name__ == '__main__':
-    filepath = 'aggregation-store/01K7M3DMZF4RFVFYDWN9KF1Q4N/12-2130-1459-17-aggregation.csv'
+    filepath = utils.store_dir('aggregation-store') + '/01K7M3DMZF4RFVFYDWN9KF1Q4N/12-2130-1459-17-aggregation.csv'
     tic = time.time()
     merge(filepath)

@@ -1,0 +1,9 @@
+{
+    "name": "NOAA BlueTopo",
+    "website": "https://www.nauticalcharts.noaa.gov/data/bluetopo.html",
+    "license": "US Public Domain",
+    "producer": "NOAA Office of Coast Survey — National Bathymetric Source",
+    "resolution": 4.0,
+    "access_year": 2026,
+    "domain": "ocean"
+}

@@ -1,0 +1,7 @@
+[no-cd]
+default:
+    uv run python source_download.py ausseabed
+    uv run python source_unzip.py ausseabed
+    uv run python source_bounds.py ausseabed
+    uv run python source_polygonize.py ausseabed 32
+    uv run python source_create_tarball.py ausseabed

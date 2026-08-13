@@ -51,7 +51,7 @@ def get_intersecting_tiles_dfs(bounds, tile, zoom):
 
 def get_macrotile_map():
     macrotile_map = {}
-    filepaths = sorted(glob('source-store/*/bounds.csv'))
+    filepaths = sorted(glob(utils.store_dir('source-store') + '/*/bounds.csv'))
     mercator_resolutions = get_mercator_resolutions(0, 32)
     for filepath in filepaths:
         print(f'reading {filepath}...')
@@ -150,7 +150,7 @@ def get_aggregation_tiles(macrotile_map):
     return aggregation_tiles
 
 def write_aggregation_items(macrotile_map, aggregation_tiles, aggregation_id):
-    folder = f'aggregation-store/{aggregation_id}'
+    folder = f'{utils.store_dir("aggregation-store")}/{aggregation_id}'
     utils.create_folder(folder)
     for aggregation_tile in aggregation_tiles:
         macrotiles = list(mercantile.children(aggregation_tile, zoom=utils.macrotile_z))
@@ -177,6 +177,21 @@ def write_aggregation_items(macrotile_map, aggregation_tiles, aggregation_id):
         with open(f'{folder}/{aggregation_tile.z}-{aggregation_tile.x}-{aggregation_tile.y}-{child_z}-aggregation.csv', 'w') as f:
             f.writelines(lines)
 
+def write_aggregation_todos():
+    aggregation_ids = utils.get_aggregation_ids()
+    aggregation_id = aggregation_ids[-1]
+
+    dirty_filepaths = None
+    if len(aggregation_ids) < 2:
+        dirty_filepaths = sorted(glob(f'{utils.store_dir("aggregation-store")}/{aggregation_id}/*-aggregation.csv'))
+    else:
+        last_aggregation_id = aggregation_ids[-2]
+        dirty_filepaths = [f'{utils.store_dir("aggregation-store")}/{aggregation_id}/{filename}' for filename in utils.get_dirty_aggregation_filenames(aggregation_id, last_aggregation_id)]
+    
+    for dirty_filepath in dirty_filepaths:
+        with open(f'{dirty_filepath}.todo', 'w') as f:
+            f.write('')
+
 def main():
 
     print('get_macrotile_map...')
@@ -189,10 +204,14 @@ def main():
     aggregation_tiles = get_aggregation_tiles(macrotile_map)
 
     aggregation_id = str(ULID())
-    utils.create_folder(f'aggregation-store/{aggregation_id}')
+    utils.create_folder(f'{utils.store_dir("aggregation-store")}/{aggregation_id}')
 
     print('write aggregation items...')
     write_aggregation_items(macrotile_map, aggregation_tiles, aggregation_id)
+
+    print('write aggregation todos...')
+    write_aggregation_todos()
+
 
 if __name__ == '__main__':
     main()

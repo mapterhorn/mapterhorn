@@ -1,12 +1,26 @@
-__pycache__
-.venv
-source-store
-aggregation-store
-pmtiles-store
-bundle-store
-polygon-store
-tar-store
+# Local env (copy from env.example) — keeps secrets/paths out of git
+.env
+
+# Python / tooling
+__pycache__/
+.venv/
+*.pyc
+
+# Pipeline data stores (also redirected via MAPTERHORN_DATA_ROOT)
+source-store/
+aggregation-store/
+pmtiles-store/
+bundle-store/
+polygon-store/
+tar-store/
+mask-store/
+tmp-store/
+task-store/
+meta-store/
+
+# Generated / local artifacts
 planetiler.jar
 index.md
 index.pmtiles
-data
+data/
+*.pmtiles

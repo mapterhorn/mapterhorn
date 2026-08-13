@@ -1,0 +1,9 @@
+{
+    "name": "GEBCO 2026 (debug)",
+    "website": "https://www.gebco.net/data-products/gridded-bathymetry-data",
+    "license": "Public Domain / Open Government Licence",
+    "producer": "International Hydrographic Organization (IHO) and Intergovernmental Oceanographic Commission (IOC)",
+    "resolution": 450.0,
+    "access_year": 2026,
+    "domain": "ocean"
+}

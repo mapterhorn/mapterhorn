@@ -1,0 +1,6 @@
+[no-cd]
+default:
+    uv run python source_gmrt_download.py gmrt
+    uv run python source_bounds.py gmrt
+    uv run python source_polygonize.py gmrt 32
+    uv run python source_create_tarball.py gmrt

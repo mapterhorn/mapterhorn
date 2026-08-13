@@ -19,7 +19,7 @@ def main():
         print('source argument missing...')
         exit()
     
-    filepaths = sorted(glob(f'source-store/{source}/*'))
+    filepaths = sorted(glob(f'{utils.store_dir("source-store")}/{source}/*'))
 
     argument_tuples = []
     for filepath in filepaths:

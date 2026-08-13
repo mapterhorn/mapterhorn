@@ -1,0 +1,3 @@
+# LINZ bathymetry (CC BY 4.0)
+# Browse https://data.linz.govt.nz/ for bathymetry / hydrographic DEM layers
+# and paste direct GeoTIFF download URLs below (one per line).

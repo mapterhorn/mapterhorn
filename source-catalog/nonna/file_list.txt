@@ -1,0 +1,6 @@
+# NONNA file list
+# CHS NONNA products are distributed via https://data.chs-shc.ca/
+# and related open-data mirrors. Run create_file_list.py after confirming
+# the current public bucket/prefix, or paste direct GeoTIFF URLs below.
+
+# No public S3 listing found automatically. Add GeoTIFF URLs manually.

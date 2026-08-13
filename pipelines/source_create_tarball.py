@@ -1,6 +1,8 @@
 from glob import glob
 import sys
 import tarfile
+import os
+import json
 
 import utils
 
@@ -13,17 +15,17 @@ def main():
         print('Not enough arguments. Usage: source_create_tarball.py {{source}}')
         exit()
 
-    utils.create_folder('tar-store/')
-    utils.create_folder(f'tar-store/{source}')
+    utils.create_folder(utils.store_dir('tar-store') + '/')
     checksum = None
-    with open(f'tar-store/{source}/{source}.tar', 'wb') as f:
+    filepath = f'{utils.store_dir("tar-store")}/{source}.tar'
+    with open(filepath, 'wb') as f:
         writer = utils.HashWriter(f)
         with tarfile.open(fileobj=writer, mode='w') as tar:
-            tar.add(f'../source-catalog/{source}/LICENSE.pdf', 'LICENSE.pdf')
-            tar.add(f'../source-catalog/{source}/metadata.json', 'metadata.json')
-            tar.add(f'source-store/{source}/bounds.csv', 'bounds.csv')
-            tar.add(f'polygon-store/{source}.gpkg', 'coverage.gpkg')
-            filepaths = glob(f'source-store/{source}/*.tif')
+            tar.add(utils.catalog_path(source, 'LICENSE.pdf'), 'LICENSE.pdf')
+            tar.add(utils.catalog_path(source, 'metadata.json'), 'metadata.json')
+            tar.add(f'{utils.store_dir("source-store")}/{source}/bounds.csv', 'bounds.csv')
+            tar.add(f'{utils.store_dir("polygon-store")}/{source}.gpkg', 'coverage.gpkg')
+            filepaths = glob(f'{utils.store_dir("source-store")}/{source}/*.tif')
             for j, filepath in enumerate(filepaths, 1):
                 if j % 1000 == 0:
                     print(f'{j:_} / {len(filepaths):_}')
@@ -31,8 +33,13 @@ def main():
                 tar.add(filepath, f'files/{filename}')
         checksum = writer.md5.hexdigest()
 
-    with open(f'tar-store/{source}/{source}.tar.md5', 'w') as f:
-        f.write(f'{checksum} {source}.tar\n')
+    filesize = os.path.getsize(filepath)
+    utils.create_folder(utils.store_dir('meta-store') + '/tar/')
+    with open(f'{utils.store_dir("meta-store")}/tar/{source}.json', 'w') as f:
+        json.dump({
+            'size': filesize,
+            'md5sum': checksum,
+        }, f, indent=2)
 
 if __name__ == '__main__':
     main()

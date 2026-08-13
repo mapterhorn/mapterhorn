@@ -46,13 +46,13 @@ def main():
         exit()
     
     filepaths = []
-    filepaths += glob(f'source-store/{source}/*.tif')
-    filepaths += glob(f'source-store/{source}/*.TIF')
-    filepaths += glob(f'source-store/{source}/*.tiff')
-    filepaths += glob(f'source-store/{source}/*.xyz')
-    filepaths += glob(f'source-store/{source}/*.asc')
-    filepaths += glob(f'source-store/{source}/*.ASC')
-    filepaths += glob(f'source-store/{source}/*.txt')
+    filepaths += glob(f'{utils.store_dir("source-store")}/{source}/*.tif')
+    filepaths += glob(f'{utils.store_dir("source-store")}/{source}/*.TIF')
+    filepaths += glob(f'{utils.store_dir("source-store")}/{source}/*.tiff')
+    filepaths += glob(f'{utils.store_dir("source-store")}/{source}/*.xyz')
+    filepaths += glob(f'{utils.store_dir("source-store")}/{source}/*.asc')
+    filepaths += glob(f'{utils.store_dir("source-store")}/{source}/*.ASC')
+    filepaths += glob(f'{utils.store_dir("source-store")}/{source}/*.txt')
 
     filepaths = [(filepath,) for filepath in sorted(filepaths)]
 

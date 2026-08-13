@@ -76,6 +76,37 @@ Example `swissalti3d/metadata.json`:
 }
 ```
 
+### Optional `domain` field
+
+`metadata.json` may include `"domain": "land" | "ocean" | "both" | "mask"`.
+
+| domain | Meaning |
+|--------|---------|
+| `land` (default) | Terrain DEM. Ocean pixels with elevation `>= 0` are treated as nodata so bathymetry can fill them. Negative coastal topobathy pixels are kept. |
+| `ocean` | Bathymetry. Land pixels are masked to nodata using the shoreline product. |
+| `both` | True topobathy compilations; no shoreline masking. |
+| `mask` | Not an elevation source (e.g. `s2coast`). Prepared via `source_prepare_shoreline.py` into `mask-store/` (vector land polygons rasterized per aggregation tile). |
+
+### Land / ocean merge
+
+Aggregation uses a shoreline mask (S2Coast-2023 + GSHHG Antarctica) so land DEMs and ocean bathymetry do not overwrite each other. After each source group is warped to Web Mercator, the domain rule above is applied, then existing nodata-fill + seam blending runs. Higher native resolution still wins via `maxzoom`.
+
+**Known limitation:** vertical datums differ across products (EGM/MSL vs LAT vs NAVD88). Coastal seams may show small vertical offsets; homogenization is out of scope for v1.
+
+### Bathymetry sources in this catalog
+
+| Source ID | Product | Notes |
+|-----------|---------|-------|
+| `gebco` | GEBCO 2026 | Global ~450 m baseline ocean fill |
+| `bathdnn` | BathDNN25 | Coarser SWOT DNN model; fills only where finer sources are absent |
+| `emodnet` | EMODnet DTM 2024 | European seas ~115 m |
+| `bluetopo` | NOAA BlueTopo | US waters, multi-resolution |
+| `gmrt` | GMRT synthesis | Sparse high-res measured bathymetry |
+| `nonna` | CHS NONNA | Canada (file list may need refresh) |
+| `ausseabed` | AusSeabed | Australia (add URLs from catalogue) |
+| `linzbathy` | LINZ | New Zealand (add URLs from LINZ Data Service) |
+| `s2coast` | Shoreline mask | Not elevation; run `just shoreline` from `pipelines/` |
+
 ## Adding a Source
 
 Add a source by creating a new subfolder. The folder name will be the source name. Create the files `file_list.txt`, `Justfile`, `LICENSE.pdf`, and `metadata.json`. 
@@ -85,6 +116,8 @@ Notes:
 - Licenses which are share-alike or which do not allow commercial usage will not be accepted.
 - The metadata should include precise references to the producer.
 - Individual GeoTiffs in the source should not be larger than say 10 GB, otherwise the polygonize step gets slow. You can slice a larger tif into multiple smaller ones with `source_slice.py`.
+- For bathymetry, set `"domain": "ocean"`.
+- Lines in `file_list.txt` starting with `#` are ignored.
 
 ## Updating a Source
 

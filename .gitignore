@@ -1,0 +1,16 @@
+# Local / secrets
+**/.env
+**/.venv/
+**/__pycache__/
+
+# Pipeline data stores if ever created under the repo
+pipelines/source-store/
+pipelines/aggregation-store/
+pipelines/pmtiles-store/
+pipelines/bundle-store/
+pipelines/polygon-store/
+pipelines/tar-store/
+pipelines/mask-store/
+pipelines/tmp-store/
+pipelines/task-store/
+pipelines/meta-store/

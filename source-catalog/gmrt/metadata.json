@@ -1,0 +1,9 @@
+{
+    "name": "GMRT Synthesis",
+    "website": "https://www.gmrt.org/",
+    "license": "CC BY 4.0",
+    "producer": "Marine Geoscience Data System (MGDS) — Global Multi-Resolution Topography",
+    "resolution": 100.0,
+    "access_year": 2026,
+    "domain": "ocean"
+}
