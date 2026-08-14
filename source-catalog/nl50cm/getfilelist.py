@@ -1,7 +1,6 @@
 import sys
 import json
 import requests
-from mercantile import feature
 
 SILENT = False
 TIFF_URLS = []
@@ -14,20 +13,21 @@ def download_files(url, property):
         raise Exception('Error: could not get JSON from {url}')
 
     feat_collection = json.loads(r.text)
-    features = feat_collection['features']
+    features = feat_collection.get('features', [])
     if len(features) == 0:
         print('no features')
         return
+
     for feature in features:
         TIFF_URLS.append(feature['properties'][property])
     print(f'TIFF_URLS count={len(TIFF_URLS)})...')
 
-    # We may have paged responses
-    links = feat_collection['links']
-    if len(links) >= 2:
-        if links[1].get('rel', None) == 'next':
+    # We may have paged responses: check the link elemments
+    links = feat_collection.get('links', [])
+    for link in links:
+        if link.get('rel', None) == 'next':
             download_files(links[1].get('href'), property)
-        else:
+            # Ends recursion
             print(f'TIFF_URLS count={len(TIFF_URLS)}) ALL DONE')
 
 def main():
