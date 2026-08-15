@@ -66,8 +66,7 @@ def manage_downsampling():
     child_zoom_to_filepaths = downsampling_run.get_child_zoom_to_filepaths()
     child_zooms = list(reversed(sorted(list(child_zoom_to_filepaths.keys()))))
     for child_zoom in child_zooms:
-        print(child_zoom)
-        print(len(child_zoom_to_filepaths[child_zoom]))
+        print(f'child_zoom = {child_zoom}')
         distribute_tasks(child_zoom_to_filepaths[child_zoom])
 
         while True:
