@@ -25,26 +25,38 @@ def eta(progress, start_time):
     return eta
 
 def compute(kind):
-    print()
     print(kind)
 
     children_done = count_children(f'-{kind}.csv.done')
-    children_total = count_children(f'-{kind}.csv')
+    if children_done == 0:
+        print('not started yet...')
+        return
+    children_todo = count_children(f'-{kind}.csv.todo')
+    children_total = children_done + children_todo
 
-    print('time now:', datetime.now())
-    print('done, all, percentage:', children_done, children_total, f'{(children_done / children_total):.1%}')
+    
+    print(f'children_done  = {children_done:_}    ({(children_done / children_total):.1%})\nchildren_total = {children_total:_}')
 
     filepaths = glob(f'aggregation-store/{utils.get_aggregation_ids()[-1]}/*-{kind}.csv.done')
     if len(filepaths) == 0:
         print('nothing done yet')
-        exit()
     first_timestamp = math.inf
+    last_timestamp = -math.inf
     for filepath in filepaths:
-        first_timestamp = min(first_timestamp, os.path.getmtime(filepath))
+        mtime = os.path.getmtime(filepath)
+        first_timestamp = min(first_timestamp, mtime)
+        last_timestamp = max(last_timestamp, mtime)
     start_time = datetime.fromtimestamp(first_timestamp)
+    end_time = datetime.fromtimestamp(last_timestamp)
+    
     print('start time:', start_time)
-    print('eta:', eta(children_done / children_total, start_time))
+    print('time now:  ', datetime.now())
+    if children_done == children_total:
+        print('end time:  ', end_time)
+    else:
+        print('eta:       ', eta(children_done / children_total, start_time))
 
 if __name__ == '__main__':
     compute('aggregation')
-    # compute('downsampling')
+    print()
+    compute('downsampling')

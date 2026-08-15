@@ -4,6 +4,7 @@ from multiprocessing import Pool
 import shutil
 from datetime import datetime
 import os
+import time
 
 import numpy as np
 from PIL import Image
@@ -28,7 +29,8 @@ def create_tile(parent_x, parent_y, parent_z, tmp_folder, pmtiles_filenames):
             filename = tile_to_pmtiles_filename[child]
             file_z, file_x, file_y, _ = [int(a) for a in filename.replace('.pmtiles', '').split('-')]
             pmtiles_folder = utils.get_pmtiles_folder(file_x, file_y, file_z)
-            with open(f'{pmtiles_folder}/{filename}' , 'r+b') as f:
+            filepath = f'tmp-store/pmtiles/{pmtiles_folder.replace("pmtiles-store", "")}/{filename}'
+            with open(filepath, 'r+b') as f:
                 reader = Reader(MmapSource(f))
                 child_bytes = reader.get(child_z, child_x, child_y)
             child_rgb = np.array(Image.open(io.BytesIO(child_bytes)), dtype=np.float32)
@@ -71,6 +73,18 @@ def downsample_single(filepath):
     if os.path.isfile(f'{filepath}.done'):
         print('already done...')
         return
+    
+    queue_folder = 'tmp-store/queue'
+    os.makedirs(queue_folder, exist_ok=True)
+    shutil.copy(filepath, f'{queue_folder}/{filename}.tmp')
+    os.rename(f'{queue_folder}/{filename}.tmp', f'{queue_folder}/{filename}')
+    ready_folder = 'tmp-store/ready'
+    os.makedirs(ready_folder, exist_ok=True)
+    while not os.path.isfile(f'{ready_folder}/{filename}'):
+        print('waiting for download...')
+        time.sleep(1)
+    print('download complete.')
+
     parts = filename.split('-')
     extent_z, extent_x, extent_y, parent_zoom = [int(a) for a in parts[:4]]
 
@@ -100,7 +114,12 @@ def downsample_single(filepath):
     utils.create_archive(tmp_folder, out_filepath)
 
     shutil.rmtree(tmp_folder)
-    os.rename(f'{filepath}.todo', f'{filepath}.done')
+    with open(f'{filepath}.done', 'w') as f:
+        f.write('')
+    if os.path.isfile(f'{filepath}.todo'):
+        os.remove(f'{filepath}.todo')
+    if os.path.isfile(f'{ready_folder}/{filename}'):
+        os.remove(f'{ready_folder}/{filename}')
     print(f'{filepath} done.')
 
 def downsample_multiple(filepaths):

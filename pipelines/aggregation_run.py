@@ -25,6 +25,7 @@ def run(filepath):
     while not os.path.isfile(f'{ready_folder}/{filename}'):
         print('waiting for download...')
         time.sleep(1)
+    print('download complete.')
     tmp_folder = f'tmp-store/{item}'
     os.makedirs(tmp_folder, exist_ok=True)
     tic = time.time()
@@ -40,9 +41,12 @@ def run(filepath):
     aggregation_tile.main(filepath, tmp_folder)
     print(f'tile done in {(time.time() - tic):.2f} s')
     shutil.rmtree(tmp_folder)
-    os.rename(f'{filepath}.todo', f'{filepath}.done')
-
-    os.remove(f'{ready_folder}/{filename}')
+    with open(f'{filepath}.done', 'w') as f:
+        f.write('')
+    if os.path.isfile(f'{filepath}.todo'):
+        os.remove(f'{filepath}.todo')
+    if os.path.isfile(f'{ready_folder}/{filename}'):
+        os.remove(f'{ready_folder}/{filename}')
     print(f'{item} end')
 
 def main():
@@ -51,7 +55,6 @@ def main():
     aggregation_id = aggregation_ids[-1]
 
     dirty_filepaths = [filepath.replace('.todo', '') for filepath in glob(f'aggregation-store/{aggregation_id}/*-aggregation.csv.todo')]
-    
     if len(dirty_filepaths) == 0:
         print('nothing to do.')
     else:
