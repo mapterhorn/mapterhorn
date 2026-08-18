@@ -3,8 +3,9 @@
 # Examples (run from pipelines/):
 #   uv run python source_manage.py list
 #   uv run python source_manage.py clear gebco --yes
-#   uv run python source_manage.py load gebco
-#   uv run python source_manage.py reload gebco --yes
+#   uv run python source_manage.py autodownload -y
+#   uv run python source_manage.py autodownload gebco emodnet -y
+#   uv run python source_manage.py mark-complete ukengland
 #   uv run python source_manage.py reload --ocean --yes
 #   uv run python source_manage.py clear-shoreline --yes
 #   uv run python source_manage.py load-shoreline
@@ -18,6 +19,8 @@ from glob import glob
 
 import utils
 import log
+import source_marker
+from source_download import catalog_urls
 
 CATALOG_ROOT = utils.catalog_root()
 
@@ -139,9 +142,9 @@ def clear_paths(paths, dry_run=False):
 
 
 def cmd_list(args):
-    print('{:<18} {:<8} {:>8} {:>10} {:>8} {}'.format(
-        'SOURCE', 'DOMAIN', 'TIFS', 'EXPECTED', 'BOUNDS', 'SIZE'))
-    print('-' * 70)
+    print('{:<18} {:<8} {:>8} {:>10} {:>8} {:>8} {}'.format(
+        'SOURCE', 'DOMAIN', 'TIFS', 'EXPECTED', 'BOUNDS', 'DL', 'SIZE'))
+    print('-' * 80)
     seen = set()
     for source in sorted(set(loaded_sources()) | set(catalog_sources())):
         meta = source_metadata(source)
@@ -159,13 +162,15 @@ def cmd_list(args):
         tifs = count_rasters(source) if loaded else 0
         expected = expected_urls(source)
         has_bounds = os.path.isfile('{}/bounds.csv'.format(folder))
+        complete = source_marker.is_download_complete(source)
         size = format_bytes(dir_size_bytes(folder)) if loaded else '-'
-        print('{:<18} {:<8} {:>8} {:>10} {:>8} {}'.format(
+        print('{:<18} {:<8} {:>8} {:>10} {:>8} {:>8} {}'.format(
             source,
             domain,
             tifs if loaded else '-',
             expected if expected is not None else '-',
             'yes' if has_bounds else ('no' if loaded else '-'),
+            'yes' if complete else ('no' if loaded else '-'),
             size if loaded else '(not loaded)',
         ))
         seen.add(source)
@@ -236,6 +241,11 @@ def cmd_load(args):
         if source_metadata(source) is None:
             print('skip unknown catalog source: {}'.format(source))
             continue
+        if not args.force and source_marker.is_source_ready(source):
+            print('skip {} (already downloaded and prepared)'.format(source))
+            continue
+        if args.force and not args.dry_run:
+            source_marker.clear_download_marker(source)
         print('loading {}...'.format(source))
         run_source_justfile(source, dry_run=args.dry_run)
         log.info('loaded source', source=source)
@@ -297,6 +307,160 @@ def cmd_load_shoreline(args):
     return 0
 
 
+def autodownload_catalog_sources(include_debug=False):
+    names = []
+    for name in catalog_sources():
+        if name.startswith('debug-') and not include_debug:
+            continue
+        meta = source_metadata(name) or {}
+        if meta.get('domain') == 'mask':
+            continue
+        names.append(name)
+    return names
+
+
+def shoreline_is_ready():
+    shoreline = utils.store_dir('mask-store') + '/shoreline'
+    return (
+        os.path.isfile('{}/READY'.format(shoreline))
+        and os.path.isfile('{}/land_3857.gpkg'.format(shoreline))
+    )
+
+
+def cmd_autodownload(args):
+    explicit = list(args.sources or [])
+    if explicit or args.ocean or args.land:
+        sources = resolve_sources(
+            args.sources,
+            ocean_only=args.ocean,
+            land_only=args.land,
+        )
+        if not args.include_debug:
+            sources = [s for s in sources if (not s.startswith('debug-') or s in explicit)]
+    else:
+        sources = autodownload_catalog_sources(include_debug=args.include_debug)
+
+    if not sources and not args.sources and not args.ocean and not args.land:
+        print('no catalog sources found')
+        return 1
+
+    named_only = bool(explicit)
+    do_shoreline = (not args.skip_shoreline) and (not named_only or 's2coast' in explicit)
+
+    skip_ready = []
+    skip_nourl = []
+    to_run = []
+    for source in sources:
+        if source == 's2coast':
+            continue
+        if source_metadata(source) is None:
+            print('skip unknown catalog source: {}'.format(source))
+            continue
+        if args.force:
+            urls = catalog_urls(source)
+            if not urls and source not in explicit:
+                skip_nourl.append(source)
+            else:
+                to_run.append(source)
+            continue
+        if source_marker.is_source_ready(source):
+            skip_ready.append(source)
+            continue
+        urls = catalog_urls(source)
+        if not urls:
+            folder = source_marker.source_folder(source)
+            if source in explicit and os.path.isdir(folder):
+                to_run.append(source)
+            else:
+                skip_nourl.append(source)
+            continue
+        to_run.append(source)
+
+    print('autodownload: {} to fetch/prepare, {} already complete, {} manual/no URLs'.format(
+        len(to_run), len(skip_ready), len(skip_nourl)))
+    if do_shoreline:
+        if not args.force and shoreline_is_ready():
+            print('  shoreline: already ready')
+            do_shoreline = False
+        else:
+            print('  shoreline: will prepare')
+    if to_run:
+        print('  fetch: {}'.format(', '.join(to_run)))
+    if skip_ready:
+        print('  skip complete: {}'.format(', '.join(skip_ready)))
+    if skip_nourl:
+        print('  skip (no file_list URLs; ingest manually then mark-complete): {}'.format(
+            ', '.join(skip_nourl)))
+
+    if not to_run and not do_shoreline:
+        print('nothing to do')
+        return 0
+
+    if args.dry_run:
+        print('dry-run: not fetching')
+        return 0
+
+    if not confirm(
+        'Proceed? Incomplete downloads will resume; complete ones are skipped.',
+        args.yes,
+    ):
+        print('aborted')
+        return 1
+
+    failures = []
+
+    if do_shoreline:
+        print('preparing shoreline...')
+        if args.force and not args.dry_run:
+            ready = utils.store_dir('mask-store') + '/shoreline/READY'
+            if os.path.isfile(ready):
+                os.remove(ready)
+        cmd = [sys.executable, 'source_prepare_shoreline.py']
+        print('running: {}'.format(' '.join(cmd)))
+        if not args.dry_run:
+            try:
+                subprocess.check_call(cmd)
+                log.info('loaded shoreline')
+            except subprocess.CalledProcessError as e:
+                failures.append(('shoreline', str(e)))
+
+    for source in to_run:
+        print('autodownload {}...'.format(source))
+        if args.force and not args.dry_run:
+            source_marker.clear_download_marker(source)
+        try:
+            run_source_justfile(source, dry_run=args.dry_run)
+            if not args.dry_run and not source_marker.is_download_complete(source):
+                if catalog_urls(source):
+                    raise RuntimeError(
+                        '{} finished without {} - download did not complete'.format(
+                            source, source_marker.MARKER_NAME))
+                source_marker.mark_download_complete(source)
+            log.info('autodownload source', source=source)
+        except (subprocess.CalledProcessError, FileNotFoundError, RuntimeError) as e:
+            print('FAILED {}: {}'.format(source, e))
+            failures.append((source, str(e)))
+
+    if failures:
+        print('autodownload finished with {} failure(s):'.format(len(failures)))
+        for name, err in failures:
+            print('  {}: {}'.format(name, err))
+        return 1
+    print('autodownload finished')
+    return 0
+
+
+def cmd_mark_complete(args):
+    for source in args.sources:
+        folder = source_marker.source_folder(source)
+        if not os.path.isdir(folder):
+            print('skip {}: no directory {}'.format(source, folder))
+            continue
+        source_marker.mark_download_complete(source)
+        print('wrote {}'.format(source_marker.marker_path(source)))
+    return 0
+
+
 def build_parser():
     parser = argparse.ArgumentParser(
         description='Clear and load Mapterhorn source / shoreline data',
@@ -323,6 +487,7 @@ def build_parser():
     p_load.add_argument('--ocean', action='store_true')
     p_load.add_argument('--land', action='store_true')
     p_load.add_argument('--yes', '-y', action='store_true')
+    p_load.add_argument('--force', action='store_true', help='re-run even if already complete')
     p_load.add_argument('--dry-run', action='store_true')
     p_load.set_defaults(func=cmd_load)
 
@@ -346,6 +511,27 @@ def build_parser():
     p_ls.add_argument('--yes', '-y', action='store_true')
     p_ls.add_argument('--dry-run', action='store_true')
     p_ls.set_defaults(func=cmd_load_shoreline)
+
+    p_auto = sub.add_parser(
+        'autodownload',
+        help='download/prepare all (or named) sources, skipping already-complete ones',
+    )
+    p_auto.add_argument('sources', nargs='*', help='source ids (default: all catalog sources)')
+    p_auto.add_argument('--ocean', action='store_true')
+    p_auto.add_argument('--land', action='store_true')
+    p_auto.add_argument('--skip-shoreline', action='store_true')
+    p_auto.add_argument('--include-debug', action='store_true', help='include debug-* catalog sources')
+    p_auto.add_argument('--force', action='store_true', help='ignore DOWNLOAD_COMPLETE and re-fetch')
+    p_auto.add_argument('--yes', '-y', action='store_true')
+    p_auto.add_argument('--dry-run', action='store_true')
+    p_auto.set_defaults(func=cmd_autodownload)
+
+    p_mc = sub.add_parser(
+        'mark-complete',
+        help='write DOWNLOAD_COMPLETE for a manually ingested source',
+    )
+    p_mc.add_argument('sources', nargs='+', help='source ids')
+    p_mc.set_defaults(func=cmd_mark_complete)
 
     return parser
 

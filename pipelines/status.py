@@ -7,6 +7,7 @@ import shutil
 import sys
 
 import utils
+import source_marker
 
 STATUS_PATH = utils.store_dir('meta-store') + '/run-status.json'
 
@@ -93,6 +94,7 @@ def source_download_progress():
             'tif_count': len(tifs),
             'expected_urls': expected,
             'has_bounds': True,
+            'download_complete': source_marker.is_download_complete(source),
             'domain': utils.get_source_domain(source) if os.path.isdir(utils.catalog_path(source)) else None,
         }
     # Sources downloaded but without bounds yet
@@ -105,6 +107,7 @@ def source_download_progress():
             'tif_count': len(tifs),
             'expected_urls': None,
             'has_bounds': False,
+            'download_complete': source_marker.is_download_complete(source),
             'domain': utils.get_source_domain(source) if os.path.isdir(utils.catalog_path(source)) else None,
         }
     return result

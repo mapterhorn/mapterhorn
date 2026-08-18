@@ -1,6 +1,7 @@
 from glob import glob
 import sys
 from multiprocessing import Pool
+import source_marker
 import utils
 
 SILENT = False
@@ -44,6 +45,8 @@ def main():
     else:
         print('source argument missing')
         exit()
+
+    source_marker.require_download_complete(source)
     
     filepaths = []
     filepaths += glob(f'{utils.store_dir("source-store")}/{source}/*.tif')

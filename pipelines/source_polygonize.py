@@ -3,6 +3,7 @@ import os
 from multiprocessing import Pool
 import shutil
 
+import source_marker
 import utils
 
 SILENT = False
@@ -57,6 +58,7 @@ def main():
     else:
         print('Not enough arguments. Usage: source_polygonize.py {{source}} {{processes}}')
         exit()
+    source_marker.require_download_complete(source)
     polygonize_source(source, processes)
     merge_source(source)
     shutil.rmtree(f'{utils.store_dir("polygon-store")}/{source}')

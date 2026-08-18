@@ -3,6 +3,7 @@ from glob import glob
 import os
 import sys
 
+import source_marker
 import utils
 
 def find_netcdf(source):
@@ -53,6 +54,7 @@ def main():
         print('usage: source_bathdnn_convert.py <source>')
         exit(1)
     source = sys.argv[1]
+    source_marker.require_download_complete(source)
     convert(source)
 
 

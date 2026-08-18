@@ -3,6 +3,7 @@ from glob import glob
 import os
 import sys
 
+import source_marker
 import utils
 
 def extract_band(source):
@@ -37,6 +38,7 @@ def main():
     if len(sys.argv) < 2:
         print('usage: source_bluetopo_extract.py <source>')
         exit(1)
+    source_marker.require_download_complete(sys.argv[1])
     extract_band(sys.argv[1])
 
 

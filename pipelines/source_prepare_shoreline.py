@@ -18,9 +18,6 @@ OVERVIEW_PIXEL_SIZE_3857 = 3000.0
 
 
 def download_file(url, dest):
-    if os.path.isfile(dest) and os.path.getsize(dest) > 0:
-        print('already have {}'.format(dest))
-        return
     utils.create_folder(os.path.dirname(dest))
     print('downloading {}...'.format(url))
     utils.wget_download(url, dest=dest)
@@ -139,6 +136,9 @@ def main():
         print('shoreline mask already prepared at {}'.format(land_3857))
         return
 
+    if os.path.isfile(ready_marker):
+        os.remove(ready_marker)
+
     print('preparing shoreline vectors...')
     s2_shp, gshhg_shp = prepare_vectors()
     print('S2Coast:', s2_shp)
@@ -146,8 +146,12 @@ def main():
     build_combined_land_gpkg(s2_shp, gshhg_shp, land_4326, land_3857)
     print('building coarse shoreline overview (~3 km)...')
     build_coarse_overview(land_3857, overview_tif, overview_vrt)
-    with open(ready_marker, 'w') as f:
+    tmp_ready = ready_marker + '.tmp'
+    with open(tmp_ready, 'w') as f:
         f.write('land_3857={}\n'.format(land_3857))
+        f.flush()
+        os.fsync(f.fileno())
+    os.replace(tmp_ready, ready_marker)
     print('done: {}'.format(land_3857))
 
 

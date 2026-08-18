@@ -5,6 +5,7 @@ import time
 from pathlib import Path
 import time
 from concurrent.futures import ThreadPoolExecutor
+import source_marker
 import utils
 
 def get_folder_size(path):
@@ -77,8 +78,12 @@ def main():
             sources = []
             filenames = []
             target_filepaths = []
+            incomplete = set()
             for line in lines:
                 source, filename, _ = line.split(',')
+                if not source_marker.is_download_complete(source):
+                    incomplete.add(source)
+                    continue
                 target_folder = f'{utils.store_dir("tmp-store")}/source/{source}'
                 target_filepath = f'{target_folder}/{filename}'
                 last_access[target_filepath] = iteration
@@ -88,6 +93,15 @@ def main():
                 sources.append(source)
                 filenames.append(filename)
                 target_filepaths.append(target_filepath)
+
+            if incomplete:
+                raise RuntimeError(
+                    'refusing to stage incomplete source(s): {}. '
+                    'Run: just manage autodownload {}'.format(
+                        ', '.join(sorted(incomplete)),
+                        ' '.join(sorted(incomplete)),
+                    )
+                )
 
             print(f'Start copying {len(filenames)} files...')
             with ThreadPoolExecutor(max_workers=8) as executor:

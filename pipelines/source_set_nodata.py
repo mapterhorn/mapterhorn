@@ -4,6 +4,7 @@ from multiprocessing import Pool
 
 import rasterio
 
+import source_marker
 import utils
 
 def set_nodata(filepath, nodata):
@@ -30,6 +31,8 @@ def main():
     else:
         print('arguments missing, usage: python source_set_nodata.py {{source}} {{nodata}} [--force] [--dry-run]')
         exit()
+
+    source_marker.require_download_complete(source)
         
     filepaths = sorted(glob(f'{utils.store_dir("source-store")}/{source}/*'))
 

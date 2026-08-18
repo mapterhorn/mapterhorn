@@ -1,6 +1,7 @@
 import utils
 from glob import glob
 import os
+import source_marker
 
 def main():
     aggregation_ids = utils.get_aggregation_ids()
@@ -43,6 +44,12 @@ def main():
             print('  bounds OK')
         else:
             print('  bounds MISSING')
+            print('\naborting...')
+            exit()
+        if source_marker.is_download_complete(source):
+            print('  download complete')
+        else:
+            print('  download INCOMPLETE (missing {})'.format(source_marker.MARKER_NAME))
             print('\naborting...')
             exit()
         print()

@@ -131,7 +131,8 @@ def run_command(command, silent=True, env=None, stream=False):
     return out, err
 
 def wget_download(url, dest=None, cwd=None):
-    # Live progress bar; --continue resumes partial downloads
+    # Live progress bar; --continue resumes partial downloads.
+    # Raises if wget fails so callers never mark a download complete.
     parts = ['wget', '--continue', '--progress=bar:force']
     if dest is not None:
         parts.extend(['-O', '"{}"'.format(dest)])
@@ -139,7 +140,10 @@ def wget_download(url, dest=None, cwd=None):
     command = ' '.join(parts)
     if cwd:
         command = 'cd {} && {}'.format(cwd, command)
-    return run_command(command, silent=False, stream=True)
+    out, err = run_command(command, silent=False, stream=True)
+    if err:
+        raise RuntimeError('wget failed for {}: {}'.format(url, err))
+    return out, err
 
 def create_folder(path):
     folder_path = Path(path)

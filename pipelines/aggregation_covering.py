@@ -3,6 +3,7 @@ from glob import glob
 import mercantile
 from ulid import ULID
 
+import source_marker
 import utils
 
 def get_mercator_resolutions(minzoom, maxzoom):
@@ -55,7 +56,11 @@ def get_macrotile_map():
     mercator_resolutions = get_mercator_resolutions(0, 32)
     for filepath in filepaths:
         print(f'reading {filepath}...')
-        source = filepath.split('/')[1]
+        source = filepath.split('/')[-2]
+        if not source_marker.is_download_complete(source):
+            print('skipping {} - download incomplete (missing {})'.format(
+                source, source_marker.MARKER_NAME))
+            continue
         with open(filepath) as f:
             f.readline() # skip header
             line = f.readline().strip()

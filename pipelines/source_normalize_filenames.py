@@ -2,6 +2,7 @@ from glob import glob
 import sys
 import shutil
 import os
+import source_marker
 import utils
 
 def normalize_filename(filename):
@@ -43,6 +44,8 @@ def main():
     else:
         print('source argument missing...')
         exit()
+
+    source_marker.require_download_complete(source)
     
     filepaths = sorted(glob(utils.store_dir('source-store') + '/{}/*'.format(source)))
 
@@ -50,7 +53,7 @@ def main():
         if os.path.isdir(filepath):
             continue
         filename = filepath.split('/')[-1]
-        if filename == 'bounds.csv':
+        if filename == 'bounds.csv' or source_marker.is_marker_filename(filename):
             continue
         normalized_filename = normalize_filename(filename)
         normalized_filepath = utils.store_dir('source-store') + '/{}/{}'.format(source, normalized_filename)

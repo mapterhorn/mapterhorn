@@ -8,37 +8,63 @@ Mapterhorn has four main pipelines that run in sequence: Source, Aggregation, Do
 
 ## Quick start (operator)
 
-All commands below are run from `pipelines/`.
+All commands below are run from `pipelines/`. Type `just` for the cheat sheet.
+
+There are **two phases**. Several recipes overlap; you only need the ones in this path.
 
 ```bash
 uv sync
-just preflight          # tools, disk, shoreline, land/ocean sources
-just shoreline          # build mask-store/shoreline vectors (once)
-just sources SOURCES="gebco emodnet"   # prepare catalog sources
-just manage list                       # what's loaded vs catalog
-just manage reload gebco -y            # clear stale data + re-download/prep
-just covering
+just storage
+just manage autodownload -y    # phase 1: sources + shoreline (skip complete, resume partial)
+just covering                  # phase 2: plan tiles
 # terminal A:
-just downloader
+just downloader                # copy rasters into tmp-store as aggregate asks for them
 # terminal B:
 just aggregate
 just downsample
 just bundle VERSION=1
-just status             # progress, ETA, failures
-just retry-failed       # requeue *.csv.failed -> *.todo
 ```
 
-Or run the resumable full sequence (starts downloader in the background):
+After sources are already on disk, `just all VERSION=1` runs covering through bundle (it starts the downloader in the background). It does **not** download sources.
 
-```bash
-just all VERSION=1
-```
+`just status` / `just retry-failed` / `just preflight` are watch/recover tools, not extra stages.
 
 Progress is written to `meta-store/run-status.json` and `meta-store/logs/{run_id}.log`. Failed items become `*.csv.failed` without aborting the whole worker pool (set `MAPTERHORN_ABORT_ON_WORKER_FAILURE=1` for legacy abort-all behavior).
 
+### Just commands
+
+| Command | What it actually does |
+|---|---|
+| `just storage` | Print which disk each store directory is on. |
+| `just manage autodownload -y` | **The source command.** Download + unzip/bounds for every catalog source that has URLs, plus shoreline. Skips `DOWNLOAD_COMPLETE`. Resume partial files with wget. |
+| `just manage list` | Table of catalog vs disk. `DL=yes` means the source is fully downloaded. |
+| `just covering` | Read complete sources' `bounds.csv` and write the aggregation/downsampling work queues. |
+| `just downloader` | Long-running loop: copy (or symlink) rasters from `source-store` into `tmp-store` as aggregate requests them. Run in its own terminal. |
+| `just aggregate` | Merge staged rasters into terrain tiles. Needs the downloader running. |
+| `just downsample` | Build lower zoom levels from aggregation output. |
+| `just bundle VERSION=1` | Pack tiles into PMTiles + attribution/download URL files. |
+| `just all VERSION=1` | covering + background downloader + aggregate + downsample + bundle. **Does not download sources.** |
+| `just status` | Print `meta-store/run-status.json` (progress, ETA, failures). |
+| `just retry-failed` | Turn `*.csv.failed` back into `*.todo`. |
+| `just preflight` | Check GDAL/wget/disk/shoreline/at least one complete land source. |
+| `just upload` | Push finished PMTiles (after bundle). |
+
+Aliases you can ignore unless you need them:
+
+| Command | Same as |
+|---|---|
+| `just shoreline` | Shoreline half of autodownload (`manage load-shoreline`) |
+| `just sources SOURCES='gebco'` | `just manage load gebco` (default `SOURCES` is only `gebco`) |
+| `just manage load NAME` | Autodownload one named source |
+| `just manage reload NAME -y` | Delete that source, then download it again |
+| `just manage clear NAME -y` | Delete only |
+| `just manage mark-complete NAME` | After a manual FTP drop (UK England, Japan DEM, …) |
+
+`just manage autodownload gebco -y` / `--ocean` / `--land` / `--dry-run` / `--force` limit or re-do autodownload.
+
 ### Bathymetry-specific steps
 
-1. Prepare the shoreline mask (`just shoreline` / `source_prepare_shoreline.py`).
+1. Shoreline mask is built by autodownload (or `just shoreline`).
 2. Prepare ocean sources (`gebco`, `emodnet`, `bluetopo`, …) with `"domain": "ocean"` in their `metadata.json`.
 3. Aggregation masks land vs ocean **after** each reproject and **before** the early-exit “fully filled” check, so land DEMs that encode ocean as `0` do not block bathymetry.
 4. Web Mercator bounds are clamped to ±85.051° so polar GEBCO tiles do not explode `bounds.csv`.
@@ -53,9 +79,9 @@ bash debug.sh
 
 The source pipeline has multiple parts that are needed to bring source files into a normalized file format.
 
-`source_download.py`: Downloads files from URLs in `file_list.txt` file to the folder `source-store/{source}`
+`source_download.py`: Downloads files from URLs in `file_list.txt` to `source-store/{source}`. Writes `DOWNLOAD_COMPLETE` only after every URL succeeds. Interrupted runs leave that marker absent; `wget --continue` resumes partial files. If the marker is already present, the download is skipped.
 
-`source_unzip.py`: If a source contains ZIP files, this script can be used to unpack them.
+`source_unzip.py`: If a source contains ZIP files, this script can be used to unpack them. Requires `DOWNLOAD_COMPLETE`.
 
 `source_to_cog.py`: Use this script to make sure that all files are LERC compressed and tiled internally. Note that this is a bit of a mis-nomer because it does not actually create COGs since no overviews are added to the GeoTIFFs.
 
@@ -79,20 +105,22 @@ The source pipeline has multiple parts that are needed to bring source files int
 
 `source_remove_tifs.py`: Use this to delete the tifs from a `source-store/{source}` folder. The bounds.csv file will not be deleted.
 
-`source_manage.py`: Clear and load source / shoreline data. Prefer this when replacing a product (e.g. GEBCO 2025 → 2026):
+`source_manage.py`: Clear, load, and autodownload source / shoreline data.
 
 ```bash
 uv run python source_manage.py list
+uv run python source_manage.py autodownload --yes          # all sources; skip complete; resume partial
+uv run python source_manage.py autodownload gebco --yes
+uv run python source_manage.py mark-complete ukengland     # after a manual FTP drop
 uv run python source_manage.py clear gebco --yes
-uv run python source_manage.py load gebco --yes
-# or in one step:
-uv run python source_manage.py reload gebco --yes
+uv run python source_manage.py load gebco --yes            # skips already-complete sources
+uv run python source_manage.py reload gebco --yes          # clear then load
 uv run python source_manage.py reload --ocean --yes
 uv run python source_manage.py clear-shoreline --yes
 uv run python source_manage.py load-shoreline --force --yes
 ```
 
-Also available as `just manage ...`. Clear removes `source-store/{source}` plus polygon/tar/meta unless `--keep-derived`. Load runs the source's catalog Justfile.
+Also available as `just manage ...`. Complete downloads are marked with `source-store/{source}/DOWNLOAD_COMPLETE` (written only after every URL succeeds). Covering and the downloader ignore sources without that marker so half-downloaded data is never aggregated. Clear removes `source-store/{source}` plus polygon/tar/meta unless `--keep-derived`. Load/autodownload run the source's catalog Justfile.
 
 
 `source_create_tarball.py`: Required script. Creates a tarball in `tar-store/{source}.tar`. Metadata is stored in `meta-store/tar/{source}.json`. Tarball will be needed in the upload stage.

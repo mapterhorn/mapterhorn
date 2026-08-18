@@ -1,6 +1,7 @@
 from glob import glob
 import sys
 
+import source_marker
 import utils
 
 from multiprocessing import Pool
@@ -18,6 +19,8 @@ def main():
     else:
         print('source argument missing...')
         exit()
+
+    source_marker.require_download_complete(source)
     
     filepaths = sorted(glob(f'{utils.store_dir("source-store")}/{source}/*'))
 

@@ -27,6 +27,8 @@ sources:
 
 # Clear / load / reload source data
 #   just manage list
+#   just manage autodownload -y
+#   just manage autodownload gebco emodnet -y
 #   just manage clear gebco -y
 #   just manage reload gebco -y
 #   just manage reload --ocean -y
@@ -84,17 +86,30 @@ upload:
 
 # Default: print help
 default:
-    @echo "Mapterhorn pipeline commands:"
-    @echo "  just preflight       # check tools, disk, shoreline, sources"
-    @echo "  just shoreline       # build land/ocean mask"
-    @echo "  just sources SOURCES='gebco emodnet'  # prepare catalog sources"
-    @echo "  just manage list|clear|load|reload ...  # clear/load source data"
-    @echo "  just storage         # which disk each store is on"
-    @echo "  just covering        # plan aggregation + downsampling"
-    @echo "  just downloader      # stage source files (separate terminal)"
-    @echo "  just aggregate       # run aggregation"
-    @echo "  just downsample      # run downsampling"
-    @echo "  just bundle VERSION=1"
-    @echo "  just status          # progress / ETA / failures"
-    @echo "  just retry-failed    # requeue .failed items"
-    @echo "  just all VERSION=1   # covering -> aggregate -> downsample -> bundle"
+    @echo "Run from pipelines/. Two phases: get data, then build tiles."
+    @echo ""
+    @echo "1) Get data (once, resumable):"
+    @echo "     just storage"
+    @echo "     just manage autodownload -y      # download + prep all sources + shoreline"
+    @echo "     just manage list                 # DL=yes means that source is safe to use"
+    @echo ""
+    @echo "2) Build tiles:"
+    @echo "     just covering                    # plan which tiles to make"
+    @echo "     just downloader                  # terminal A: copy rasters into tmp-store"
+    @echo "     just aggregate                   # terminal B: merge sources into tiles"
+    @echo "     just downsample"
+    @echo "     just bundle VERSION=1"
+    @echo ""
+    @echo "Or after data is ready:  just all VERSION=1"
+    @echo "  (covering + downloader + aggregate + downsample + bundle; does NOT download)"
+    @echo ""
+    @echo "Watch / recover:"
+    @echo "     just status          just retry-failed          just preflight"
+    @echo ""
+    @echo "Same job, different names (usually skip these):"
+    @echo "     just shoreline              = shoreline step of autodownload"
+    @echo "     just sources SOURCES='x y'  = just manage load x y"
+    @echo "     just manage load NAME       = autodownload one named source"
+    @echo "     just manage reload NAME -y  = delete that source, then download again"
+    @echo "     just manage clear NAME -y   = delete only"
+    @echo "     just upload                 = push finished PMTiles (after bundle)"

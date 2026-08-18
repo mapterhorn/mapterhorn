@@ -3,7 +3,9 @@ from urllib.parse import parse_qs, urlparse
 import os
 import sys
 
+import source_marker
 import utils
+
 
 def filename_from_url(url):
     qs = parse_qs(urlparse(url).query)
@@ -14,25 +16,36 @@ def filename_from_url(url):
     return 'gmrt_{}_{}_{}_{}.tif'.format(minlat, maxlat, minlon, maxlon)
 
 
-def download(source):
-    list_path = utils.catalog_path(source, 'file_list.txt')
+def catalog_urls(source):
     urls = []
+    list_path = utils.catalog_path(source, 'file_list.txt')
     with open(list_path) as f:
         for line in f:
             line = line.strip()
             if not line or line.startswith('#'):
                 continue
             urls.append(line)
+    return urls
 
-    out_dir = utils.store_dir('source-store') + '/{}'.format(source)
-    utils.create_folder(out_dir)
+
+def download(source):
+    if source_marker.is_download_complete(source):
+        print('{} already downloaded ({}), skipping'.format(source, source_marker.MARKER_NAME))
+        return
+
+    urls = catalog_urls(source)
+    if len(urls) == 0:
+        print('no download URLs in file_list.txt for {}'.format(source))
+        return
+
+    source_marker.begin_download(source)
+    out_dir = source_marker.source_folder(source)
     print('downloading {} GMRT tiles...'.format(len(urls)))
     for i, url in enumerate(urls):
         dest = '{}/{}'.format(out_dir, filename_from_url(url))
-        if os.path.isfile(dest) and os.path.getsize(dest) > 0:
-            continue
         print('[{}/{}] {}'.format(i + 1, len(urls), dest))
         utils.wget_download(url, dest=dest)
+    source_marker.mark_download_complete(source)
     print('done')
 
 

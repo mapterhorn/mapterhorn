@@ -5,6 +5,7 @@ import shutil
 import sys
 
 import utils
+import source_marker
 
 MIN_FREE_GB = float(os.environ.get('MAPTERHORN_MIN_FREE_GB', '50'))
 
@@ -63,8 +64,12 @@ def main():
 
     land_bounds = []
     ocean_bounds = []
+    incomplete = []
     for path in glob(utils.store_path('source-store', '*', 'bounds.csv', create=False)):
         source = path.split('/')[-2]
+        if not source_marker.is_download_complete(source):
+            incomplete.append(source)
+            continue
         domain = utils.get_source_domain(source)
         if domain == 'land':
             land_bounds.append(source)
@@ -73,6 +78,9 @@ def main():
         elif domain == 'both':
             land_bounds.append(source)
             ocean_bounds.append(source)
+
+    if incomplete:
+        print('[WARN] incomplete downloads (ignored): {}'.format(', '.join(incomplete)))
 
     ok &= check('land source bounds', len(land_bounds) > 0, ', '.join(land_bounds[:5]) or 'none')
     if len(ocean_bounds) == 0:

@@ -5,6 +5,7 @@ import math
 import rasterio
 from rasterio.warp import transform_bounds
 
+import source_marker
 import utils
 
 def main():
@@ -15,6 +16,8 @@ def main():
     else:
         print('source argument missing...')
         exit()
+
+    source_marker.require_download_complete(source)
     
     filepaths = sorted(glob(utils.store_dir('source-store') + '/{}/*.tif'.format(source)))
 

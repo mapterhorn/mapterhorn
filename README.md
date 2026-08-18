@@ -19,24 +19,24 @@ Public terrain **and** bathymetry tiles for interactive web map visualizations. 
 
 ## Run the pipeline
 
+From `pipelines/` (`just` with no args prints this cheat sheet):
+
 ```bash
 cd pipelines
 uv sync
-just preflight
-just shoreline
-just manage list
-just manage reload gebco -y    # clear stale source-store data and re-prep
-just sources SOURCES="glo30 gebco emodnet"
-just covering
-# separate terminals:
-just downloader
+just storage                       # confirm data disks
+just manage autodownload -y        # download + prep sources (resumable; skip complete)
+just covering                      # plan tiles
+# two terminals:
+just downloader                    # copy rasters into tmp as aggregate needs them
 just aggregate
 just downsample
 just bundle VERSION=1
-just status
 ```
 
-See [pipelines/README.md](pipelines/README.md) for stage details, hardware notes, and bathymetry behavior. See [source-catalog/README.md](source-catalog/README.md) for how to add sources and the land/ocean merge rules.
+`just all VERSION=1` is covering through bundle. It does **not** download sources.
+
+See [pipelines/README.md](pipelines/README.md) for what each `just` command does, hardware notes, and bathymetry behavior. See [source-catalog/README.md](source-catalog/README.md) for how to add sources.
 
 ## Requirements
 

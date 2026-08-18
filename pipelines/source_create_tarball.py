@@ -4,6 +4,7 @@ import tarfile
 import os
 import json
 
+import source_marker
 import utils
 
 def main():
@@ -14,6 +15,8 @@ def main():
     else:
         print('Not enough arguments. Usage: source_create_tarball.py {{source}}')
         exit()
+
+    source_marker.require_download_complete(source)
 
     utils.create_folder(utils.store_dir('tar-store') + '/')
     checksum = None

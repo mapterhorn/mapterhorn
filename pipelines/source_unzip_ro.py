@@ -3,12 +3,14 @@ import zipfile
 import shutil
 import os
 
+import source_marker
 import utils
 
 SILENT = False
 
 def main():
     source = 'ro'
+    source_marker.require_download_complete(source)
     
     filepaths = sorted(glob(f'source-store/{source}/*'))
 
