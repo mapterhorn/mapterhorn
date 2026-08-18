@@ -10,47 +10,65 @@ import utils
 
 SILENT = False
 
+
+def extract_dir(filepath):
+    return filepath + '-tmp'
+
+
 def unzip(filepath, source):
-    filename = filepath.split('/')[-1]
-    utils.run_command(f'unzip -o "{filepath}" -d utils.store_dir("source-store") + "/{source}/{filename}-tmp/"', silent=SILENT)
-    utils.run_command(f'rm "{filepath}"', silent=False)
+    dest = extract_dir(filepath)
+    utils.create_folder(dest)
+    utils.run_command('unzip -o "{}" -d "{}"'.format(filepath, dest), silent=SILENT)
+    utils.run_command('rm "{}"'.format(filepath), silent=False)
+
 
 def un7z(filepath, source):
-    filename = filepath.split('/')[-1]
-    utils.run_command(f'7z x -osource-store/{source}/{filename}-tmp/ "{filepath}"', silent=SILENT)
-    filepaths_to_remove = None
+    dest = extract_dir(filepath)
+    utils.create_folder(dest)
+    utils.run_command('7z x -o"{}" "{}"'.format(dest, filepath), silent=SILENT)
     if filepath.endswith('.7z'):
         filepaths_to_remove = [filepath]
     else:
         # filepath ends with '.7z.001'
-        filepaths_to_remove = [path for path in glob(filepath.replace('.7z.001', '.7z.*')) if not path.endswith('-tmp')]
+        filepaths_to_remove = [
+            path for path in glob(filepath.replace('.7z.001', '.7z.*'))
+            if not path.endswith('-tmp')
+        ]
     for filepath_to_remove in filepaths_to_remove:
-        utils.run_command(f'rm "{filepath_to_remove}"', silent=SILENT)
+        utils.run_command('rm "{}"'.format(filepath_to_remove), silent=SILENT)
+
 
 def translate_image(filepath_in, filepath_out, j, total):
     if j % 1000 == 0:
-        print(f'{j} / {total}')
-    utils.run_command(f'gdal_translate -of COG -co BLOCKSIZE=512 -co OVERVIEWS=NONE -co SPARSE_OK=YES -co BIGTIFF=YES -co COMPRESS=LERC -co MAX_Z_ERROR=0.001 "{filepath_in}" "{filepath_out}"', silent=True)
+        print('{} / {}'.format(j, total))
+    utils.run_command(
+        'gdal_translate -of COG -co BLOCKSIZE=512 -co OVERVIEWS=NONE -co SPARSE_OK=YES '
+        '-co BIGTIFF=YES -co COMPRESS=LERC -co MAX_Z_ERROR=0.001 "{}" "{}"'.format(
+            filepath_in, filepath_out),
+        silent=True,
+    )
+
 
 def translate_images(filepath, source, suffix):
-    print(f'translate .{suffix} images...')
-    # suffix = 'asc' or 'tif' u.s.w. (without dot)
-    image_filepaths = glob(f'{filepath}-tmp/**/*.{suffix}', recursive=True)
-    
+    print('translate .{} images...'.format(suffix))
+    image_filepaths = glob('{}-tmp/**/*.{}'.format(filepath, suffix), recursive=True)
+
     argument_tuples = []
     j = 0
     for image_filepath in image_filepaths:
         image_filename = image_filepath.split('/')[-1]
-
-        filepath_in = image_filepath
-        filepath_out = f'{utils.store_dir("source-store")}/{source}/{image_filename}'
+        filepath_out = '{}/{}/{}'.format(
+            utils.store_dir('source-store'), source, image_filename)
         suffix_length = len(suffix)
         filepath_out = filepath_out[:-suffix_length] + 'tif'
-        argument_tuples.append((filepath_in, filepath_out, j, len(image_filepaths)))
+        argument_tuples.append((image_filepath, filepath_out, j, len(image_filepaths)))
         j += 1
 
+    if not argument_tuples:
+        return
     with Pool() as pool:
         pool.starmap(translate_image, argument_tuples, chunksize=1)
+
 
 def is_7z_head_file(filepath):
     return filepath.endswith('.7z') or filepath.endswith('.7z.001')
@@ -60,15 +78,16 @@ def main():
     source = None
     if len(sys.argv) > 1:
         source = sys.argv[1]
-        print(f'unzipping {source}...')
+        print('unzipping {}...'.format(source))
     else:
         print('source argument missing...')
         exit()
 
     source_marker.require_download_complete(source)
     source_marker.begin_extract(source)
-    
-    filepaths = sorted(glob(f'{utils.store_dir("source-store")}/{source}/*'))
+
+    folder = utils.store_dir('source-store') + '/{}'.format(source)
+    filepaths = sorted(glob('{}/*'.format(folder)))
 
     for filepath in filepaths:
         if zipfile.is_zipfile(filepath):
@@ -85,10 +104,11 @@ def main():
         translate_images(filepath, source, 'xyz')
         translate_images(filepath, source, 'grd')
         translate_images(filepath, source, 'img')
-        
-        tmpdir = f'{filepath}-tmp'
+
+        tmpdir = extract_dir(filepath)
         if os.path.isdir(tmpdir):
             shutil.rmtree(tmpdir)
+
 
 if __name__ == '__main__':
     main()

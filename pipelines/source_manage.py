@@ -16,7 +16,7 @@ import shutil
 import subprocess
 import sys
 import threading
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 from glob import glob
 
 import utils
@@ -25,6 +25,12 @@ import source_marker
 from source_download import catalog_urls
 
 CATALOG_ROOT = utils.catalog_root()
+PIPELINES_DIR = os.path.dirname(os.path.abspath(__file__))
+DOWNLOAD_RECIPE_NEEDLES = (
+    'source_download.py',
+    'source_gmrt_download.py',
+    'create_file_list.py',
+)
 
 
 def catalog_sources():
@@ -237,18 +243,70 @@ def emit(stage, source, text):
 
 def run_prefixed(cmd, stage, source):
     emit(stage, source, 'running: {}'.format(' '.join(cmd)))
+    env = os.environ.copy()
+    env['PYTHONUNBUFFERED'] = '1'
+    env['UV_NO_SYNC'] = '1'
     p = subprocess.Popen(
         cmd,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
-        text=True,
-        bufsize=1,
+        cwd=PIPELINES_DIR,
+        env=env,
+        bufsize=0,
     )
-    for line in p.stdout:
-        emit(stage, source, line)
+    buf = b''
+    while True:
+        chunk = p.stdout.read(4096)
+        if not chunk:
+            break
+        buf += chunk
+        text = buf.decode('utf-8', errors='replace').replace('\r', '\n')
+        lines = text.split('\n')
+        buf = lines[-1].encode('utf-8')
+        for line in lines[:-1]:
+            emit(stage, source, line)
+    if buf:
+        emit(stage, source, buf.decode('utf-8', errors='replace'))
     code = p.wait()
     if code != 0:
         raise subprocess.CalledProcessError(code, cmd)
+
+
+def py_cmd(*args):
+    return [sys.executable] + list(args)
+
+
+def justfile_recipe_lines(source):
+    just_path = '{}/{}/Justfile'.format(CATALOG_ROOT, source)
+    if not os.path.isfile(just_path):
+        raise FileNotFoundError('missing Justfile for source {}'.format(source))
+    lines = []
+    with open(just_path) as f:
+        for raw in f:
+            line = raw.strip()
+            if not line or line.startswith('#') or line.startswith('['):
+                continue
+            if line.endswith(':') and ' ' not in line:
+                continue
+            if ' #' in line:
+                line = line.split(' #', 1)[0].rstrip()
+            lines.append(line)
+    return lines
+
+
+def is_download_recipe_line(line):
+    return any(needle in line for needle in DOWNLOAD_RECIPE_NEEDLES)
+
+
+def recipe_line_to_cmd(line):
+    store = utils.store_dir('source-store').rstrip('/') + '/'
+    line = line.replace('source-store/', store)
+    parts = line.split()
+    if len(parts) >= 4 and parts[:3] == ['uv', 'run', 'python']:
+        return py_cmd(*parts[3:])
+    if len(parts) >= 2 and parts[0] == 'python':
+        return py_cmd(*parts[1:])
+    return ['bash', '-lc', line]
 
 
 def source_download_cmd(source):
@@ -258,9 +316,9 @@ def source_download_cmd(source):
         with open(just_path) as f:
             text = f.read()
     if 'source_gmrt_download.py' in text:
-        return ['uv', 'run', 'python', 'source_gmrt_download.py', source]
+        return py_cmd('source_gmrt_download.py', source)
     if 'source_download.py' in text or catalog_urls(source):
-        return ['uv', 'run', 'python', 'source_download.py', source]
+        return py_cmd('source_download.py', source)
     return None
 
 
@@ -285,11 +343,15 @@ def autodownload_one_download(source, force):
 
 
 def autodownload_one_prep(source):
-    catalog_just = '{}/{}/Justfile'.format(CATALOG_ROOT, source)
-    if not os.path.isfile(catalog_just):
-        raise FileNotFoundError('missing Justfile for source {}'.format(source))
-    cmd = ['just', '{}/{}/'.format(CATALOG_ROOT, source)]
-    run_prefixed(cmd, 'prep', source)
+    cmds = [
+        recipe_line_to_cmd(line)
+        for line in justfile_recipe_lines(source)
+        if not is_download_recipe_line(line)
+    ]
+    if not cmds:
+        emit('prep', source, 'no unzip/bounds steps in Justfile')
+    for cmd in cmds:
+        run_prefixed(cmd, 'prep', source)
     if not source_marker.is_download_complete(source):
         if catalog_urls(source):
             raise RuntimeError(
@@ -506,6 +568,8 @@ def cmd_autodownload(args):
 
     if args.jobs > 1:
         os.environ['MAPTERHORN_WGET_QUIET'] = '1'
+    os.environ['UV_NO_SYNC'] = '1'
+    os.environ['PYTHONUNBUFFERED'] = '1'
 
     failures = []
     download_jobs = max(1, args.jobs)
@@ -515,36 +579,46 @@ def cmd_autodownload(args):
         print('FAILED {}: {}'.format(name, err), flush=True)
         failures.append((name, str(err)))
 
+    already_dl = []
+    need_dl = []
+    for source in to_run:
+        if source_marker.is_download_complete(source) and not args.force:
+            already_dl.append(source)
+        else:
+            need_dl.append(source)
+    need_dl.sort(key=lambda name: (len(catalog_urls(name)), name))
+
     print('autodownload workers: download={} prep={}'.format(download_jobs, prep_jobs))
+    print('  prep immediately (download already done): {}'.format(len(already_dl)))
+    print('  download first (small file lists first): {}'.format(len(need_dl)))
 
     with ThreadPoolExecutor(max_workers=download_jobs) as download_ex, \
             ThreadPoolExecutor(max_workers=prep_jobs) as prep_ex:
-        prep_futs = {}
+        pending = {}
+
+        def submit_prep(name, fn, *fn_args):
+            fut = prep_ex.submit(fn, *fn_args)
+            pending[fut] = ('prep', name)
+
         if do_shoreline:
-            prep_futs[prep_ex.submit(autodownload_shoreline, args.force)] = 'shoreline'
+            submit_prep('shoreline', autodownload_shoreline, args.force)
+        for source in already_dl:
+            submit_prep(source, autodownload_one_prep, source)
+        for source in need_dl:
+            fut = download_ex.submit(autodownload_one_download, source, args.force)
+            pending[fut] = ('download', source)
 
-        download_futs = {}
-        for source in to_run:
-            if source_marker.is_download_complete(source) and not args.force:
-                prep_futs[prep_ex.submit(autodownload_one_prep, source)] = source
-            else:
-                download_futs[download_ex.submit(
-                    autodownload_one_download, source, args.force)] = source
-
-        for fut in as_completed(download_futs):
-            source = download_futs[fut]
-            try:
-                fut.result()
-                prep_futs[prep_ex.submit(autodownload_one_prep, source)] = source
-            except Exception as e:
-                record_failure(source, e)
-
-        for fut in as_completed(prep_futs):
-            name = prep_futs[fut]
-            try:
-                fut.result()
-            except Exception as e:
-                record_failure(name, e)
+        while pending:
+            done, _ = wait(list(pending), return_when=FIRST_COMPLETED)
+            for fut in done:
+                kind, name = pending.pop(fut)
+                try:
+                    fut.result()
+                except Exception as e:
+                    record_failure(name, e)
+                    continue
+                if kind == 'download':
+                    submit_prep(name, autodownload_one_prep, name)
 
     if failures:
         print('autodownload finished with {} failure(s):'.format(len(failures)))

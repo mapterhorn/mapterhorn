@@ -36,7 +36,7 @@ Progress is written to `meta-store/run-status.json` and `meta-store/logs/{run_id
 | Command | What it actually does |
 |---|---|
 | `just storage` | Print which disk each store directory is on. |
-| `just manage autodownload -y` | **The source command.** Up to 32 sources wget at once (`--jobs`). As each download finishes, unzip/bounds/tarball start on a separate pool (`--prep-jobs`, default 8). Skips `READY`. |
+| `just manage autodownload -y` | **The source command.** Up to 32 sources wget at once (`--jobs`). Sources with `DOWNLOAD_COMPLETE` start unzip/bounds immediately on a separate pool (`--prep-jobs`, default 8); others feed that pool as wget finishes. Workers call the venv Python directly (no nested `uv run` / `just`). Skips `READY`. |
 | `just manage list` | Table of catalog vs disk. `DL=yes` = files fetched. `READY=yes` = unzip/prep finished; only then is the source usable. |
 | `just covering` | Read complete sources' `bounds.csv` and write the aggregation/downsampling work queues. |
 | `just downloader` | Long-running loop: copy (or symlink) rasters from `source-store` into `tmp-store` as aggregate requests them. Run in its own terminal. |
@@ -120,7 +120,7 @@ uv run python source_manage.py clear-shoreline --yes
 uv run python source_manage.py load-shoreline --force --yes
 ```
 
-Also available as `just manage ...`. Two markers in `source-store/{source}/`: `DOWNLOAD_COMPLETE` after wget finishes, `READY` only after the catalog Justfile finishes (unzip, cog, bounds, tarball). Covering and the downloader require `READY`, so a source that is still extracting is never aggregated. Clear removes `source-store/{source}` plus polygon/tar/meta unless `--keep-derived`. Load/autodownload run the source's catalog Justfile.
+Also available as `just manage ...`. Two markers in `source-store/{source}/`: `DOWNLOAD_COMPLETE` after wget finishes, `READY` only after unzip/cog/bounds/tarball finish. Covering and the downloader require `READY`, so a source that is still extracting is never aggregated. Clear removes `source-store/{source}` plus polygon/tar/meta unless `--keep-derived`. Load runs the catalog Justfile; autodownload runs the same steps but overlaps unzip with other sources' downloads.
 
 
 `source_create_tarball.py`: Required script. Creates a tarball in `tar-store/{source}.tar`. Metadata is stored in `meta-store/tar/{source}.json`. Tarball will be needed in the upload stage.

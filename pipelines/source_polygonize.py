@@ -9,9 +9,19 @@ import utils
 SILENT = False
 
 def polygonize_tif(source, filename):
-    mask_filepath = f'{utils.store_dir("polygon-store")}/{source}/{filename}'
-    utils.run_command(f'GDAL_CACHEMAX=1024 gdal_calc.py -A source-store/{source}/{filename} --outfile={mask_filepath} --calc="A*0+1" --type=Byte --overwrite', silent=SILENT)
-    utils.run_command(f'GDAL_CACHEMAX=1024 gdal_polygonize.py {mask_filepath} -b 1 -f "GPKG" polygon-store/{source}/{filename}.gpkg -overwrite', silent=SILENT)
+    mask_filepath = '{}/{}/{}'.format(utils.store_dir('polygon-store'), source, filename)
+    raster_path = '{}/{}/{}'.format(utils.store_dir('source-store'), source, filename)
+    gpkg_path = '{}/{}/{}.gpkg'.format(utils.store_dir('polygon-store'), source, filename)
+    utils.run_command(
+        'GDAL_CACHEMAX=1024 gdal_calc.py -A "{}" --outfile="{}" --calc="A*0+1" --type=Byte --overwrite'.format(
+            raster_path, mask_filepath),
+        silent=SILENT,
+    )
+    utils.run_command(
+        'GDAL_CACHEMAX=1024 gdal_polygonize.py "{}" -b 1 -f "GPKG" "{}" -overwrite'.format(
+            mask_filepath, gpkg_path),
+        silent=SILENT,
+    )
     os.remove(mask_filepath)
 
 def get_filenames(source):
@@ -36,12 +46,15 @@ def merge_source(source):
     merged_filepath = f'{utils.store_dir("polygon-store")}/{source}/merged.gpkg'
     if os.path.isfile(merged_filepath):
         os.remove(merged_filepath)
-    command = f'ogr2ogr -f GPKG {merged_filepath} polygon-store/{source}/{filenames[0]}.gpkg'
+    first_gpkg = '{}/{}/{}.gpkg'.format(utils.store_dir('polygon-store'), source, filenames[0])
+    command = 'ogr2ogr -f GPKG {} {}'.format(merged_filepath, first_gpkg)
     utils.run_command(command, silent=False)
     for j, filename in enumerate(filenames[1:]):
         if j % 100 == 0:
             print(f'{j:_} / {len(filenames):_}')
-        command = f'ogr2ogr -f GPKG -update -append {merged_filepath} polygon-store/{source}/{filename}.gpkg -nln out -append -addfields'
+        next_gpkg = '{}/{}/{}.gpkg'.format(utils.store_dir('polygon-store'), source, filename)
+        command = 'ogr2ogr -f GPKG -update -append {} {} -nln out -append -addfields'.format(
+            merged_filepath, next_gpkg)
         utils.run_command(command, silent=True)
     union_filepath = f'{utils.store_dir("polygon-store")}/{source}.gpkg'
     if os.path.isfile(union_filepath):
