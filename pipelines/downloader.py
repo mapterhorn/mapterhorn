@@ -19,7 +19,7 @@ def parse_line_downsampling(line):
     file_z, file_x, file_y, _ = [int(a) for a in filename.replace('.pmtiles', '').split('-')]
     pmtiles_folder = utils.get_pmtiles_folder(file_x, file_y, file_z)
     source_filepath = f'{pmtiles_folder}/{filename}'
-    target_folder = f'tmp-store/pmtiles/{pmtiles_folder.replace("pmtiles-store", "")}'
+    target_folder = f'tmp-store/{pmtiles_folder.replace("-store", "")}'
     target_filepath = f'{target_folder}/{filename}'
     return source_filepath, target_folder, target_filepath
 
@@ -39,6 +39,8 @@ def prune_cache(last_access):
     while True:
         ready_target_filepaths = set({})
         for item in glob('tmp-store/ready/*'):
+            if not os.path.isfile(item):
+                continue
             lines = []
             with open(item) as f:
                 lines = f.readlines()
@@ -73,6 +75,7 @@ def local_copy(source_filepath, target_filepath):
         os.symlink(os.path.realpath(source_filepath), target_filepath)
     else:
         shutil.copy(source_filepath, target_filepath)
+    print(f'Copied {target_filepath}')
 
 def process_item(item, last_access, iteration):
     lines = []
@@ -120,6 +123,7 @@ def main():
     iteration = 0
 
     while True:
+        prune_cache(last_access)
         items = glob('tmp-store/queue/*.csv')
         if len(items) == 0:
             print('empty queue...')
@@ -127,7 +131,6 @@ def main():
             continue
         items = sorted(items, key=lambda f: os.path.getmtime(f))
         for item in items:
-            prune_cache(last_access)
             iteration += 1
             process_item(item, last_access, iteration)
             os.rename(item, item.replace('tmp-store/queue', 'tmp-store/ready'))

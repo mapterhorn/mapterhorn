@@ -29,7 +29,7 @@ def create_tile(parent_x, parent_y, parent_z, tmp_folder, pmtiles_filenames):
             filename = tile_to_pmtiles_filename[child]
             file_z, file_x, file_y, _ = [int(a) for a in filename.replace('.pmtiles', '').split('-')]
             pmtiles_folder = utils.get_pmtiles_folder(file_x, file_y, file_z)
-            filepath = f'tmp-store/pmtiles/{pmtiles_folder.replace("pmtiles-store", "")}/{filename}'
+            filepath = f'tmp-store/{pmtiles_folder.replace("-store", "")}/{filename}'
             with open(filepath, 'r+b') as f:
                 reader = Reader(MmapSource(f))
                 child_bytes = reader.get(child_z, child_x, child_y)

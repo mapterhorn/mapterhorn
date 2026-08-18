@@ -10,18 +10,31 @@ def distribute_tasks(item_filepaths):
     print('start distributing tasks...')
     item_index = 0
 
-    while item_index < len(item_filepaths):
-        print(f'{item_index} tasks of {len(item_filepaths)} distributed')
-        task_requests = glob('task-store/*.request')
+    already_distributed = set([])
+    response_filepaths = glob('task-store/*.response')
+    for response_filepath in response_filepaths:
+        with open(response_filepath) as f:
+            lines = f.readlines()
+            assert len(lines) == 1
+            already_distributed.add(lines[0].strip())
+
+    remaining_item_filepaths = []
+    for item_filepath in item_filepaths:
+        if item_filepath not in already_distributed:
+            remaining_item_filepaths.append(item_filepath)
+
+    while item_index < len(remaining_item_filepaths):
+        print(f'{item_index} tasks of {len(remaining_item_filepaths)} distributed')
+        task_requests = glob('task-store/*-*.request')
         print(f'received {len(task_requests)} requests')
         for task_request in task_requests:
             task_response = task_request.replace('.request', '.response')
             with open(f'{task_response}.tmp', 'w') as f:
-                f.write(item_filepaths[item_index])
+                f.write(remaining_item_filepaths[item_index])
             os.replace(f'{task_response}.tmp', task_response)
             os.remove(task_request)
             item_index += 1
-            if item_index == len(item_filepaths):
+            if item_index == len(remaining_item_filepaths):
                 break
         time.sleep(1)
     
