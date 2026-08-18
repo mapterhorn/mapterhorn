@@ -36,7 +36,7 @@ Progress is written to `meta-store/run-status.json` and `meta-store/logs/{run_id
 | Command | What it actually does |
 |---|---|
 | `just storage` | Print which disk each store directory is on. |
-| `just manage autodownload -y` | **The source command.** Up to 32 sources wget at once (`--jobs`). Sources with `DOWNLOAD_COMPLETE` start unzip/bounds immediately on a separate pool (`--prep-jobs`, default 8); others feed that pool as wget finishes. Workers call the venv Python directly (no nested `uv run` / `just`). Skips `READY`. |
+| `just manage autodownload -y` | **The source command.** Live spinner: `x/y done · succeeded · failed · downloading · preparing · queued`. Latest job steps sit to the right of that line; pass `-v` to print every step. Up to 32 wget workers (`--jobs`) and 8 unzip/bounds workers (`--prep-jobs`). Skips `READY`. |
 | `just manage list` | Table of catalog vs disk. `DL=yes` = files fetched. `READY=yes` = unzip/prep finished; only then is the source usable. |
 | `just covering` | Read complete sources' `bounds.csv` and write the aggregation/downsampling work queues. |
 | `just downloader` | Long-running loop: copy (or symlink) rasters from `source-store` into `tmp-store` as aggregate requests them. Run in its own terminal. |
@@ -60,7 +60,7 @@ Aliases you can ignore unless you need them:
 | `just manage clear NAME -y` | Delete only |
 | `just manage mark-complete NAME` | After a manual FTP drop (UK England, Japan DEM, …) |
 
-`just manage autodownload gebco -y` / `--ocean` / `--land` / `--dry-run` / `--force` limit or re-do autodownload.
+`just manage autodownload gebco -y` / `--ocean` / `--land` / `--dry-run` / `--force` / `-v` limit, re-do, or verbose-log autodownload.
 
 ### Bathymetry-specific steps
 

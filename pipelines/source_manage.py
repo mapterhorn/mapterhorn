@@ -231,11 +231,245 @@ def run_source_justfile(source, dry_run=False):
 
 
 _PRINT_LOCK = threading.Lock()
+_STATUS = None
+_SPIN_FRAMES = '⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
+_HIDE_CURSOR = '\033[?25l'
+_SHOW_CURSOR = '\033[?25h'
+_CLEAR_LINE = '\r\033[2K'
+
+
+def _color_enabled(stream):
+    if os.environ.get('NO_COLOR'):
+        return False
+    return hasattr(stream, 'isatty') and stream.isatty()
+
+
+def _paint(text, code, enabled):
+    if not enabled:
+        return text
+    return '\033[{}m{}\033[0m'.format(code, text)
+
+
+def _short_step(text):
+    text = (text or '').strip()
+    if text.startswith('running: '):
+        for part in text.split():
+            if part.endswith('.py'):
+                name = os.path.basename(part)
+                if name.startswith('source_'):
+                    name = name[len('source_'):]
+                if name.endswith('.py'):
+                    name = name[:-3]
+                return name.replace('_', ' ')
+        return 'run'
+    if text.startswith('[') and ']' in text[:24]:
+        return text.split(']', 1)[0] + ']'
+    if len(text) > 36:
+        return text[:35] + '…'
+    return text
+
+
+class AutoStatus:
+    def __init__(self, total, verbose=False, stream=None):
+        self.total = max(0, int(total))
+        self.verbose = bool(verbose)
+        self.stream = stream or sys.stderr
+        self.live = self.stream.isatty()
+        self.color = _color_enabled(self.stream)
+        self.succeeded = 0
+        self.failed = 0
+        self.downloading = set()
+        self.preparing = set()
+        self.latest = {}
+        self.touched = {}
+        self._spin = 0
+        self._closed = False
+        self._plain_key = None
+        self._seq = 0
+
+    def begin(self, kind, source):
+        with _PRINT_LOCK:
+            if kind == 'download':
+                self.preparing.discard(source)
+                self.downloading.add(source)
+            else:
+                self.downloading.discard(source)
+                self.preparing.add(source)
+            self.latest[source] = kind
+            self._touch(source)
+            if self.live:
+                self._draw()
+
+    def note(self, kind, source, text):
+        with _PRINT_LOCK:
+            self.latest[source] = text
+            self._touch(source)
+            if self.verbose:
+                self._write_log('[{} {}] {}'.format(kind, source, text))
+            elif self.live:
+                self._draw()
+
+    def stage_done(self, source, kind):
+        with _PRINT_LOCK:
+            if kind == 'download':
+                self.downloading.discard(source)
+            else:
+                self.preparing.discard(source)
+            if self.live:
+                self._draw()
+
+    def source_done(self, source, ok):
+        with _PRINT_LOCK:
+            self.downloading.discard(source)
+            self.preparing.discard(source)
+            if ok:
+                self.succeeded += 1
+            else:
+                self.failed += 1
+            if self.live:
+                self._draw()
+            else:
+                self._draw_plain()
+
+    def tick(self):
+        with _PRINT_LOCK:
+            if self._closed or not self.live:
+                return
+            self._spin += 1
+            self._draw()
+
+    def println(self, text):
+        with _PRINT_LOCK:
+            self._write_log(text)
+
+    def close(self):
+        with _PRINT_LOCK:
+            if self._closed:
+                return
+            self._closed = True
+            if self.live:
+                self.stream.write(_CLEAR_LINE)
+                self.stream.write(_SHOW_CURSOR)
+                self.stream.flush()
+
+    def _touch(self, source):
+        self._seq += 1
+        self.touched[source] = self._seq
+
+    def _write_log(self, text):
+        if self.live:
+            self.stream.write(_CLEAR_LINE)
+            self.stream.flush()
+        sys.stdout.write(text + '\n')
+        sys.stdout.flush()
+        if self.live:
+            self._draw()
+
+    def _counts(self):
+        done = self.succeeded + self.failed
+        active = len(self.downloading) + len(self.preparing)
+        queued = max(0, self.total - done - active)
+        return done, queued
+
+    def _status_left(self, compact):
+        done, queued = self._counts()
+        spin = _paint(
+            _SPIN_FRAMES[self._spin % len(_SPIN_FRAMES)],
+            '36',
+            self.color,
+        )
+        succeeded = _paint(
+            '{} {}'.format(self.succeeded, 'ok' if compact else 'succeeded'),
+            '32',
+            self.color and self.succeeded > 0,
+        )
+        failed = _paint(
+            '{} {}'.format(self.failed, 'fail' if compact else 'failed'),
+            '31',
+            self.color and self.failed > 0,
+        )
+        if compact:
+            return '{}  {}/{} done  {}  {}  {} dl  {} prep  {} queued'.format(
+                spin, done, self.total, succeeded, failed,
+                len(self.downloading), len(self.preparing), queued,
+            )
+        return '{}  {}/{} done  ·  {}  ·  {}  ·  {} downloading  ·  {} preparing  ·  {} queued'.format(
+            spin, done, self.total, succeeded, failed,
+            len(self.downloading), len(self.preparing), queued,
+        )
+
+    def _jobs_text(self):
+        names = list(self.downloading) + list(self.preparing)
+        names.sort(key=lambda name: self.touched.get(name, 0), reverse=True)
+        bits = []
+        shown = names[:3]
+        for name in shown:
+            bits.append('{} {}'.format(name, _short_step(self.latest.get(name, ''))))
+        extra = len(names) - len(shown)
+        if extra > 0:
+            bits.append('+{}'.format(extra))
+        return ' · '.join(bits)
+
+    def _visible_len(self, text):
+        n = 0
+        i = 0
+        while i < len(text):
+            if text[i] == '\033':
+                end = text.find('m', i)
+                if end == -1:
+                    break
+                i = end + 1
+                continue
+            n += 1
+            i += 1
+        return n
+
+    def _draw(self):
+        if self._closed or not self.live:
+            return
+        self.stream.write(_HIDE_CURSOR)
+        width = max(40, shutil.get_terminal_size(fallback=(120, 24)).columns)
+        left = self._status_left(compact=False)
+        if self._visible_len(left) > width - 10:
+            left = self._status_left(compact=True)
+        jobs = ''
+        if not self.verbose:
+            jobs = self._jobs_text()
+        line = left
+        if jobs:
+            sep = '  │  '
+            room = width - self._visible_len(left) - len(sep)
+            if room >= 8:
+                if len(jobs) > room:
+                    jobs = jobs[:max(0, room - 1)] + '…'
+                line = left + sep + jobs
+        if self._visible_len(line) > width:
+            line = self._status_left(compact=True)
+        self.stream.write(_CLEAR_LINE)
+        self.stream.write(line)
+        self.stream.flush()
+
+    def _draw_plain(self):
+        done, queued = self._counts()
+        key = (done, self.succeeded, self.failed, len(self.downloading), len(self.preparing), queued)
+        if key == self._plain_key:
+            return
+        self._plain_key = key
+        sys.stdout.write(
+            'autodownload  {}/{} done  ·  {} succeeded  ·  {} failed  ·  {} downloading  ·  {} preparing  ·  {} queued\n'.format(
+                done, self.total, self.succeeded, self.failed,
+                len(self.downloading), len(self.preparing), queued,
+            )
+        )
+        sys.stdout.flush()
 
 
 def emit(stage, source, text):
     text = (text or '').rstrip()
     if text == '':
+        return
+    if _STATUS is not None:
+        _STATUS.note(stage, source, text)
         return
     with _PRINT_LOCK:
         print('[{} {}] {}'.format(stage, source, text), flush=True)
@@ -323,6 +557,8 @@ def source_download_cmd(source):
 
 
 def autodownload_one_download(source, force):
+    if _STATUS is not None:
+        _STATUS.begin('download', source)
     if force:
         source_marker.clear_download_marker(source)
         source_marker.clear_ready_marker(source)
@@ -343,6 +579,8 @@ def autodownload_one_download(source, force):
 
 
 def autodownload_one_prep(source):
+    if _STATUS is not None:
+        _STATUS.begin('prep', source)
     cmds = [
         recipe_line_to_cmd(line)
         for line in justfile_recipe_lines(source)
@@ -363,6 +601,8 @@ def autodownload_one_prep(source):
 
 
 def autodownload_shoreline(force):
+    if _STATUS is not None:
+        _STATUS.begin('prep', 'shoreline')
     if force:
         ready = utils.store_dir('mask-store') + '/shoreline/READY'
         if os.path.isfile(ready):
@@ -533,21 +773,23 @@ def cmd_autodownload(args):
 
     print('autodownload: {} to fetch/prepare, {} already complete, {} manual/no URLs'.format(
         len(to_run), len(skip_ready), len(skip_nourl)))
-    print('  workers: {} download, {} prep (unzip/bounds overlap downloads)'.format(
-        args.jobs, args.prep_jobs))
+    print('  workers: {} download, {} prep'.format(args.jobs, args.prep_jobs))
     if do_shoreline:
         if not args.force and shoreline_is_ready():
             print('  shoreline: already ready')
             do_shoreline = False
         else:
             print('  shoreline: will prepare')
-    if to_run:
-        print('  fetch: {}'.format(', '.join(to_run)))
-    if skip_ready:
-        print('  skip complete: {}'.format(', '.join(skip_ready)))
-    if skip_nourl:
-        print('  skip (no file_list URLs; ingest manually then mark-complete): {}'.format(
-            ', '.join(skip_nourl)))
+    if args.verbose:
+        if to_run:
+            print('  fetch: {}'.format(', '.join(to_run)))
+        if skip_ready:
+            print('  skip complete: {}'.format(', '.join(skip_ready)))
+        if skip_nourl:
+            print('  skip (no file_list URLs; ingest manually then mark-complete): {}'.format(
+                ', '.join(skip_nourl)))
+    elif skip_nourl:
+        print('  skip (no file_list URLs): {}'.format(', '.join(skip_nourl)))
 
     if not to_run and not do_shoreline:
         print('nothing to do')
@@ -574,10 +816,7 @@ def cmd_autodownload(args):
     failures = []
     download_jobs = max(1, args.jobs)
     prep_jobs = max(1, args.prep_jobs)
-
-    def record_failure(name, err):
-        print('FAILED {}: {}'.format(name, err), flush=True)
-        failures.append((name, str(err)))
+    verbose = bool(args.verbose)
 
     already_dl = []
     need_dl = []
@@ -588,44 +827,67 @@ def cmd_autodownload(args):
             need_dl.append(source)
     need_dl.sort(key=lambda name: (len(catalog_urls(name)), name))
 
-    print('autodownload workers: download={} prep={}'.format(download_jobs, prep_jobs))
-    print('  prep immediately (download already done): {}'.format(len(already_dl)))
-    print('  download first (small file lists first): {}'.format(len(need_dl)))
+    total = len(to_run) + (1 if do_shoreline else 0)
+    global _STATUS
+    _STATUS = AutoStatus(total, verbose=verbose)
 
-    with ThreadPoolExecutor(max_workers=download_jobs) as download_ex, \
-            ThreadPoolExecutor(max_workers=prep_jobs) as prep_ex:
-        pending = {}
+    def record_failure(name, err):
+        failures.append((name, str(err)))
+        _STATUS.source_done(name, ok=False)
+        if verbose:
+            _STATUS.println('FAILED {}: {}'.format(name, err))
 
-        def submit_prep(name, fn, *fn_args):
-            fut = prep_ex.submit(fn, *fn_args)
-            pending[fut] = ('prep', name)
+    try:
+        with ThreadPoolExecutor(max_workers=download_jobs) as download_ex, \
+                ThreadPoolExecutor(max_workers=prep_jobs) as prep_ex:
+            pending = {}
 
-        if do_shoreline:
-            submit_prep('shoreline', autodownload_shoreline, args.force)
-        for source in already_dl:
-            submit_prep(source, autodownload_one_prep, source)
-        for source in need_dl:
-            fut = download_ex.submit(autodownload_one_download, source, args.force)
-            pending[fut] = ('download', source)
+            def submit_prep(name, fn, *fn_args):
+                fut = prep_ex.submit(fn, *fn_args)
+                pending[fut] = ('prep', name)
 
-        while pending:
-            done, _ = wait(list(pending), return_when=FIRST_COMPLETED)
-            for fut in done:
-                kind, name = pending.pop(fut)
-                try:
-                    fut.result()
-                except Exception as e:
-                    record_failure(name, e)
-                    continue
-                if kind == 'download':
-                    submit_prep(name, autodownload_one_prep, name)
+            if do_shoreline:
+                submit_prep('shoreline', autodownload_shoreline, args.force)
+            for source in already_dl:
+                submit_prep(source, autodownload_one_prep, source)
+            for source in need_dl:
+                fut = download_ex.submit(autodownload_one_download, source, args.force)
+                pending[fut] = ('download', source)
+
+            _STATUS.tick()
+            timeout = 0.08 if _STATUS.live else 1.0
+            while pending:
+                done, _ = wait(
+                    list(pending),
+                    timeout=timeout,
+                    return_when=FIRST_COMPLETED,
+                )
+                _STATUS.tick()
+                for fut in done:
+                    kind, name = pending.pop(fut)
+                    try:
+                        fut.result()
+                    except Exception as e:
+                        record_failure(name, e)
+                        continue
+                    if kind == 'download':
+                        _STATUS.stage_done(name, 'download')
+                        submit_prep(name, autodownload_one_prep, name)
+                    else:
+                        _STATUS.source_done(name, ok=True)
+    except KeyboardInterrupt:
+        _STATUS.println('interrupted')
+        raise
+    finally:
+        _STATUS.close()
+        _STATUS = None
 
     if failures:
         print('autodownload finished with {} failure(s):'.format(len(failures)))
         for name, err in failures:
             print('  {}: {}'.format(name, err))
         return 1
-    print('autodownload finished')
+    print('autodownload finished  {}/{} succeeded'.format(total, total))
     return 0
 
 
@@ -713,6 +975,7 @@ def build_parser():
         help='parallel unzip/bounds/tarball workers (default 8)',
     )
     p_auto.add_argument('--yes', '-y', action='store_true')
+    p_auto.add_argument('--verbose', '-v', action='store_true', help='print each job step instead of a side snippet')
     p_auto.add_argument('--dry-run', action='store_true')
     p_auto.set_defaults(func=cmd_autodownload)
 
