@@ -126,7 +126,8 @@ def merge(filepath, tmp_folder):
                         dst_dtype = dst.dtypes[0]
                         output_tile = merged_tile[crop_y_start:crop_y_end, crop_x_start:crop_x_end]
                         if output_tile.dtype != np.dtype(dst_dtype):
-                            output_tile = output_tile.astype(dst_dtype, copy=False)
+                            with np.errstate(under='ignore'):
+                                output_tile = output_tile.astype(dst_dtype, copy=False)
                         dst.write(output_tile, 1, window=output_window)
         
     for tiff_filepath in tiff_filepaths:
