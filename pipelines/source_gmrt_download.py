@@ -30,7 +30,7 @@ def catalog_urls(source):
 
 def download(source):
     if source_marker.is_download_complete(source):
-        print('{} already downloaded ({}), skipping'.format(source, source_marker.MARKER_NAME))
+        print('{} already downloaded ({}), skipping'.format(source, source_marker.DOWNLOAD_MARKER))
         return
 
     urls = catalog_urls(source)

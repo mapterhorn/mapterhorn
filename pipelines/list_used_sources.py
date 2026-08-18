@@ -46,10 +46,10 @@ def main():
             print('  bounds MISSING')
             print('\naborting...')
             exit()
-        if source_marker.is_download_complete(source):
-            print('  download complete')
+        if source_marker.is_source_ready(source):
+            print('  READY')
         else:
-            print('  download INCOMPLETE (missing {})'.format(source_marker.MARKER_NAME))
+            print('  not READY')
             print('\naborting...')
             exit()
         print()

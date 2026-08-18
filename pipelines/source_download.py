@@ -41,7 +41,7 @@ def main():
         exit()
 
     if source_marker.is_download_complete(source):
-        print('{} already downloaded ({}), skipping'.format(source, source_marker.MARKER_NAME))
+        print('{} already downloaded ({}), skipping'.format(source, source_marker.DOWNLOAD_MARKER))
         return
 
     source_marker.begin_download(source)

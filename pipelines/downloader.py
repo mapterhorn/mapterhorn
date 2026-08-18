@@ -81,7 +81,7 @@ def main():
             incomplete = set()
             for line in lines:
                 source, filename, _ = line.split(',')
-                if not source_marker.is_download_complete(source):
+                if not source_marker.is_source_ready(source):
                     incomplete.add(source)
                     continue
                 target_folder = f'{utils.store_dir("tmp-store")}/source/{source}'
@@ -96,7 +96,7 @@ def main():
 
             if incomplete:
                 raise RuntimeError(
-                    'refusing to stage incomplete source(s): {}. '
+                    'refusing to stage source(s) that are not READY: {}. '
                     'Run: just manage autodownload {}'.format(
                         ', '.join(sorted(incomplete)),
                         ' '.join(sorted(incomplete)),

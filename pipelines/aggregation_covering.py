@@ -57,9 +57,9 @@ def get_macrotile_map():
     for filepath in filepaths:
         print(f'reading {filepath}...')
         source = filepath.split('/')[-2]
-        if not source_marker.is_download_complete(source):
-            print('skipping {} - download incomplete (missing {})'.format(
-                source, source_marker.MARKER_NAME))
+        if not source_marker.is_source_ready(source):
+            print('skipping {} - not READY (download/extract still in progress)'.format(
+                source))
             continue
         with open(filepath) as f:
             f.readline() # skip header

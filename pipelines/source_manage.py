@@ -15,6 +15,8 @@ import os
 import shutil
 import subprocess
 import sys
+import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from glob import glob
 
 import utils
@@ -143,7 +145,7 @@ def clear_paths(paths, dry_run=False):
 
 def cmd_list(args):
     print('{:<18} {:<8} {:>8} {:>10} {:>8} {:>8} {}'.format(
-        'SOURCE', 'DOMAIN', 'TIFS', 'EXPECTED', 'BOUNDS', 'DL', 'SIZE'))
+        'SOURCE', 'DOMAIN', 'TIFS', 'EXPECTED', 'DL', 'READY', 'SIZE'))
     print('-' * 80)
     seen = set()
     for source in sorted(set(loaded_sources()) | set(catalog_sources())):
@@ -161,16 +163,16 @@ def cmd_list(args):
         loaded = os.path.isdir(folder)
         tifs = count_rasters(source) if loaded else 0
         expected = expected_urls(source)
-        has_bounds = os.path.isfile('{}/bounds.csv'.format(folder))
-        complete = source_marker.is_download_complete(source)
+        downloaded = source_marker.is_download_complete(source)
+        ready = source_marker.is_source_ready(source)
         size = format_bytes(dir_size_bytes(folder)) if loaded else '-'
         print('{:<18} {:<8} {:>8} {:>10} {:>8} {:>8} {}'.format(
             source,
             domain,
             tifs if loaded else '-',
             expected if expected is not None else '-',
-            'yes' if has_bounds else ('no' if loaded else '-'),
-            'yes' if complete else ('no' if loaded else '-'),
+            'yes' if downloaded else ('no' if loaded else '-'),
+            'yes' if ready else ('no' if loaded else '-'),
             size if loaded else '(not loaded)',
         ))
         seen.add(source)
@@ -222,6 +224,92 @@ def run_source_justfile(source, dry_run=False):
     subprocess.check_call(cmd)
 
 
+_PRINT_LOCK = threading.Lock()
+
+
+def emit(stage, source, text):
+    text = (text or '').rstrip()
+    if text == '':
+        return
+    with _PRINT_LOCK:
+        print('[{} {}] {}'.format(stage, source, text), flush=True)
+
+
+def run_prefixed(cmd, stage, source):
+    emit(stage, source, 'running: {}'.format(' '.join(cmd)))
+    p = subprocess.Popen(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        bufsize=1,
+    )
+    for line in p.stdout:
+        emit(stage, source, line)
+    code = p.wait()
+    if code != 0:
+        raise subprocess.CalledProcessError(code, cmd)
+
+
+def source_download_cmd(source):
+    just_path = '{}/{}/Justfile'.format(CATALOG_ROOT, source)
+    text = ''
+    if os.path.isfile(just_path):
+        with open(just_path) as f:
+            text = f.read()
+    if 'source_gmrt_download.py' in text:
+        return ['uv', 'run', 'python', 'source_gmrt_download.py', source]
+    if 'source_download.py' in text or catalog_urls(source):
+        return ['uv', 'run', 'python', 'source_download.py', source]
+    return None
+
+
+def autodownload_one_download(source, force):
+    if force:
+        source_marker.clear_download_marker(source)
+        source_marker.clear_ready_marker(source)
+    if source_marker.is_download_complete(source) and not force:
+        emit('download', source, 'already fetched, skip wget')
+        return
+    cmd = source_download_cmd(source)
+    if cmd is None:
+        emit('download', source, 'no download step')
+        return
+    run_prefixed(cmd, 'download', source)
+    if not source_marker.is_download_complete(source):
+        if catalog_urls(source):
+            raise RuntimeError(
+                '{} finished without {}'.format(source, source_marker.DOWNLOAD_MARKER))
+        source_marker.mark_download_complete(source)
+    emit('download', source, 'download complete')
+
+
+def autodownload_one_prep(source):
+    catalog_just = '{}/{}/Justfile'.format(CATALOG_ROOT, source)
+    if not os.path.isfile(catalog_just):
+        raise FileNotFoundError('missing Justfile for source {}'.format(source))
+    cmd = ['just', '{}/{}/'.format(CATALOG_ROOT, source)]
+    run_prefixed(cmd, 'prep', source)
+    if not source_marker.is_download_complete(source):
+        if catalog_urls(source):
+            raise RuntimeError(
+                '{} finished without {}'.format(source, source_marker.DOWNLOAD_MARKER))
+        source_marker.mark_download_complete(source)
+    source_marker.mark_ready(source)
+    emit('prep', source, 'READY')
+    log.info('autodownload source', source=source)
+
+
+def autodownload_shoreline(force):
+    if force:
+        ready = utils.store_dir('mask-store') + '/shoreline/READY'
+        if os.path.isfile(ready):
+            os.remove(ready)
+    cmd = [sys.executable, 'source_prepare_shoreline.py']
+    run_prefixed(cmd, 'prep', 'shoreline')
+    log.info('loaded shoreline')
+
+
 def cmd_load(args):
     sources = resolve_sources(
         args.sources,
@@ -242,12 +330,15 @@ def cmd_load(args):
             print('skip unknown catalog source: {}'.format(source))
             continue
         if not args.force and source_marker.is_source_ready(source):
-            print('skip {} (already downloaded and prepared)'.format(source))
+            print('skip {} (already READY)'.format(source))
             continue
         if args.force and not args.dry_run:
             source_marker.clear_download_marker(source)
+            source_marker.clear_ready_marker(source)
         print('loading {}...'.format(source))
         run_source_justfile(source, dry_run=args.dry_run)
+        if not args.dry_run:
+            source_marker.mark_ready(source)
         log.info('loaded source', source=source)
     return 0
 
@@ -277,6 +368,8 @@ def cmd_reload(args):
         print('reloading {}...'.format(source))
         clear_paths(paths_for_source(source, derived=not args.keep_derived), dry_run=args.dry_run)
         run_source_justfile(source, dry_run=args.dry_run)
+        if not args.dry_run:
+            source_marker.mark_ready(source)
         log.info('reloaded source', source=source)
     return 0
 
@@ -378,6 +471,8 @@ def cmd_autodownload(args):
 
     print('autodownload: {} to fetch/prepare, {} already complete, {} manual/no URLs'.format(
         len(to_run), len(skip_ready), len(skip_nourl)))
+    print('  workers: {} download, {} prep (unzip/bounds overlap downloads)'.format(
+        args.jobs, args.prep_jobs))
     if do_shoreline:
         if not args.force and shoreline_is_ready():
             print('  shoreline: already ready')
@@ -397,49 +492,59 @@ def cmd_autodownload(args):
         return 0
 
     if args.dry_run:
-        print('dry-run: not fetching')
+        print('dry-run: not fetching (download jobs={}, prep jobs={})'.format(
+            args.jobs, args.prep_jobs))
         return 0
 
     if not confirm(
-        'Proceed? Incomplete downloads will resume; complete ones are skipped.',
+        'Proceed? {} download workers, {} prep workers. Incomplete downloads resume.'.format(
+            args.jobs, args.prep_jobs),
         args.yes,
     ):
         print('aborted')
         return 1
 
+    if args.jobs > 1:
+        os.environ['MAPTERHORN_WGET_QUIET'] = '1'
+
     failures = []
+    download_jobs = max(1, args.jobs)
+    prep_jobs = max(1, args.prep_jobs)
 
-    if do_shoreline:
-        print('preparing shoreline...')
-        if args.force and not args.dry_run:
-            ready = utils.store_dir('mask-store') + '/shoreline/READY'
-            if os.path.isfile(ready):
-                os.remove(ready)
-        cmd = [sys.executable, 'source_prepare_shoreline.py']
-        print('running: {}'.format(' '.join(cmd)))
-        if not args.dry_run:
+    def record_failure(name, err):
+        print('FAILED {}: {}'.format(name, err), flush=True)
+        failures.append((name, str(err)))
+
+    print('autodownload workers: download={} prep={}'.format(download_jobs, prep_jobs))
+
+    with ThreadPoolExecutor(max_workers=download_jobs) as download_ex, \
+            ThreadPoolExecutor(max_workers=prep_jobs) as prep_ex:
+        prep_futs = {}
+        if do_shoreline:
+            prep_futs[prep_ex.submit(autodownload_shoreline, args.force)] = 'shoreline'
+
+        download_futs = {}
+        for source in to_run:
+            if source_marker.is_download_complete(source) and not args.force:
+                prep_futs[prep_ex.submit(autodownload_one_prep, source)] = source
+            else:
+                download_futs[download_ex.submit(
+                    autodownload_one_download, source, args.force)] = source
+
+        for fut in as_completed(download_futs):
+            source = download_futs[fut]
             try:
-                subprocess.check_call(cmd)
-                log.info('loaded shoreline')
-            except subprocess.CalledProcessError as e:
-                failures.append(('shoreline', str(e)))
+                fut.result()
+                prep_futs[prep_ex.submit(autodownload_one_prep, source)] = source
+            except Exception as e:
+                record_failure(source, e)
 
-    for source in to_run:
-        print('autodownload {}...'.format(source))
-        if args.force and not args.dry_run:
-            source_marker.clear_download_marker(source)
-        try:
-            run_source_justfile(source, dry_run=args.dry_run)
-            if not args.dry_run and not source_marker.is_download_complete(source):
-                if catalog_urls(source):
-                    raise RuntimeError(
-                        '{} finished without {} - download did not complete'.format(
-                            source, source_marker.MARKER_NAME))
-                source_marker.mark_download_complete(source)
-            log.info('autodownload source', source=source)
-        except (subprocess.CalledProcessError, FileNotFoundError, RuntimeError) as e:
-            print('FAILED {}: {}'.format(source, e))
-            failures.append((source, str(e)))
+        for fut in as_completed(prep_futs):
+            name = prep_futs[fut]
+            try:
+                fut.result()
+            except Exception as e:
+                record_failure(name, e)
 
     if failures:
         print('autodownload finished with {} failure(s):'.format(len(failures)))
@@ -457,7 +562,11 @@ def cmd_mark_complete(args):
             print('skip {}: no directory {}'.format(source, folder))
             continue
         source_marker.mark_download_complete(source)
-        print('wrote {}'.format(source_marker.marker_path(source)))
+        source_marker.mark_ready(source)
+        print('wrote {} and {}'.format(
+            source_marker.marker_path(source),
+            source_marker.ready_path(source),
+        ))
     return 0
 
 
@@ -521,14 +630,21 @@ def build_parser():
     p_auto.add_argument('--land', action='store_true')
     p_auto.add_argument('--skip-shoreline', action='store_true')
     p_auto.add_argument('--include-debug', action='store_true', help='include debug-* catalog sources')
-    p_auto.add_argument('--force', action='store_true', help='ignore DOWNLOAD_COMPLETE and re-fetch')
+    p_auto.add_argument('--force', action='store_true', help='ignore READY/DOWNLOAD_COMPLETE and re-fetch')
+    p_auto.add_argument('--jobs', '-j', type=int, default=32, help='parallel download workers (default 32)')
+    p_auto.add_argument(
+        '--prep-jobs',
+        type=int,
+        default=8,
+        help='parallel unzip/bounds/tarball workers (default 8)',
+    )
     p_auto.add_argument('--yes', '-y', action='store_true')
     p_auto.add_argument('--dry-run', action='store_true')
     p_auto.set_defaults(func=cmd_autodownload)
 
     p_mc = sub.add_parser(
         'mark-complete',
-        help='write DOWNLOAD_COMPLETE for a manually ingested source',
+        help='write DOWNLOAD_COMPLETE and READY for a manually ingested source',
     )
     p_mc.add_argument('sources', nargs='+', help='source ids')
     p_mc.set_defaults(func=cmd_mark_complete)

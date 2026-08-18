@@ -43,6 +43,7 @@ def main():
             'size': filesize,
             'md5sum': checksum,
         }, f, indent=2)
+    source_marker.mark_ready(source)
 
 if __name__ == '__main__':
     main()

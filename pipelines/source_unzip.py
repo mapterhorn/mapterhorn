@@ -66,6 +66,7 @@ def main():
         exit()
 
     source_marker.require_download_complete(source)
+    source_marker.begin_extract(source)
     
     filepaths = sorted(glob(f'{utils.store_dir("source-store")}/{source}/*'))
 

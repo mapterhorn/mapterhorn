@@ -95,6 +95,7 @@ def source_download_progress():
             'expected_urls': expected,
             'has_bounds': True,
             'download_complete': source_marker.is_download_complete(source),
+            'ready': source_marker.is_source_ready(source),
             'domain': utils.get_source_domain(source) if os.path.isdir(utils.catalog_path(source)) else None,
         }
     # Sources downloaded but without bounds yet
@@ -108,6 +109,7 @@ def source_download_progress():
             'expected_urls': None,
             'has_bounds': False,
             'download_complete': source_marker.is_download_complete(source),
+            'ready': source_marker.is_source_ready(source),
             'domain': utils.get_source_domain(source) if os.path.isdir(utils.catalog_path(source)) else None,
         }
     return result

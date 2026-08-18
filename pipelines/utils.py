@@ -133,7 +133,12 @@ def run_command(command, silent=True, env=None, stream=False):
 def wget_download(url, dest=None, cwd=None):
     # Live progress bar; --continue resumes partial downloads.
     # Raises if wget fails so callers never mark a download complete.
-    parts = ['wget', '--continue', '--progress=bar:force']
+    quiet = os.environ.get('MAPTERHORN_WGET_QUIET', '0') not in ('', '0', 'false', 'False')
+    parts = ['wget', '--continue']
+    if quiet:
+        parts.append('--no-verbose')
+    else:
+        parts.append('--progress=bar:force')
     if dest is not None:
         parts.extend(['-O', '"{}"'.format(dest)])
     parts.append('"{}"'.format(url))

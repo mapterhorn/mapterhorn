@@ -67,7 +67,7 @@ def main():
     incomplete = []
     for path in glob(utils.store_path('source-store', '*', 'bounds.csv', create=False)):
         source = path.split('/')[-2]
-        if not source_marker.is_download_complete(source):
+        if not source_marker.is_source_ready(source):
             incomplete.append(source)
             continue
         domain = utils.get_source_domain(source)
@@ -80,7 +80,7 @@ def main():
             ocean_bounds.append(source)
 
     if incomplete:
-        print('[WARN] incomplete downloads (ignored): {}'.format(', '.join(incomplete)))
+        print('[WARN] sources not READY (ignored): {}'.format(', '.join(incomplete)))
 
     ok &= check('land source bounds', len(land_bounds) > 0, ', '.join(land_bounds[:5]) or 'none')
     if len(ocean_bounds) == 0:

@@ -15,7 +15,7 @@ There are **two phases**. Several recipes overlap; you only need the ones in thi
 ```bash
 uv sync
 just storage
-just manage autodownload -y    # phase 1: sources + shoreline (skip complete, resume partial)
+just manage autodownload -y    # phase 1: 32 parallel downloads, prep overlaps
 just covering                  # phase 2: plan tiles
 # terminal A:
 just downloader                # copy rasters into tmp-store as aggregate asks for them
@@ -36,8 +36,8 @@ Progress is written to `meta-store/run-status.json` and `meta-store/logs/{run_id
 | Command | What it actually does |
 |---|---|
 | `just storage` | Print which disk each store directory is on. |
-| `just manage autodownload -y` | **The source command.** Download + unzip/bounds for every catalog source that has URLs, plus shoreline. Skips `DOWNLOAD_COMPLETE`. Resume partial files with wget. |
-| `just manage list` | Table of catalog vs disk. `DL=yes` means the source is fully downloaded. |
+| `just manage autodownload -y` | **The source command.** Up to 32 sources wget at once (`--jobs`). As each download finishes, unzip/bounds/tarball start on a separate pool (`--prep-jobs`, default 8). Skips `READY`. |
+| `just manage list` | Table of catalog vs disk. `DL=yes` = files fetched. `READY=yes` = unzip/prep finished; only then is the source usable. |
 | `just covering` | Read complete sources' `bounds.csv` and write the aggregation/downsampling work queues. |
 | `just downloader` | Long-running loop: copy (or symlink) rasters from `source-store` into `tmp-store` as aggregate requests them. Run in its own terminal. |
 | `just aggregate` | Merge staged rasters into terrain tiles. Needs the downloader running. |
@@ -79,9 +79,9 @@ bash debug.sh
 
 The source pipeline has multiple parts that are needed to bring source files into a normalized file format.
 
-`source_download.py`: Downloads files from URLs in `file_list.txt` to `source-store/{source}`. Writes `DOWNLOAD_COMPLETE` only after every URL succeeds. Interrupted runs leave that marker absent; `wget --continue` resumes partial files. If the marker is already present, the download is skipped.
+`source_download.py`: Downloads files from URLs in `file_list.txt` to `source-store/{source}`. Writes `DOWNLOAD_COMPLETE` only after every URL succeeds. Interrupted runs leave that marker absent; `wget --continue` resumes partial files. If the marker is already present, the download is skipped. Unzip/convert can still be running — that is `DL=yes` / `READY=no`.
 
-`source_unzip.py`: If a source contains ZIP files, this script can be used to unpack them. Requires `DOWNLOAD_COMPLETE`.
+`source_unzip.py`: If a source contains ZIP/7z files, unpack them. Requires `DOWNLOAD_COMPLETE`. Clears `READY` at start so an in-progress extract never looks finished.
 
 `source_to_cog.py`: Use this script to make sure that all files are LERC compressed and tiled internally. Note that this is a bit of a mis-nomer because it does not actually create COGs since no overviews are added to the GeoTIFFs.
 
@@ -120,7 +120,7 @@ uv run python source_manage.py clear-shoreline --yes
 uv run python source_manage.py load-shoreline --force --yes
 ```
 
-Also available as `just manage ...`. Complete downloads are marked with `source-store/{source}/DOWNLOAD_COMPLETE` (written only after every URL succeeds). Covering and the downloader ignore sources without that marker so half-downloaded data is never aggregated. Clear removes `source-store/{source}` plus polygon/tar/meta unless `--keep-derived`. Load/autodownload run the source's catalog Justfile.
+Also available as `just manage ...`. Two markers in `source-store/{source}/`: `DOWNLOAD_COMPLETE` after wget finishes, `READY` only after the catalog Justfile finishes (unzip, cog, bounds, tarball). Covering and the downloader require `READY`, so a source that is still extracting is never aggregated. Clear removes `source-store/{source}` plus polygon/tar/meta unless `--keep-derived`. Load/autodownload run the source's catalog Justfile.
 
 
 `source_create_tarball.py`: Required script. Creates a tarball in `tar-store/{source}.tar`. Metadata is stored in `meta-store/tar/{source}.json`. Tarball will be needed in the upload stage.

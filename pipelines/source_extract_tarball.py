@@ -15,8 +15,8 @@ def main():
         print('Not enough arguments. Usage: source_extract_tarball.py {{source}}')
         exit()
 
-    if source_marker.is_download_complete(source):
-        print('{} already extracted ({}), skipping'.format(source, source_marker.MARKER_NAME))
+    if source_marker.is_source_ready(source):
+        print('{} already READY, skipping extract'.format(source))
         return
 
     source_marker.begin_download(source)
@@ -38,6 +38,7 @@ def main():
     os.remove('{}/metadata.json'.format(dest))
     os.remove('{}/coverage.gpkg'.format(dest))
     source_marker.mark_download_complete(source)
+    source_marker.mark_ready(source)
 
 
 if __name__ == '__main__':
