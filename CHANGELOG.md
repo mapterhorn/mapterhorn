@@ -1,3 +1,14 @@
+## 0.0.12
+
+### ✨ Features and improvements
+
+- Add source autas: Australia, Tasmania 2 m (#297)
+- Add source esmdt50*: Spain, partial 50 cm (#293)
+- Add source aatw: Taiwan, 20m (#292)
+- Add source debw025: Germany, Baden-Württemberg 25 cm (#290)
+- Add source frhd* and update multi-host pipeline (#289)
+- Introduce manager.py, worker.py, downloader.py: distributed compute workflow (#277, #285, #286 #289)
+
 ## 0.0.11
 
 ### ✨ Features and improvements
