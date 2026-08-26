@@ -13,7 +13,7 @@ def run(filepath):
     filename = filepath.split('/')[-1]
     item = filename.replace('-aggregation.csv', '')
     if os.path.isfile(f'{filepath}.done'):
-        print(f'Aggregation item {item} already done. Skipping...')
+        print(f'{item} already done, skipping...')
         return
     print(f'{item} start')
     queue_folder = 'tmp-store/queue'
@@ -23,23 +23,23 @@ def run(filepath):
     ready_folder = 'tmp-store/ready'
     os.makedirs(ready_folder, exist_ok=True)
     while not os.path.isfile(f'{ready_folder}/{filename}'):
-        print('waiting for download...')
+        print(f'{item} waiting for download...')
         time.sleep(1)
-    print('download complete.')
+    print(f'{item} download complete.')
     tmp_folder = f'tmp-store/{item}'
     os.makedirs(tmp_folder, exist_ok=True)
     tic = time.time()
-    print('start reproject...')
+    print(f'{item} start reproject...')
     aggregation_reproject.reproject(filepath, tmp_folder)
-    print(f'reproject done in {(time.time() - tic):.2f} s')
+    print(f'{item} reproject done in {(time.time() - tic):.2f} s')
     tic = time.time()
-    print('start merge...')
+    print(f'{item} start merge...')
     aggregation_merge.merge(filepath, tmp_folder)
-    print(f'merge done in {(time.time() - tic):.2f} s')
+    print(f'{item} merge done in {(time.time() - tic):.2f} s')
     tic = time.time()
-    print('start tile...')
+    print(f'{item} start tile...')
     aggregation_tile.main(filepath, tmp_folder)
-    print(f'tile done in {(time.time() - tic):.2f} s')
+    print(f'{item} tile done in {(time.time() - tic):.2f} s')
     shutil.rmtree(tmp_folder)
     with open(f'{filepath}.done', 'w') as f:
         f.write('')
