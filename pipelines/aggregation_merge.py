@@ -123,12 +123,7 @@ def merge(filepath, tmp_folder):
                         crop_x_end = merged_tile.shape[1] - (overlap if x_end < width else 0)
                         
                         output_window = rasterio.windows.Window(x, y, crop_x_end - crop_x_start, crop_y_end - crop_y_start)
-                        dst_dtype = dst.dtypes[0]
-                        output_tile = merged_tile[crop_y_start:crop_y_end, crop_x_start:crop_x_end]
-                        if output_tile.dtype != np.dtype(dst_dtype):
-                            with np.errstate(under='ignore'):
-                                output_tile = output_tile.astype(dst_dtype, copy=False)
-                        dst.write(output_tile, 1, window=output_window)
+                        dst.write(merged_tile[crop_y_start:crop_y_end, crop_x_start:crop_x_end], 1, window=output_window)
         
     for tiff_filepath in tiff_filepaths:
         os.remove(tiff_filepath)

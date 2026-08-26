@@ -41,8 +41,7 @@ def main():
         with rasterio.open(filepath) as src:
             if src.nodata is None or force:
                 argument_tuples.append((filepath, nodata))
-            else:
-                nodata_values.add(src.nodata)
+            nodata_values.add(src.nodata)
 
     print(f'Found these nodata value(s):')
     for v in nodata_values:
