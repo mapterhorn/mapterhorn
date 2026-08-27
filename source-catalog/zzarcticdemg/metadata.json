@@ -1,0 +1,9 @@
+{
+    "name": "ArcticDEM Mosaic, Version 4.1, 2 m",
+    "website": "https://www.pgc.umn.edu/data/arcticdem/",
+    "license": "CC-BY-4.0",
+    "producer": "Polar Geospatial Center, University of Minnesota",
+    "producer_short": "PGC",
+    "resolution": 2.0,
+    "access_year": 2026
+}
