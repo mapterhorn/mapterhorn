@@ -24,7 +24,7 @@ The source pipeline has multiple parts that are needed to bring source files int
 
 `source_normalize_filenames.py`: Use this if you have strange filenames.
 
-`source_bounds.py`: Required script. Creates `source-store/{source}/bounds.csv` needed for the aggregation covering stage.
+`source_bounds.py`: Required script. Creates `source-store/{source}/bounds.csv` needed for the aggregation covering stage. Each row stores the source `zoom`, the smallest web mercator zoom whose pixel size is finer than the source resolution in both raster-axis directions. The resolution is measured in EPSG:3857 at the raster center so the inflated transformed bounding box of a rotated image does not make the pipeline select a zoom one level too low.
 
 `source_polygonize.py`: Required script. Creates `polygon-store/{source}.gpkg` with the coverage polygon of the source. Needed for the tarball creation and the coverage pmtiles part.
 
@@ -51,7 +51,7 @@ In **covering**, we loop over all source bounds.csv files and all source files (
 
 These zoom 12 tiles are called "macrotiles". We then store in a map which macrotiles intersect which source items.
 
-For every source item we furthermore compute the smallest web mercator zoom level to oversample the source data. Here is where we use the pixel size and bounding box from the bounds.csv file.
+For every source item we read its source zoom from the bounds.csv file and apply the aggregation pipeline's minimum zoom of 12. The source zoom is the smallest web mercator zoom whose pixel size is finer than the source resolution in both raster-axis directions.
 
 Throughout Mapterhorn we assume a final tile size of 512 by 512 pixels. Intermediate working tiles can also be larger but never smaller.
 
