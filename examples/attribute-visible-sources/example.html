@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang='en'>
+
+<head>
+    <meta charset="utf-8" />
+    <script src="https://unpkg.com/maplibre-gl@5.6.0/dist/maplibre-gl.js"></script>
+    <link href="https://unpkg.com/maplibre-gl@5.6.0/dist/maplibre-gl.css" rel="stylesheet" />
+    <script src="https://unpkg.com/pmtiles@4.3.0/dist/pmtiles.js"></script>
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        #map {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map"></div>
+    <script type="text/javascript">
+
+        const map = new maplibregl.Map({
+            container: 'map',
+            hash: 'map',
+            zoom: 12.5,
+            center: [8.52399, 47.35917],
+            attributionControl: false,
+            style: {
+                version: 8,
+                sources: {
+                    hillshadeSource: {
+                        type: 'raster-dem',
+                        url: 'https://tiles.mapterhorn.com/tilejson.json',
+                        attribution: '',
+                    },
+                },
+                layers: [
+                    {
+                        id: 'hillshade',
+                        type: 'hillshade',
+                        source: 'hillshadeSource',
+                    },
+                ],
+            },
+        });
+
+        
+        let attribution = new maplibregl.AttributionControl({
+            customAttribution: ''
+        });
+
+        map.addControl(attribution);
+
+        function setAttribution(text) {
+            map.removeControl(attribution);
+            attribution = new maplibregl.AttributionControl({
+                compact: false,
+                customAttribution: text
+            });
+            map.addControl(attribution);
+        }
+
+        function getVisibleTiles(map) {
+            const bounds = map.getBounds();
+            const zoom = Math.floor(map.getZoom());
+            const nw = bounds.getNorthWest();
+            const se = bounds.getSouthEast();
+            const n = 2 ** zoom;
+            const lon2x = lon => ((lon + 180) / 360) * n;
+            const lat2y = lat => {
+                const r = lat * Math.PI / 180;
+                return (1 - Math.asinh(Math.tan(r)) / Math.PI) / 2 * n;
+            };
+            const minX = Math.floor(lon2x(nw.lng));
+            const maxX = Math.floor(lon2x(se.lng));
+            const minY = Math.floor(lat2y(nw.lat));
+            const maxY = Math.floor(lat2y(se.lat));
+            const tiles = [];
+            for (let x = minX; x <= maxX; x++) {
+                for (let y = minY; y <= maxY; y++) {
+                    tiles.push({ z: zoom, x, y });
+                }
+            }
+            return tiles
+        }
+
+        async function getMetadatas(x, y, z) {
+            const coverageIndexMaxzoom = 12;
+            if (z > coverageIndexMaxzoom) {
+                const parentX = x >> (z - coverageIndexMaxzoom);
+                const parentY = y >> (z - coverageIndexMaxzoom);
+                return await getMetadatas(parentX, parentY, coverageIndexMaxzoom);
+            }
+            const p = new pmtiles.PMTiles('https://download.mapterhorn.com/coverage-index.pmtiles');
+            const indexTile = await p.getZxy(z, x, y);
+            if (indexTile === undefined) {
+                return {};
+            }
+            const decoder = new TextDecoder('utf-8')
+            return JSON.parse(decoder.decode(indexTile.data));
+        }
+
+        async function handleAttribution() {
+            const tiles = getVisibleTiles(map);
+            const results = await Promise.all(tiles.map(async (tile) => getMetadatas(tile.x, tile.y, tile.z)));
+            const allMetadatas = results.reduce((acc, metadatas) => ({...acc, ...metadatas}), {});
+            console.log(allMetadatas);
+            const sources = Object.keys(allMetadatas);
+            const maxNumberOfDisplayedSources = 15;
+            if (sources.length > maxNumberOfDisplayedSources) {
+                setAttribution(`<a href="https://mapterhorn.com/attribution" target="_blank" rel="noopener noreferrer">© Mapterhorn</a>`);
+                return;
+            }
+            sources.sort((a, b) => allMetadatas[a]['resolution'] - allMetadatas[b]['resolution']);
+            const uniqueSources = [];
+            for (const source of sources) {
+                if (!uniqueSources.map(s => allMetadatas[s]['producer_short']).includes(allMetadatas[source]['producer_short'])) {
+                    uniqueSources.push(source);
+                }
+            }
+            const links = uniqueSources.map(source => `<a href="${allMetadatas[source]['website']}" target="_blank" rel="noopener noreferrer">© ${allMetadatas[source]['producer_short']}</a>`);
+            setAttribution(links.join(" "));
+        }
+
+        map.on('load', handleAttribution);
+        map.on('moveend', handleAttribution);
+
+    </script>
+</body>
+
+</html>
