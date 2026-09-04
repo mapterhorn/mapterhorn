@@ -1,6 +1,5 @@
 __pycache__
 .venv
-data
 source-store
 aggregation-store
 pmtiles-store
@@ -12,5 +11,6 @@ tmp-store
 tmp
 planetiler.jar
 index.md
+data
 index.pmtiles
 pipelines.egg-info

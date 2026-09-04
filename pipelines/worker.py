@@ -30,19 +30,14 @@ def worker():
         task_name = secrets.token_hex(16)
         host_name = os.uname().nodename
         request_filepath = f'task-store/{host_name}-{task_name}.request'
+        print('writing request...')
         with open(request_filepath, 'w') as f:
             f.write('')
 
         response_filepath = request_filepath.replace('.request', '.response')
         
-        sleep_iterations = 0
         while not os.path.isfile(response_filepath):
             time.sleep(1)
-            sleep_iterations += 1
-            if sleep_iterations == 600:
-                os.remove(request_filepath)
-                print('task response timed out. terminating...')
-                return
     
         work_on_task(response_filepath)
         

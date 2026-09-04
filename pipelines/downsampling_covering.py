@@ -52,6 +52,7 @@ def not_in_previous_aggregation(filename, aggregation_ids):
     return len(glob(f'aggregation-store/{aggregation_ids[-2]}/{filename}')) == 0
 
 def write_downlsampling_todos():
+    print('writing downsampling todos...')
     aggregation_ids = utils.get_aggregation_ids()
     aggregation_id = aggregation_ids[-1]
 

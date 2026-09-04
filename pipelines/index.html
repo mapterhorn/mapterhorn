@@ -1,8 +1,7 @@
-
 <html>
 
 <head>
-    <title>Mapterhorn Viewer</title>
+    <title>Mapterhorn Local Viewer</title>
     <meta charset="utf-8" />
     <script src="https://unpkg.com/maplibre-gl@5.6.0/dist/maplibre-gl.js"></script>
     <link href="https://unpkg.com/maplibre-gl@5.6.0/dist/maplibre-gl.css" rel="stylesheet" />
@@ -28,21 +27,68 @@
 
         maplibregl.addProtocol('mapterhorn', async (params, abortController) => {
             const parts = params.url.replace('mapterhorn://', '').split('/');
+
+            const z = parseInt(parts[0]);
             const x = parseInt(parts[1]);
             const y = parseInt(parts[2]);
-            const z = parseInt(parts[0]);
-            const p = new pmtiles.PMTiles('index.pmtiles');
-            const indexTile = await p.getZxy(z, x, y);
-            if (indexTile === undefined) {
-                 throw new Error(`tile ${z}/${x}/${y} not found`);
+
+            for (let sourceZ = z; sourceZ >= 0; sourceZ--) {
+                const scale = 2 ** (z - sourceZ);
+
+                const sourceX = Math.floor(x / scale);
+                const sourceY = Math.floor(y / scale);
+
+                for (let childZ = z; childZ >= sourceZ; childZ--) {
+
+                    if (childZ < z) {
+                        continue;
+                    }
+
+                    const filename =
+                        `${sourceZ}-${sourceX}-${sourceY}-${childZ}.pmtiles`;
+
+                    let filepath;
+
+                    if (sourceZ >= 7) {
+                        const dirScale = 2 ** (sourceZ - 7);
+
+                        const dirX = Math.floor(sourceX / dirScale);
+                        const dirY = Math.floor(sourceY / dirScale);
+
+                        filepath =
+                            `pmtiles-store/7-${dirX}-${dirY}/${filename}`;
+                    } else {
+                        filepath =
+                            `pmtiles-store/${filename}`;
+                    }
+
+                    try {
+                        const p = new pmtiles.PMTiles(filepath);
+
+                        const tile = await p.getZxy(z, x, y);
+
+                        if (tile !== undefined) {
+                            console.log(
+                                `Using ${filepath} for ${z}/${x}/${y}`
+                            );
+
+                            return await protocol.tile(
+                                {
+                                    ...params,
+                                    url: `pmtiles://${filepath}/${z}/${x}/${y}.webp`,
+                                },
+                                abortController
+                            );
+                        }
+                    } catch (err) {
+                    }
+                }
             }
-            const decoder = new TextDecoder('utf-8')
-            const filename = decoder.decode(indexTile.data);
-            console.log({params, filename})
-            const url = `pmtiles://${filename}/${z}/${x}/${y}.webp`;
-            const newParams = { ...params, url };
-            return await protocol.tile(newParams, abortController);
+
+            throw new Error(`tile ${z}/${x}/${y} not found`);
         });
+
+        const boundsSource = 'dehessen';
 
         const map = new maplibregl.Map({
             container: 'map',
@@ -59,12 +105,25 @@
                         tileSize: 512,
                         attribution: '<a href="https://github.com/mapterhorn/mapterhorn">© Mapterhorn</a>'
                     },
+                    bounds: {
+                        type: 'geojson',
+                        data: `bounds_${boundsSource}.geojson`
+                    },
                 },
                 layers: [
                     {
                         id: 'hillshade',
                         type: 'hillshade',
                         source: 'hillshadeSource',
+                    },
+                    {
+                        id: 'bounds',
+                        type: 'line',
+                        source: 'bounds',
+                        paint: {
+                            'line-color': '#0f0',
+                            'line-opacity': 0.2,
+                        },
                     },
                 ],
             },
@@ -87,7 +146,6 @@
         }
         map.addControl(new LogoControl(), 'bottom-left');
 
-        // map.showTileBoundaries = true;
     </script>
 </body>
 

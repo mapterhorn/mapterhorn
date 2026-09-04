@@ -30,7 +30,9 @@ def merge(filepath, tmp_folder):
     if num_tiff_files == 0:
         raise ValueError(f'failed to read tifs of {filepath}')
 
+    output_path = f'{tmp_folder}/merged-3857.tiff'
     if num_tiff_files == 1:
+        os.rename(f'{tmp_folder}/0-3857.tiff', output_path)
         command = f'touch {done_filepath}'
         utils.run_command(command)
         return
@@ -50,7 +52,6 @@ def merge(filepath, tmp_folder):
             width = src.width
             profile = src.profile
             
-            output_path = f'{tmp_folder}/{num_tiff_files}-3857.tiff'
             profile.update(
                 tiled=True,
                 blockxsize=512,
@@ -124,6 +125,9 @@ def merge(filepath, tmp_folder):
                         output_window = rasterio.windows.Window(x, y, crop_x_end - crop_x_start, crop_y_end - crop_y_start)
                         dst.write(merged_tile[crop_y_start:crop_y_end, crop_x_start:crop_x_end], 1, window=output_window)
         
+    for tiff_filepath in tiff_filepaths:
+        os.remove(tiff_filepath)
+
     command = f'touch {done_filepath}'
     utils.run_command(command)
 

@@ -21,6 +21,7 @@ def main():
         'items': []
     }
     for name in names:
+        print(f'working on {name}...')
         meta = None
         with open(f'meta-store/bundle/{name}.json') as f:
             meta = json.load(f)
