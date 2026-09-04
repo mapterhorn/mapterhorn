@@ -9,3 +9,7 @@ tar-store
 planetiler.jar
 index.md
 data
+# pixi environments
+.pixi/*
+!.pixi/config.toml
+pipelines.egg-info
