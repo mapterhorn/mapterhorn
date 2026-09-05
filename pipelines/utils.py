@@ -47,15 +47,20 @@ def get_aggregation_ids():
 def get_vertical_rounding_multiplier(z):
     return int(2 ** ((10 - z) / 2) / (1 / 256))
 
-def save_terrarium_tile(data, filepath):
-    filename = filepath.split('/')[-1]
-    z = int(filename.split('-')[0])
-
+def get_rounded_elevation_data(data, z):
     # full terrarium resolution of 1/256 at `full_resolution_zoom`
     # multiples of 2 of full terrarium resolution at lower zooms
     full_resolution_zoom = 19
     factor = 2 ** (full_resolution_zoom - z) / 256 
-    data = np.round(data / factor) * factor
+    if factor > 32:
+        factor = 32
+    return np.round(data / factor) * factor
+
+def save_terrarium_tile(data, filepath):
+    filename = filepath.split('/')[-1]
+    z = int(filename.split('-')[0])
+
+    data = get_rounded_elevation_data(data, z)
 
     data += 32768
     rgb = np.zeros((512, 512, 3), dtype=np.uint8)

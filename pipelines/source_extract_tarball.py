@@ -13,6 +13,7 @@ def main():
         print('Not enough arguments. Usage: source_extract_tarball.py {{source}}')
         exit()
 
+    os.makedirs(f'source-store/{source}', exist_ok=True)
     command = f'tar xf tar-store/{source}.tar -C source-store/{source}'
     utils.run_command(command, silent=False)
 
