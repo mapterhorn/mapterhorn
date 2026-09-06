@@ -30,7 +30,7 @@ def polygonize_source(source, processes):
     with Pool(processes) as pool:
         pool.starmap(polygonize_tif, argument_tuples, chunksize=1)
 
-def merge_source(source):
+def merge_source(source, assign_crs = None):
     filenames = get_filenames(source)
     merged_filepath = f'polygon-store/{source}/merged.gpkg'
     if os.path.isfile(merged_filepath):
@@ -45,20 +45,27 @@ def merge_source(source):
     union_filepath = f'polygon-store/{source}.gpkg'
     if os.path.isfile(union_filepath):
         os.remove(union_filepath)
-    utils.run_command(f'ogr2ogr -f GPKG {union_filepath} {merged_filepath} -nln union -dialect sqlite -sql "SELECT ST_Union(ST_MakeValid(geom)) AS geom FROM out"', silent=False)
+    extra_args = ''
+    if assign_crs:
+        extra_args = f'-a_srs {assign_crs}'
+    utils.run_command(f'ogr2ogr -f GPKG {union_filepath} {merged_filepath} -nln union {extra_args} -dialect sqlite -sql "SELECT ST_Union(ST_MakeValid(geom)) AS geom FROM out"', silent=False)
 
 def main():
     source = None
     processes = None
-    if len(sys.argv) == 3:
+    assign_crs = None
+    if len(sys.argv) >= 3:
         source = sys.argv[1]
         processes = int(sys.argv[2])
+        # Optional: assign CRS to resulting GPKG
+        if len(sys.argv) == 4:
+            assign_crs = sys.argv[3]
         print(f'polygonizing {source} with {processes} processes...')
     else:
-        print('Not enough arguments. Usage: source_polygonize.py {{source}} {{processes}}')
+        print('Not enough arguments. Usage: source_polygonize.py {{source}} {{processes}} [{{assign_crs}}]')
         exit()
     polygonize_source(source, processes)
-    merge_source(source)
+    merge_source(source, assign_crs)
     shutil.rmtree(f'polygon-store/{source}')
 
 if __name__ == '__main__':
