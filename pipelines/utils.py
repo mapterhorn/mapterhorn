@@ -52,8 +52,8 @@ def get_rounded_elevation_data(data, z):
     # multiples of 2 of full terrarium resolution at lower zooms
     full_resolution_zoom = 19
     factor = 2 ** (full_resolution_zoom - z) / 256 
-    if factor > 32:
-        factor = 32
+    if factor > 1:
+        factor = 1
     return np.round(data / factor) * factor
 
 def save_terrarium_tile(data, filepath):
