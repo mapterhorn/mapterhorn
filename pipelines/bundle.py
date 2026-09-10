@@ -149,6 +149,7 @@ def create_archive(filepaths, name):
                 'center_zoom': int(0.5 * (min_z + max_z)),
                 'center_lon_e7': int(0.5 * (min_lon_e7 + max_lon_e7)),
                 'center_lat_e7': int(0.5 * (min_lat_e7 + max_lat_e7)),
+                'encoding': 'terrarium',
             },
             {
                 'attribution': '<a href="https://mapterhorn.com/attribution">© Mapterhorn</a>',
