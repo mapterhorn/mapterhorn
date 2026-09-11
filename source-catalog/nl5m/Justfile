@@ -1,0 +1,11 @@
+# Source preparation pipeline to be run from mapterhorn/pipelines folder
+[no-cd]
+default:
+    uv run python source_download.py nl5m
+    # fill holes with gdal_fillnodata.py
+    uv run python source_fill_nodata.py nl5m 1 100 2
+    uv run python source_to_cog.py nl5m
+    uv run python source_bounds.py nl5m
+    # also fix compound CRS EPSG:28992
+    uv run python source_polygonize.py nl5m 32 EPSG:28992
+    uv run python source_create_tarball.py nl5m
