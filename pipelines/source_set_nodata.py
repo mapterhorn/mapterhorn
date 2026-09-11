@@ -31,13 +31,11 @@ def main():
         print('arguments missing, usage: python source_set_nodata.py {{source}} {{nodata}} [--force] [--dry-run]')
         exit()
         
-    filepaths = sorted(glob(f'source-store/{source}/*'))
+    filepaths = sorted(glob(f'source-store/{source}/*.tif'))
 
     argument_tuples = []
     nodata_values = set({})
     for filepath in filepaths:
-        if not filepath.endswith('.tif'):
-            continue
         with rasterio.open(filepath) as src:
             if src.nodata is None or force:
                 argument_tuples.append((filepath, nodata))

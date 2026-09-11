@@ -12,11 +12,11 @@ from pmtiles.writer import Writer
 
 import utils
 
-def get_parent_to_filepaths(only_dirty, num_aggregations):
+def get_parent_to_filepaths(num_aggregations):
     filepaths = sorted(glob('pmtiles-store/*.pmtiles') + glob('pmtiles-store/*/*.pmtiles'))
 
     parent_to_filepath = {}
-    dirty_parents = get_dirty_parents(num_aggregations)
+    dirty_parents = get_dirty_parents(num_aggregations) if num_aggregations > 0 else None
 
     for filepath in filepaths:
         filename = filepath.split('/')[-1]
@@ -32,7 +32,7 @@ def get_parent_to_filepaths(only_dirty, num_aggregations):
             else:
                 parent = mercantile.parent(mercantile.Tile(x=x, y=y, z=z), zoom=6)
         
-        if only_dirty and parent not in dirty_parents:
+        if num_aggregations > 0 and parent not in dirty_parents:
             continue
 
         if parent not in parent_to_filepath:
@@ -188,8 +188,7 @@ def main():
         print('Not enough arguments. Usage: bundle.py {{num_aggregations}}')
         exit()
     
-    dirty_only = True
-    parent_to_filepaths = get_parent_to_filepaths(dirty_only, num_aggregations)
+    parent_to_filepaths = get_parent_to_filepaths(num_aggregations)
     for parent in parent_to_filepaths:
         name = get_name_from_parent(parent)
         print(name)
