@@ -1,18 +1,18 @@
 # Run full pipeline
 default:
-    # uv run python aggregation_covering.py
-    # uv run python downsampling_covering.py
+    # pixi run python aggregation_covering.py
+    # pixi run python downsampling_covering.py
  
-    # uv run python aggregation_run.py
-    # uv run python downsampling_run.py
-    # uv run python remove_dangling_pmtiles.py
-    # uv run python create_index.py
+    # pixi run python aggregation_run.py
+    # pixi run python downsampling_run.py
+    # pixi run python remove_dangling_pmtiles.py
+    # pixi run python create_index.py
 
-    # TMPDIR=/tmp uv run python bundle.py 1
-    # uv run python download_urls.py 0.0.0
-    # uv run python attribution.py
+    # TMPDIR=/tmp pixi run python bundle.py 1
+    # pixi run python download_urls.py 0.0.0
+    # pixi run python attribution.py
     # java -cp planetiler.jar Coverage.java # cf https://github.com/onthegomap/planetiler-examples
 
 # Upload to object storage. 
 upload:
-    uv run python upload.py
+    pixi run python upload.py
