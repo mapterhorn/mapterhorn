@@ -1,155 +1,60 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang='en'>
 
 <head>
-    <title>3D Terrain Viewer | Mapterhorn</title>
+    <title>Viewer | Mapterhorn</title>
     <meta charset="utf-8" />
-    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
-    <meta name="description" content="Explore Mapterhorn elevation tiles as interactive 3D terrain." />
     <script src="https://unpkg.com/deck.gl@9.2.8/dist.min.js"></script>
     <script src="https://unpkg.com/pmtiles@4.3.0/dist/pmtiles.js"></script>
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
     <link rel="icon" href="https://mapterhorn.github.io/.github/brand/screen/mapterhorn-icon.png">
     <style>
-        :root {
-            color-scheme: light;
-            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        html,
         body {
-            width: 100%;
-            height: 100%;
             margin: 0;
-            overflow: hidden;
-            background: #dce8ef;
+            padding: 0;
         }
 
         #deck-canvas {
             position: absolute;
-            inset: 0;
+            top: 0;
+            bottom: 0;
             width: 100%;
             height: 100%;
             outline: none;
         }
 
-        #controls {
-            position: fixed;
-            z-index: 2;
-            top: 12px;
-            left: 12px;
-            width: min(640px, calc(100vw - 24px));
-            padding: 10px;
-            border: 1px solid rgba(23, 37, 45, 0.14);
-            border-radius: 10px;
-            background: rgba(255, 255, 255, 0.94);
-            box-shadow: 0 5px 18px rgba(17, 34, 44, 0.18);
-            backdrop-filter: blur(8px);
-        }
-
         #form {
+            position: fixed;
+            box-sizing: border-box;
+            z-index: 2;
+            background: white;
+            padding: 0.3rem;
+            width: 100vw;
             display: flex;
-            gap: 8px;
+            height: 30px;
+            align-items: center;
         }
 
         #input {
-            min-width: 0;
-            flex: 1;
-            padding: 7px 9px;
-            border: 1px solid #aebbc2;
-            border-radius: 5px;
-            font: inherit;
-        }
-
-        #input:focus,
-        button:focus-visible,
-        input:focus-visible {
-            outline: 2px solid #1674a7;
-            outline-offset: 1px;
-        }
-
-        button {
-            padding: 7px 14px;
-            border: 1px solid #07577f;
-            border-radius: 5px;
-            color: white;
-            background: #086792;
-            font: inherit;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background: #07577f;
-        }
-
-        button:disabled {
-            cursor: wait;
-            opacity: 0.65;
-        }
-
-        .options {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            min-height: 28px;
-            margin-top: 7px;
-            color: #33444d;
-            font-size: 13px;
-        }
-
-        .option {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            white-space: nowrap;
-        }
-
-        #scale {
-            width: 100px;
-            accent-color: #086792;
-        }
-
-        #scaleValue {
-            min-width: 2.4em;
-            font-variant-numeric: tabular-nums;
+            flex-grow: 1;
+            margin-right: 0.5rem;
         }
 
         #dragInfo {
-            margin-left: auto;
-            color: #6b7880;
-        }
-
-        #status {
-            min-height: 1.2em;
-            margin-top: 3px;
-            overflow: hidden;
-            color: #53636b;
-            font-size: 12px;
-            line-height: 1.2;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        #status.error {
-            color: #a32121;
+            flex-shrink: 0;
+            font-size: 14px;
+            font-family: sans-serif;
+            color: #777;
+            margin-left: 0.5rem;
+            display: none;
         }
 
         #brand {
             position: fixed;
             z-index: 2;
-            bottom: 29px;
-            left: 7px;
-            display: block;
+            bottom: -1px;
+            left: 5px;
             line-height: 0;
-        }
-
-        #brand img {
-            width: 220px;
-            max-width: 46vw;
         }
 
         #attribution {
@@ -157,54 +62,35 @@
             z-index: 2;
             right: 0;
             bottom: 0;
-            max-width: 100%;
-            padding: 3px 7px;
-            border-radius: 4px 0 0 0;
-            background: rgba(255, 255, 255, 0.82);
-            color: #35454d;
-            font-size: 11px;
-            line-height: 1.4;
-            text-align: right;
+            padding: 0 5px;
+            background: rgba(255, 255, 255, 0.8);
+            color: #333;
+            font: 12px/20px Helvetica Neue, Arial, Helvetica, sans-serif;
         }
 
         #attribution a {
             color: inherit;
         }
 
-        .drop-active::after {
+        #tooltip {
             position: fixed;
-            z-index: 5;
-            inset: 12px;
-            display: grid;
-            place-items: center;
-            border: 3px dashed #086792;
-            border-radius: 14px;
-            color: #07577f;
-            background: rgba(232, 246, 252, 0.88);
-            content: "Drop a PMTiles archive to view it in 3D";
-            font-size: clamp(18px, 3vw, 32px);
-            font-weight: 700;
+            z-index: 3;
+            max-width: 260px;
+            padding: 6px 8px;
+            border-radius: 2px;
+            background: rgba(0, 0, 0, 0.82);
+            color: white;
+            font: 12px/1.45 Helvetica Neue, Arial, Helvetica, sans-serif;
             pointer-events: none;
         }
 
-        @media (max-width: 640px) {
-            #controls {
-                top: 8px;
-                left: 8px;
-                width: calc(100vw - 16px);
-            }
+        #tooltip[hidden] {
+            display: none;
+        }
 
-            .options {
-                flex-wrap: wrap;
-                gap: 7px 14px;
-            }
-
+        @media (min-width: 640px) {
             #dragInfo {
-                display: none;
-            }
-
-            #brand img {
-                width: 170px;
+                display: inline;
             }
         }
     </style>
@@ -212,35 +98,22 @@
 
 <body>
     <canvas id="deck-canvas" aria-label="Interactive 3D terrain map"></canvas>
-    <section id="controls" aria-label="Terrain controls">
-        <form id="form">
-            <input id="input" type="text" inputmode="url" aria-label="TileJSON or PMTiles URL"
-                placeholder="TileJSON or .pmtiles URL" />
-            <button id="viewButton" type="submit">View</button>
-        </form>
-        <div class="options">
-            <label class="option" for="scale">
-                Vertical scale
-                <input id="scale" type="range" min="0.25" max="3" step="0.25" value="1" />
-                <span id="scaleValue">1×</span>
-            </label>
-            <label class="option" for="wireframe">
-                <input id="wireframe" type="checkbox" />
-                Wireframe
-            </label>
-            <span id="dragInfo">or drag-and-drop .pmtiles</span>
-        </div>
-        <div id="status" role="status" aria-live="polite">Loading terrain…</div>
-    </section>
+    <form id="form">
+        <input id="input" type="text" placeholder="TileJSON or .pmtiles" />
+        <button type="submit">View</button>
+        <span id="dragInfo">or drag-and-drop .pmtiles</span>
+    </form>
     <a id="brand" href="/" aria-label="Mapterhorn home">
-        <img src="https://mapterhorn.github.io/.github/brand/screen/mapterhorn-logo.png" alt="Mapterhorn" />
+        <img width="240" src="https://mapterhorn.github.io/.github/brand/screen/mapterhorn-logo.png"
+            alt="Mapterhorn" />
     </a>
-    <div id="attribution">
-        <span id="sourceAttribution">© Mapterhorn</span>
-    </div>
+    <div id="attribution"><a href="/attribution">© Mapterhorn</a></div>
+    <div id="tooltip" role="tooltip" hidden></div>
 
     <script type="text/javascript">
         const DEFAULT_SOURCE = 'https://tiles.mapterhorn.com/tilejson.json';
+        const COVERAGE_INDEX_URL = 'https://download.mapterhorn.com/coverage-index.pmtiles';
+        const COVERAGE_INDEX_ZOOM = 12;
         const DEFAULT_VIEW_STATE = {
             longitude: 9.0788,
             latitude: 47.1194,
@@ -262,14 +135,12 @@
 
         const form = document.getElementById('form');
         const input = document.getElementById('input');
-        const viewButton = document.getElementById('viewButton');
-        const scaleInput = document.getElementById('scale');
-        const scaleValue = document.getElementById('scaleValue');
-        const wireframeInput = document.getElementById('wireframe');
-        const status = document.getElementById('status');
-        const sourceAttribution = document.getElementById('sourceAttribution');
+        const attribution = document.getElementById('attribution');
+        const tooltip = document.getElementById('tooltip');
         const hash = new URLSearchParams(location.hash.slice(1));
         const archives = new Map();
+        const coverageIndex = new pmtiles.PMTiles(COVERAGE_INDEX_URL);
+        const coverageCache = new Map();
         const defaultLayerFetch = new deck.TerrainLayer({
             id: 'default-terrain-fetch',
             elevationData: 'data:,',
@@ -279,8 +150,7 @@
         let sourceRequest = 0;
         let activeSource = null;
         let activeSourceUrl = hash.get('url') || '';
-        let verticalScale = numberFromHash('scale', 1);
-        let wireframe = hash.get('wireframe') === '1';
+        let currentHover = null;
         let currentViewState = {
             ...DEFAULT_VIEW_STATE,
             longitude: numberFromHash('longitude', DEFAULT_VIEW_STATE.longitude),
@@ -291,10 +161,6 @@
         };
         let hashUpdateTimer;
 
-        verticalScale = Math.min(3, Math.max(0.25, verticalScale));
-        scaleInput.value = verticalScale;
-        scaleValue.textContent = `${verticalScale}×`;
-        wireframeInput.checked = wireframe;
         input.value = activeSourceUrl || DEFAULT_SOURCE;
 
         const terrainDeck = new deck.Deck({
@@ -307,12 +173,6 @@
                 currentViewState = viewState;
                 scheduleHashUpdate();
             },
-            getTooltip: ({ picked, coordinate }) => {
-                if (!picked || !coordinate || coordinate.length < 3) {
-                    return null;
-                }
-                return `Elevation: ${Math.round(coordinate[2] / verticalScale).toLocaleString()} m`;
-            },
         });
 
         function numberFromHash(name, fallback) {
@@ -322,11 +182,6 @@
             }
             const value = Number(rawValue);
             return Number.isFinite(value) ? value : fallback;
-        }
-
-        function setStatus(message, isError = false) {
-            status.textContent = message;
-            status.classList.toggle('error', isError);
         }
 
         function scheduleHashUpdate() {
@@ -344,12 +199,6 @@
             params.set('zoom', currentViewState.zoom.toFixed(2));
             params.set('pitch', currentViewState.pitch.toFixed(1));
             params.set('bearing', currentViewState.bearing.toFixed(1));
-            if (verticalScale !== 1) {
-                params.set('scale', verticalScale);
-            }
-            if (wireframe) {
-                params.set('wireframe', '1');
-            }
             history.replaceState(null, '', `#${params}`);
         }
 
@@ -388,18 +237,32 @@
             return decoder;
         }
 
-        function scaledDecoder(decoder) {
-            return {
-                rScaler: decoder.rScaler * verticalScale,
-                gScaler: decoder.gScaler * verticalScale,
-                bScaler: decoder.bScaler * verticalScale,
-                offset: decoder.offset * verticalScale,
-            };
+        function supportsMapterhornCoverage(attributionText, label) {
+            return /mapterhorn/i.test(attributionText || '') || /mapterhorn\.com/i.test(label || '');
         }
 
-        function updateAttribution(attribution) {
-            const parsed = new DOMParser().parseFromString(attribution || 'Elevation data', 'text/html');
-            sourceAttribution.textContent = parsed.body.textContent.trim() || 'Elevation data';
+        function setAttribution(attributionText) {
+            const parsed = new DOMParser().parseFromString(attributionText || 'Elevation data', 'text/html');
+            const text = parsed.body.textContent.trim() || 'Elevation data';
+            const sourceLink = parsed.body.querySelector('a');
+            attribution.replaceChildren();
+            if (sourceLink) {
+                try {
+                    const url = new URL(sourceLink.href, location.href);
+                    if (url.protocol === 'http:' || url.protocol === 'https:') {
+                        const link = document.createElement('a');
+                        link.href = url.href;
+                        link.textContent = text;
+                        link.target = '_blank';
+                        link.rel = 'noopener noreferrer';
+                        attribution.appendChild(link);
+                        return;
+                    }
+                } catch (_) {
+                    // Fall back to plain text below.
+                }
+            }
+            attribution.textContent = text;
         }
 
         async function tileJsonSource(url) {
@@ -416,6 +279,7 @@
             if (tileJson.scheme === 'tms') {
                 tiles = tiles.map(template => template.replaceAll('{y}', '{-y}'));
             }
+            const label = tileJson.name || new URL(response.url).hostname;
 
             return {
                 elevationData: tiles.length === 1 ? tiles[0] : tiles,
@@ -425,15 +289,17 @@
                 extent: tileJson.bounds,
                 tileSize: tileJson.tileSize || 512,
                 attribution: tileJson.attribution,
-                label: tileJson.name || new URL(response.url).hostname,
+                label,
+                hasCoverageMetadata: supportsMapterhornCoverage(tileJson.attribution, label),
             };
         }
 
         async function pmtilesSource(archive, label) {
-            const [header, metadata] = await Promise.all([
+            const [header, rawMetadata] = await Promise.all([
                 archive.getHeader(),
                 archive.getMetadata().catch(() => ({})),
             ]);
+            const metadata = rawMetadata || {};
             const mimeType = MIME_TYPES[header.tileType];
             if (!mimeType) {
                 throw new Error('The PMTiles archive must contain raster image tiles');
@@ -441,6 +307,7 @@
 
             const key = `source-${++sourceRevision}`;
             const extension = pmtiles.tileTypeExt(header.tileType);
+            const sourceLabel = metadata.name || label;
             archives.set(key, { archive, mimeType });
 
             return {
@@ -451,7 +318,8 @@
                 extent: [header.minLon, header.minLat, header.maxLon, header.maxLat],
                 tileSize: metadata.tileSize || 512,
                 attribution: metadata.attribution,
-                label: metadata.name || label,
+                label: sourceLabel,
+                hasCoverageMetadata: supportsMapterhornCoverage(metadata.attribution, sourceLabel),
             };
         }
 
@@ -483,17 +351,121 @@
             }
         }
 
+        function pointToTile(longitude, latitude, zoom) {
+            const count = 2 ** zoom;
+            const clampedLatitude = Math.max(-85.0511287, Math.min(85.0511287, latitude));
+            const radians = clampedLatitude * Math.PI / 180;
+            return {
+                z: zoom,
+                x: Math.max(0, Math.min(count - 1,
+                    Math.floor(((longitude + 180) / 360) * count))),
+                y: Math.max(0, Math.min(count - 1,
+                    Math.floor((1 - Math.asinh(Math.tan(radians)) / Math.PI) / 2 * count))),
+            };
+        }
+
+        function formatResolution(resolution) {
+            if (!Number.isFinite(resolution)) {
+                return 'unknown';
+            }
+            if (resolution < 1) {
+                return `${Math.round(resolution * 100)} cm`;
+            }
+            return `${Number(resolution.toPrecision(3))} m`;
+        }
+
+        function bestSource(metadatas) {
+            const candidates = Object.entries(metadatas || {})
+                .filter(([_, metadata]) => Number.isFinite(Number(metadata.resolution)))
+                .sort((a, b) => Number(a[1].resolution) - Number(b[1].resolution));
+            if (!candidates.length) {
+                return { source: 'unknown', resolution: 'unknown' };
+            }
+            const [source, metadata] = candidates[0];
+            return { source, resolution: formatResolution(Number(metadata.resolution)) };
+        }
+
+        async function getCoverageSource(tile) {
+            const key = `${tile.z}/${tile.x}/${tile.y}`;
+            if (!coverageCache.has(key)) {
+                const request = coverageIndex.getZxy(tile.z, tile.x, tile.y)
+                    .then(result => {
+                        if (!result) {
+                            return { source: 'unknown', resolution: 'unknown' };
+                        }
+                        const json = new TextDecoder('utf-8').decode(result.data);
+                        return bestSource(JSON.parse(json));
+                    })
+                    .catch(() => ({ source: 'unknown', resolution: 'unknown' }));
+                coverageCache.set(key, request);
+            }
+            return coverageCache.get(key);
+        }
+
+        function renderTooltip(hover, sourceInfo) {
+            tooltip.replaceChildren();
+            const lines = [
+                `Elevation: ${Math.round(hover.elevation).toLocaleString()} m`,
+                `Source: ${sourceInfo.source}`,
+                `Resolution: ${sourceInfo.resolution}`,
+            ];
+            for (const line of lines) {
+                const row = document.createElement('div');
+                row.textContent = line;
+                tooltip.appendChild(row);
+            }
+            tooltip.hidden = false;
+            const left = Math.min(hover.x + 12, window.innerWidth - tooltip.offsetWidth - 8);
+            const top = Math.min(hover.y + 12, window.innerHeight - tooltip.offsetHeight - 8);
+            tooltip.style.left = `${Math.max(8, left)}px`;
+            tooltip.style.top = `${Math.max(38, top)}px`;
+        }
+
+        function handleHover(info) {
+            if (!info.picked || !info.coordinate || info.coordinate.length < 3) {
+                currentHover = null;
+                tooltip.hidden = true;
+                return;
+            }
+
+            const coverageTile = pointToTile(info.coordinate[0], info.coordinate[1], COVERAGE_INDEX_ZOOM);
+            const coverageKey = `${coverageTile.z}/${coverageTile.x}/${coverageTile.y}`;
+            currentHover = {
+                x: info.x,
+                y: info.y,
+                elevation: info.coordinate[2],
+                coverageKey,
+            };
+
+            if (!activeSource.hasCoverageMetadata) {
+                renderTooltip(currentHover, { source: activeSource.label, resolution: 'unknown' });
+                return;
+            }
+
+            const cached = coverageCache.get(coverageKey);
+            if (!cached) {
+                renderTooltip(currentHover, { source: 'loading…', resolution: 'loading…' });
+            }
+            getCoverageSource(coverageTile).then(sourceInfo => {
+                if (currentHover && currentHover.coverageKey === coverageKey) {
+                    renderTooltip(currentHover, sourceInfo);
+                }
+            });
+        }
+
         function createTerrainLayer() {
             return new deck.TerrainLayer({
                 id: 'terrain',
                 elevationData: activeSource.elevationData,
-                elevationDecoder: scaledDecoder(activeSource.decoder),
+                elevationDecoder: activeSource.decoder,
                 fetch: terrainFetch,
                 minZoom: activeSource.minZoom,
                 maxZoom: activeSource.maxZoom,
                 extent: activeSource.extent,
                 tileSize: activeSource.tileSize,
                 meshMaxError: 2,
+                maxRequests: 6,
+                debounceTime: 100,
                 refinementStrategy: 'best-available',
                 color: [204, 215, 209],
                 material: {
@@ -502,23 +474,14 @@
                     shininess: 4,
                     specularColor: [24, 28, 26],
                 },
-                wireframe,
                 pickable: '3d',
-                onTileLoad: () => setStatus(`${activeSource.label} · 3D terrain`),
+                onHover: handleHover,
                 onTileError: error => console.warn('Terrain tile failed to load', error),
             });
         }
 
-        function renderTerrain() {
-            if (activeSource) {
-                terrainDeck.setProps({ layers: [createTerrainLayer()] });
-            }
-        }
-
         async function loadSource(value, localArchive = null) {
             const request = ++sourceRequest;
-            viewButton.disabled = true;
-            setStatus('Loading terrain source…');
             try {
                 const source = localArchive
                     ? await pmtilesSource(localArchive, value)
@@ -532,18 +495,14 @@
                 activeSource = source;
                 activeSourceUrl = localArchive ? '' : value;
                 input.value = localArchive ? value : activeSourceUrl;
-                updateAttribution(source.attribution);
-                renderTerrain();
+                currentHover = null;
+                tooltip.hidden = true;
+                setAttribution(source.attribution);
+                terrainDeck.setProps({ layers: [createTerrainLayer()] });
                 updateHash();
-                setStatus(`${source.label} · building 3D terrain…`);
             } catch (error) {
                 if (request === sourceRequest) {
                     console.error(error);
-                    setStatus(error.message || 'Unable to load terrain source', true);
-                }
-            } finally {
-                if (request === sourceRequest) {
-                    viewButton.disabled = false;
                 }
             }
         }
@@ -556,43 +515,14 @@
             }
         });
 
-        scaleInput.addEventListener('input', () => {
-            verticalScale = Number(scaleInput.value);
-            scaleValue.textContent = `${verticalScale}×`;
-            renderTerrain();
-            scheduleHashUpdate();
-        });
-
-        wireframeInput.addEventListener('change', () => {
-            wireframe = wireframeInput.checked;
-            renderTerrain();
-            scheduleHashUpdate();
-        });
-
-        let dragDepth = 0;
-        document.addEventListener('dragenter', event => {
+        document.addEventListener('dragover', event => {
             event.preventDefault();
-            dragDepth += 1;
-            document.body.classList.add('drop-active');
         });
-        document.addEventListener('dragover', event => event.preventDefault());
-        document.addEventListener('dragleave', () => {
-            dragDepth -= 1;
-            if (dragDepth <= 0) {
-                dragDepth = 0;
-                document.body.classList.remove('drop-active');
-            }
-        });
+
         document.addEventListener('drop', event => {
             event.preventDefault();
-            dragDepth = 0;
-            document.body.classList.remove('drop-active');
             const file = event.dataTransfer.files[0];
-            if (!file) {
-                return;
-            }
-            if (!file.name.toLowerCase().endsWith('.pmtiles')) {
-                setStatus('Drop a file with the .pmtiles extension', true);
+            if (!file || !file.name.toLowerCase().endsWith('.pmtiles')) {
                 return;
             }
             const archive = new pmtiles.PMTiles(new pmtiles.FileSource(file));
