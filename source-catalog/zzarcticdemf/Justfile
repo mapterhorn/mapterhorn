@@ -1,0 +1,10 @@
+# Source preparation pipeline to be run from mapterhorn/pipelines folder
+
+[no-cd]
+default:
+    uv run python source_download.py zzarcticdemf
+    uv run python source_to_cog.py zzarcticdemf
+    uv run python source_to_egm2008.py zzarcticdemf
+    uv run python source_bounds.py zzarcticdemf
+    uv run python source_polygonize.py zzarcticdemf 32
+    uv run python source_create_tarball.py zzarcticdemf
