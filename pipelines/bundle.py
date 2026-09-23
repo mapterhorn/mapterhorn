@@ -140,12 +140,12 @@ def create_archive(filepaths, name):
         'center_zoom': int(0.5 * (min_z + max_z)),
         'center_lon_e7': int(0.5 * (min_lon_e7 + max_lon_e7)),
         'center_lat_e7': int(0.5 * (min_lat_e7 + max_lat_e7)),
-        'encoding': 'terrarium',
     }
     addressed_tiles_count  = len(tile_entries)
     tile_contents_count = len(tile_entries)
     metadata = {
         'attribution': '<a href="https://mapterhorn.com/attribution">© Mapterhorn</a>',
+        'encoding': 'terrarium',
     }
     clustered = True
     header_bytes, root_bytes, compressed_metadata, leaves_bytes = finalize_header(header, addressed_tiles_count, tile_entries, tile_contents_count, metadata, clustered, tile_data_length)
