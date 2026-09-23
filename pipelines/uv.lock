@@ -820,7 +820,7 @@ requires-dist = [
     { name = "mercantile", specifier = ">=1.2.1" },
     { name = "numpy", specifier = ">=1.24.4" },
     { name = "pillow", specifier = ">=10.4.0" },
-    { name = "pmtiles", specifier = ">=3.4.1" },
+    { name = "pmtiles", specifier = ">=3.8.1" },
     { name = "pyproj", specifier = ">=3.5.0" },
     { name = "python-ulid", specifier = ">=1.1.0" },
     { name = "rasterio", specifier = ">=1.3.11" },
@@ -831,9 +831,12 @@ requires-dist = [
 
 [[package]]
 name = "pmtiles"
-version = "3.4.1"
+version = "3.8.1"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/21/69/5c2e4eb58aaf6303aebbaad3e6d7394b96d28f94af5bc16a6540d815bb09/pmtiles-3.4.1.tar.gz", hash = "sha256:48d6d8f317e7ec1f4150a715b1c220777f89f0c1061874a6022255a0859836ee", size = 13895, upload-time = "2024-10-12T05:33:45.891Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/b9/b4/d1f0d62e37c885c441ef34360a72d9350ab87924ac5eb60b762ef9e14466/pmtiles-3.8.1.tar.gz", hash = "sha256:0f594a61b37fca039f06162428781f76a4233f5beea94444702f0dc41f20f007", size = 14931, upload-time = "2026-09-16T18:37:09.704Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/06/d4/1c451e0fb91caa3826a4ea34514ee6742802db3cbef3209976051e989d17/pmtiles-3.8.1-py3-none-any.whl", hash = "sha256:718561bb21f8c7dd5464fdcc3b9ad0e7b1c917be60ddfdf9a5ab56b8c67f7bde", size = 17058, upload-time = "2026-09-16T18:37:08.283Z" },
+]
 
 [[package]]
 name = "pyparsing"
