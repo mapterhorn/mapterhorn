@@ -24,6 +24,8 @@ The source pipeline has multiple parts that are needed to bring source files int
 
 `source_normalize_filenames.py`: Use this if you have strange filenames.
 
+`source_to_egm2008.py`: Use this if the source heights are ellipsoidal (WGS 84) instead of orthometric, for example ArcticDEM and REMA. It shifts the heights to the EGM2008 geoid (EPSG:3855) so that the source blends with the orthometric sources. Run it after `source_to_cog.py` and before `source_bounds.py` and `source_create_tarball.py`. Needs the `us_nga_egm08_25.tif` PROJ grid resident locally (proj-data package), and refuses to run without it.
+
 `source_bounds.py`: Required script. Creates `source-store/{source}/bounds.csv` needed for the aggregation covering stage.
 
 `source_polygonize.py`: Required script. Creates `polygon-store/{source}.gpkg` with the coverage polygon of the source. Needed for the tarball creation and the coverage pmtiles part.
