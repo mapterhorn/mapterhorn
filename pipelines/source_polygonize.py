@@ -40,7 +40,7 @@ def merge_source(source):
     for j, filename in enumerate(filenames[1:]):
         if j % 100 == 0:
             print(f'{j:_} / {len(filenames):_}')
-        command = f'ogr2ogr -f GPKG -update -append {merged_filepath} polygon-store/{source}/{filename}.gpkg -nln out -append -addfields'
+        command = f'ogr2ogr -f GPKG -upsert {merged_filepath} polygon-store/{source}/{filename}.gpkg -nln out'
         utils.run_command(command, silent=True)
     union_filepath = f'polygon-store/{source}.gpkg'
     if os.path.isfile(union_filepath):
