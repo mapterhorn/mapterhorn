@@ -1,3 +1,18 @@
+## 0.0.13
+
+### ✨ Features and improvements
+- Add encoding terrarium in PMTiles metadata (#313)
+- Update jpdem (#309)
+- Add source_fill_nodata.py (#306)
+- Attribute visible sources (#305)
+- Update source dehessen (#301)
+- Add source nlcaribisch*: Dutch Caribbean Islands, 0.5 m (#300)
+
+### 🐞 Bug fixes
+- Fix dk (#312)
+- Fix itbozen (#311)
+- Fix rounding on downsampling bug (#308)
+
 ## 0.0.12
 
 ### ✨ Features and improvements

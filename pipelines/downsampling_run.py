@@ -43,6 +43,8 @@ def create_tile(parent_x, parent_y, parent_z, tmp_folder, pmtiles_filenames):
             
     parent_data = full_data.reshape((512, 2, 512, 2)).mean(axis=(1, 3)) # downsample by 4x4 pixel averaging
 
+    parent_data = utils.get_rounded_elevation_data(parent_data, parent_z)
+
     parent_data += 32768.0
     parent_rgb = np.zeros((512, 512, 3), dtype=np.uint8)
     parent_rgb[:, :, 0] = parent_data // 256
