@@ -22,9 +22,11 @@ In particular the OGC API Feature service per version provides easy access to th
 * AHN5: https://api.ellipsis-drive.com/v3/ogc/features/65945b69-81df-4270-97f0-f029033154c1/
 * AHN6: https://api.ellipsis-drive.com/v3/ogc/features/0820faae-5240-499b-8486-cf406433cf71/
 
-The script [get-file-list.sh](get-file-list.sh) will fetch the [available grids](https://basisdata.nl/hwh-ahn/AUX/bladwijzer/index.html) 
+The `uv run python source_get_file_list.py nl50cm`, see [Justfile](Justfile), will fetch the [available grids](https://basisdata.nl/hwh-ahn/AUX/bladwijzer/index.html) 
 with URLs and processes these to create the downloadable files for the AHN-version and resolution of DTMs in [file_list.txt](file_list.txt).
-For testing a small list can be used: [file_list_test.txt](file_list_test.txt)
+For testing a small list can be generated using the optional `bbox` param (LL-UR lon,lat in EPSG:4326):
+
+`uv run python source_get_file_list.py nl50cm 6.0,52.3,7.0,53.0`
 
 ## Additional Processing
 
