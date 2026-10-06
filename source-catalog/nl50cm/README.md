@@ -31,6 +31,4 @@ For testing a small list can be generated using the optional `bbox` param (LL-UR
 ## Additional Processing
 
 * fill NODATA* using [source_fill_nodata.py](../../pipelines/source_fill_nodata.py). Calls [gdal_fillnodata.py](https://gdal.org/en/stable/programs/gdal_fillnodata.html).
-* assign Dutch CRS EPSG:28992 after polygonizing to GPKG coverage polygons
-
-TODO*: NODATA is filled per source-TIFF. If the result is suboptimal, try with a mosaic of all TIFFs, built with `gdalbuildvrt`.
+* assign Dutch CRS EPSG:28992 after COG creation step as files come with EPSG:7415

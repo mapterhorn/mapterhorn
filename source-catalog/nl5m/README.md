@@ -4,7 +4,8 @@ The Dutch geospatial agency distributes DEM data like surface (DSM) and terrain 
 series. In the DSM and DTM elevation models water bodies are filled with NODATA pixels. 
 In the terrain model (DTM), buildings and vegetation are removed and also filled with NODATA pixels.
 Two resolutions are available: 5m and 0.5m (50cm).
-This folder applies to the low-resolution 5m per pixel version of AHN. The folder [nl50cm](../nl50cm) applies to 0.5m AHN resolution.
+This folder applies to the low-resolution 5m per pixel version of AHN. 
+The folder [nl50cm](../nl50cm) applies to 0.5m AHN resolution which has much higher detail.
 
 ## Versions
 
@@ -30,6 +31,4 @@ For testing a small list can be generated using the optional `bbox` param (LL-UR
 ## Additional Processing
 
 * fill NODATA* using [source_fill_nodata.py](../../pipelines/source_fill_nodata.py). Calls [gdal_fillnodata.py](https://gdal.org/en/stable/programs/gdal_fillnodata.html).
-* assign Dutch CRS EPSG:28992 after polygonizing to GPKG coverage polygons
-
-TODO*: NODATA is filled per source-TIFF. If the result is suboptimal, try with a mosaic of all TIFFs, built with `gdalbuildvrt`.
+* assign Dutch CRS EPSG:28992 after COG creation step as files come with EPSG:7415
