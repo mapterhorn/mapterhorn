@@ -1,0 +1,4 @@
+https://basisdata.nl/hwh-ahn/AHN5/02b_DTM_5m/2023_M5_25HN1.TIF
+https://basisdata.nl/hwh-ahn/AHN5/02b_DTM_5m/2023_M5_25HN2.TIF
+https://basisdata.nl/hwh-ahn/AHN5/02b_DTM_5m/2023_M5_25HZ1.TIF
+https://basisdata.nl/hwh-ahn/AHN5/02b_DTM_5m/2023_M5_25HZ2.TIF

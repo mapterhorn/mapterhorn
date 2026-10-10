@@ -154,6 +154,13 @@ def cleanup(source):
         if filepath.endswith('.csv') or filepath.endswith('.done'):
             os.remove(filepath)
 
+    # Replace f'source-store/{source} with filled files. We use copy i.s.o. move as
+    # to work also with Docker...
+    filepaths = glob(f'source-store/{get_filled_source(source)}/*.tif')
+    for filepath in filepaths:
+        shutil.copy(filepath, f'source-store/{source}/')
+    shutil.rmtree(f'source-store/{get_filled_source(source)}')
+
 if __name__ == '__main__':
     source = None
     if len(sys.argv) > 1:

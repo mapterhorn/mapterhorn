@@ -4,8 +4,13 @@ source-store
 aggregation-store
 pmtiles-store
 bundle-store
+meta-store
 polygon-store
 tar-store
+tmp-store
+tmp
 planetiler.jar
 index.md
 data
+index.pmtiles
+pipelines.egg-info
