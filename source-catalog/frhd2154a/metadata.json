@@ -1,0 +1,9 @@
+{
+    "name": "MNT LiDAR HD",
+    "website": "https://www.data.gouv.fr/datasets/mnt-lidar-hd",
+    "license": "Licence Ouverte / Open Licence version 2.0",
+    "producer": "Institut national de l'information géographique et forestière IGN",
+    "producer_short": "IGN",
+    "resolution": 0.5,
+    "access_year": 2026
+}

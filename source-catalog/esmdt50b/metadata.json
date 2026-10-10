@@ -1,0 +1,9 @@
+{
+    "name": "Modelo Digital del Terreno - MDT50",
+    "website": "https://centrodedescargas.cnig.es/CentroDescargas/lidar-tercera-cobertura",
+    "license": "CC BY 4.0",
+    "producer": "CC-BY 4.0 scne.es 2022-2025",
+    "producer_short": "scne.es",
+    "resolution": 0.5,
+    "access_year": 2026
+}

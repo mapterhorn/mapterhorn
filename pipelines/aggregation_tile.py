@@ -66,13 +66,12 @@ def main(filepath, tmp_folder):
         metadata = json.load(f)
         buffer_pixels = metadata['buffer_pixels']
 
-    num_tiff_files = len(glob(f'{tmp_folder}/*.tiff'))
-    tiff_filepath = f'{tmp_folder}/{num_tiff_files - 1}-3857.tiff'
 
     aggregation_tile = mercantile.Tile(x=x, y=y, z=z)
     out_folder = utils.get_pmtiles_folder(x, y, z)
     utils.create_folder(out_folder)
     out_filepath = f'{out_folder}/{z}-{x}-{y}-{child_z}.pmtiles'
-    create_tiles(tmp_folder, aggregation_tile, tiff_filepath, buffer_pixels)
+    merged_filepath = f'{tmp_folder}/merged-3857.tiff'
+    create_tiles(tmp_folder, aggregation_tile, merged_filepath, buffer_pixels)
     utils.create_archive(tmp_folder, out_filepath)
     utils.run_command(f'touch {pmtiles_done_filepath}')

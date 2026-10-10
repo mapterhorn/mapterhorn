@@ -1,3 +1,29 @@
+## 0.0.13
+
+### ✨ Features and improvements
+- Add encoding terrarium in PMTiles metadata (#313)
+- Update jpdem (#309)
+- Add source_fill_nodata.py (#306)
+- Attribute visible sources (#305)
+- Update source dehessen (#301)
+- Add source nlcaribisch*: Dutch Caribbean Islands, 0.5 m (#300)
+
+### 🐞 Bug fixes
+- Fix dk (#312)
+- Fix itbozen (#311)
+- Fix rounding on downsampling bug (#308)
+
+## 0.0.12
+
+### ✨ Features and improvements
+
+- Add source autas: Australia, Tasmania 2 m (#297)
+- Add source esmdt50*: Spain, partial 50 cm (#293)
+- Add source aatw: Taiwan, 20m (#292)
+- Add source debw025: Germany, Baden-Württemberg 25 cm (#290)
+- Add source frhd* and update multi-host pipeline (#289)
+- Introduce manager.py, worker.py, downloader.py: distributed compute workflow (#277, #285, #286 #289)
+
 ## 0.0.11
 
 ### ✨ Features and improvements

@@ -102,21 +102,21 @@ Once this is done, we have a full-filled tif which might contain data from multi
 
 After having reprojected and merged the source data, we now have a tif that contains the aggregated data. What remains to be done in the aggregation pipeline is to store it as PMTiles. We use terrarium encoding since it has a finer resolution than mapbox encoding. Data is stored as webp RGB images which are  25 to 35 percent smaller than PNGs but they take longer to encode.
 
-Tiles are optimized in size by limiting the vertical resolution depending on the zoom level. Terrarium has a maximal resolution of `1/256 m ~ 3.9 mm`. This is used at zoom level 19. At lower zoom levels, the vertical data is rounded to powers of 2 of this maximal resolution:
+Tiles are optimized in size by limiting the vertical resolution depending on the zoom level. Terrarium has a maximal resolution of `1/256 m ~ 3.9 mm`. This is used at zoom level 19. At lower zoom levels, the vertical data is rounded to powers of 2 of this maximal resolution, but never to more than 1 m:
 
 | z | Pixel Size 3857 | Vertical Resolution |
 |----------|----------|----------|
-| 0 | 78.3 km | 2048 m |
-| 1 | 39.1 km | 1024 m |
-| 2 | 19.6 km | 512 m |
-| 3 | 9.78 km | 256 m |
-| 4 | 4.89 km | 128 m |
-| 5 | 2.45 km | 64 m |
-| 6 | 1.22 km | 32 m |
-| 7 | 611 m | 16 m |
-| 8 | 306 m | 8 m |
-| 9 | 153 m | 4 m |
-| 10 | 76.4 m | 2 m |
+| 0 | 78.3 km | 1 m |
+| 1 | 39.1 km | 1 m |
+| 2 | 19.6 km | 1 m |
+| 3 | 9.78 km | 1 m |
+| 4 | 4.89 km | 1 m |
+| 5 | 2.45 km | 1 m |
+| 6 | 1.22 km | 1 m |
+| 7 | 611 m | 1 m |
+| 8 | 306 m | 1 m |
+| 9 | 153 m | 1 m |
+| 10 | 76.4 m | 1 m |
 | 11 | 38.2 m | 1 m |
 | 12 | 19.1 m | 50 cm |
 | 13 | 9.55 m | 25 cm |

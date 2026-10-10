@@ -8,7 +8,6 @@ polygon-store
 tar-store
 planetiler.jar
 index.md
-index.pmtiles
 data
 # pixi environments
 .pixi/*

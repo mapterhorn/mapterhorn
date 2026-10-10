@@ -18,6 +18,7 @@ def main():
                 if filepath in dirty_filepaths:
                     dirty_sources.add(parts[0])
     
+    tifs_missing = []
     for source in sorted(list(all_sources)):
         print(source)
         if source in dirty_sources:
@@ -25,8 +26,8 @@ def main():
             num_tif_filepaths = len(glob(f'source-store/{source}/*.tif'))
             if num_tif_filepaths == 0:
                 print('  tif count ZERO')
-                print('\naborting...')
-                exit()
+                print('adding to list\n...')
+                tifs_missing.append(source)
             else:
                 print(f'  tif count {num_tif_filepaths}')
         else:
@@ -37,16 +38,22 @@ def main():
         else:
             print('  polygon MISSING')
             print('\naborting...')
-            exit()
+            return
         
         if os.path.isfile(f'source-store/{source}/bounds.csv'):
             print('  bounds OK')
         else:
             print('  bounds MISSING')
             print('\naborting...')
-            exit()
+            return
         print()
 
+    if len(tifs_missing) > 0:
+        print('sources with missing tifs:\n')
+        for source in tifs_missing:
+            print(source)
+    else:
+        print('everything looks good.')
 
 if __name__ == '__main__':
     main()

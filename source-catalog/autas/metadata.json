@@ -1,0 +1,9 @@
+{
+    "name": "Tasmanian 2 metre Digital Elevation Model",
+    "website": "https://source.coop/alexgleith/tasmania-dem-2m",
+    "license": "CC BY 3.0",
+    "producer": "The LIST ©State of Tasmania. Downloaded via Source Coop.",
+    "producer_short": "LIST",
+    "resolution": 2.0,
+    "access_year": 2026
+}

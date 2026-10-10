@@ -92,4 +92,8 @@ if __name__ == '__main__':
     key = filename
     upload_local_resource_to_s3(directory, filename, bucket, key, region, endpoint)
 
+    filename = 'coverage-index.pmtiles'
+    key = filename
+    upload_local_resource_to_s3(directory, filename, bucket, key, region, endpoint)
+
 
