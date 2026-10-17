@@ -1,6 +1,12 @@
 # Source preparation pipeline to be run from mapterhorn/pipelines folder
+# NB uv run python source_get_file_list.py deniedersachsen works but provides
+# 70285 URLs, but many from multiple years like 2015 and and 2025 for same areas!
+# e.g. https://dgm1.s3.eu-de.cloud-object-storage.appdomain.cloud/L1504/Vollkacheln/dgm1_32_540_5938_1_ni_2015.tif
+# and  https://dgm1.s3.eu-de.cloud-object-storage.appdomain.cloud/L2502/Vollkacheln/dgm1_32_540_5938_1_ni_2025.tif
+# We need to select only the most recent, but is not supported in API, so need some extra post-processing.
 [no-cd]
 default:
+    # uv run python source_get_file_list.py deniedersachsen
     uv run python source_download.py deniedersachsen
     uv run python source_bounds.py deniedersachsen
     uv run python source_polygonize.py deniedersachsen 32
