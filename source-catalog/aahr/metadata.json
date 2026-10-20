@@ -1,0 +1,9 @@
+{
+    "name": "Visine INSPIRE - Croatia 20 m DTM",
+    "website": "https://registri.nipp.hr/izvori/455",
+    "license": "Croatian Open Licence (Otvorena dozvola, NN 67/2017)",
+    "producer": "Državna geodetska uprava (State Geodetic Administration, Croatia). Sadrži informacije tijela javne vlasti u skladu s Otvorenom dozvolom. GeoTIFF feed entry updated 2024-01-26. Modified for Mapterhorn.",
+    "producer_short": "DGU",
+    "resolution": 20.0,
+    "access_year": 2026
+}
