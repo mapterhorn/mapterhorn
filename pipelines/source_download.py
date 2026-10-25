@@ -1,5 +1,6 @@
 import utils
 import sys
+import os
 
 def download_from_internet(source):
     urls = []
@@ -23,7 +24,7 @@ def main():
         print('source argument missing...')
         exit()
 
-    utils.create_folder( f'source-store/{source}/')
+    os.makedirs( f'source-store/{source}/', exist_ok=True)
     download_from_internet(source)
 
 if __name__ == '__main__':

@@ -69,7 +69,7 @@ def main(filepath, tmp_folder):
 
     aggregation_tile = mercantile.Tile(x=x, y=y, z=z)
     out_folder = utils.get_pmtiles_folder(x, y, z)
-    utils.create_folder(out_folder)
+    os.makedirs(out_folder, exist_ok=True)
     out_filepath = f'{out_folder}/{z}-{x}-{y}-{child_z}.pmtiles'
     merged_filepath = f'{tmp_folder}/merged-3857.tiff'
     create_tiles(tmp_folder, aggregation_tile, merged_filepath, buffer_pixels)

@@ -34,10 +34,6 @@ def run_command(command, silent=True, env=None):
         print(out)
     return out, err
 
-def create_folder(path):
-    folder_path = Path(path)
-    folder_path.mkdir(parents=True, exist_ok=True)
-
 def get_aggregation_ids():
     '''
     returns aggregation ids ordered from oldest to newest

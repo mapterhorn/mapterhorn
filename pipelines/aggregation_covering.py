@@ -1,4 +1,5 @@
 from glob import glob
+import os
 
 import mercantile
 from ulid import ULID
@@ -151,7 +152,7 @@ def get_aggregation_tiles(macrotile_map):
 
 def write_aggregation_items(macrotile_map, aggregation_tiles, aggregation_id):
     folder = f'aggregation-store/{aggregation_id}'
-    utils.create_folder(folder)
+    os.makedirs(folder, exist_ok=True)
     for aggregation_tile in aggregation_tiles:
         macrotiles = list(mercantile.children(aggregation_tile, zoom=utils.macrotile_z))
         lines = ['source,filename,maxzoom\n']
@@ -204,7 +205,7 @@ def main():
     aggregation_tiles = get_aggregation_tiles(macrotile_map)
 
     aggregation_id = str(ULID())
-    utils.create_folder(f'aggregation-store/{aggregation_id}')
+    os.makedirs(f'aggregation-store/{aggregation_id}', exist_ok=True)
 
     print('write aggregation items...')
     write_aggregation_items(macrotile_map, aggregation_tiles, aggregation_id)

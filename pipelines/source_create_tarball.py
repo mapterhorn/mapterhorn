@@ -15,7 +15,7 @@ def main():
         print('Not enough arguments. Usage: source_create_tarball.py {{source}}')
         exit()
 
-    utils.create_folder('tar-store/')
+    os.makedirs('tar-store/', exist_ok=True)
     checksum = None
     out_filepath = f'tar-store/{source}.tar'
     with open(out_filepath, 'wb') as f:
@@ -34,7 +34,7 @@ def main():
         checksum = writer.md5.hexdigest()
 
     out_filesize = os.path.getsize(out_filepath)
-    utils.create_folder('meta-store/tar/')
+    os.makedirs('meta-store/tar/', exist_ok=True)
     with open(f'meta-store/tar/{source}.json', 'w') as f:
         json.dump({
             'size': out_filesize,
