@@ -23,7 +23,7 @@ def get_filenames(source):
 
 def polygonize_source(source, processes):
     filenames = get_filenames(source)
-    utils.create_folder(f'polygon-store/{source}/')
+    os.makedirs(f'polygon-store/{source}/', exist_ok=True)
     argument_tuples = []
     for filename in filenames:
         argument_tuples.append((source, filename))

@@ -83,7 +83,7 @@ def all_tiles_dry_run(get_bytes):
 def create_archive(filepaths, name):
     print(f'start working on {name}...')
 
-    utils.create_folder('bundle-store')
+    os.makedirs('bundle-store', exist_ok=True)
     out_filepath = f'bundle-store/{name}.pmtiles'
     checksum = None
 
@@ -181,7 +181,7 @@ def create_archive(filepaths, name):
         checksum = hash_writer.md5.hexdigest()
         
     print(checksum)
-    utils.create_folder('meta-store/bundle')
+    os.makedirs('meta-store/bundle', exist_ok=True)
     filesize = os.path.getsize(out_filepath)
     with open(f'meta-store/bundle/{name}.json', 'w') as f:
         json.dump({

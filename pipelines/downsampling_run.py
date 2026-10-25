@@ -91,7 +91,7 @@ def downsample_single(filepath):
     extent_z, extent_x, extent_y, parent_zoom = [int(a) for a in parts[:4]]
 
     out_folder = utils.get_pmtiles_folder(extent_x, extent_y, extent_z)
-    utils.create_folder(out_folder)
+    os.makedirs(out_folder, exist_ok=True)
     out_filepath = f'{out_folder}/{extent_z}-{extent_x}-{extent_y}-{parent_zoom}.pmtiles'
 
     extent = mercantile.Tile(x=extent_x, y=extent_y, z=extent_z)
