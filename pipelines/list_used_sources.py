@@ -1,13 +1,15 @@
+import utils
 from glob import glob
 import os
 
 def main():
-    aggregation_folder = sorted(glob('aggregation-store/*'))[-1]
-    dirty_filepaths = set([filepath.replace('.todo', '') for filepath in glob(f'{aggregation_folder}/*-aggregation.csv.todo')])
+    aggregation_ids =[folder.split('/')[-1] for folder in sorted(glob('aggregation-store/*'))]
+    aggregation_id = aggregation_ids[-1]
+    dirty_filepaths = set([filepath.replace('.todo', '') for filepath in glob(f'aggregation-store/{aggregation_id}/*-aggregation.csv.todo')])
     all_sources = set({})
     dirty_sources = set({})
 
-    filepaths = glob(f'{aggregation_folder}/*-aggregation.csv')
+    filepaths = glob(f'aggregation-store/{aggregation_id}/*-aggregation.csv')
     for filepath in filepaths:
         with open(filepath, 'r') as f:
             for line in f.readlines()[1:]:

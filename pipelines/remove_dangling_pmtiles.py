@@ -1,11 +1,13 @@
 from glob import glob
 import os
 
-def main():
-    aggregation_folder = sorte(glob('aggregation-store/*'))[-1]
+import utils
 
-    filepaths = glob(f'{aggregation_folder}/*-aggregation.csv')
-    filepaths += glob(f'{aggregation_folder}/*-downsampling.csv')
+def main():
+    aggregation_id = [folder.split('/')[-1] for folder in sorted(glob('aggregation-store/*'))][-1]
+
+    filepaths = glob(f'aggregation-store/{aggregation_id}/*-aggregation.csv')
+    filepaths += glob(f'aggregation-store/{aggregation_id}/*-downsampling.csv')
 
     expected_pmtiles_filenames = set([])
     for filepath in filepaths:

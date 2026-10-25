@@ -4,8 +4,8 @@ import json
 import utils
 
 def main():
-    aggregation_folder = sorted(glob('aggregation-store/*'))[-1]
-    filepaths = glob(f'{aggregation_folder}/*-aggregation.csv')
+    aggregation_id = [folder.split('/')[-1] for folder in sorted(glob('aggregation-store/*'))][-1]
+    filepaths = glob(f'aggregation-store/{aggregation_id}/*-aggregation.csv')
 
     sources = set({})
     for filepath in filepaths:
