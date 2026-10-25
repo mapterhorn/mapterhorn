@@ -51,9 +51,10 @@ def run(filepath):
 
 def main():
     
-    aggregation_folder = sorted(glob('aggregation-store/*'))[-1]
+    aggregation_ids = [folder.split('/')[-1] for folder in sorted(glob('aggregation-store/*'))]
+    aggregation_id = aggregation_ids[-1]
 
-    dirty_filepaths = [filepath.replace('.todo', '') for filepath in glob(f'{aggregation_folder}/*-aggregation.csv.todo')]
+    dirty_filepaths = [filepath.replace('.todo', '') for filepath in glob(f'aggregation-store/{aggregation_id}/*-aggregation.csv.todo')]
     if len(dirty_filepaths) == 0:
         print('nothing to do.')
     else:
