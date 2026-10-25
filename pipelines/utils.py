@@ -13,12 +13,6 @@ import imagecodecs
 from pmtiles.tile import zxy_to_tileid, tileid_to_zxy, TileType, Compression
 from pmtiles.writer import Writer
 
-macrotile_z = 12
-macrotile_buffer_3857 = 150
-num_overviews = 6
-
-X_MIN_3857, _, X_MAX_3857, __ = transform_bounds('EPSG:4326', 'EPSG:3857', -180, 0, 180, 0)
-
 def run_command(command, silent=True, env=None):
     if env is None:
         env = os.environ.copy()

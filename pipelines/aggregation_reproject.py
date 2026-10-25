@@ -7,6 +7,8 @@ import numpy as np
 
 import utils
 
+MACROTILE_BUFFER_3857 = 150
+
 SILENT = True
 FAIL_ON_WARNING = False
 
@@ -96,7 +98,7 @@ def reproject(filepath, tmp_folder):
     buffer_pixels = 0
     buffer_3857_rounded = 0
     if len(grouped_source_items) > 1:
-        buffer_pixels = int(utils.macrotile_buffer_3857 / resolution)
+        buffer_pixels = int(MACROTILE_BUFFER_3857 / resolution)
         buffer_3857_rounded = buffer_pixels * resolution
 
     for i, source_items in enumerate(grouped_source_items):

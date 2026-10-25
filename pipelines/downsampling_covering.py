@@ -4,6 +4,8 @@ import mercantile
 
 import utils
 
+NUM_OVERVIEWS = 6
+
 def get_extents_from_coverings(aggregation_id, zoom):
     extents = []
     filepaths = glob(f'aggregation-store/{aggregation_id}/*-*-*-{zoom}-*.csv')
@@ -27,10 +29,10 @@ def get_simplified_extents(extents, zoom):
     for unlimited in simplified_extents_unlimited:
         if unlimited.z == zoom:
             simplified_extents.append(mercantile.parent(unlimited, zoom=zoom - 1))
-        elif unlimited.z >= zoom - utils.num_overviews:
+        elif unlimited.z >= zoom - NUM_OVERVIEWS:
             simplified_extents.append(unlimited)
         else:
-            simplified_extents += list(mercantile.children(unlimited, zoom=zoom - utils.num_overviews))
+            simplified_extents += list(mercantile.children(unlimited, zoom=zoom - NUM_OVERVIEWS))
     return simplified_extents
 
 def tiles_intersect(a, b):

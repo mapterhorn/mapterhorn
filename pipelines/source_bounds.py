@@ -7,6 +7,8 @@ from rasterio.warp import transform_bounds
 
 import utils
 
+_, __, X_MAX_3857, ___ = transform_bounds('EPSG:4326', 'EPSG:3857', -180, 0, 180, 0)
+
 def main():
     source = None
     if len(sys.argv) > 1:
@@ -26,7 +28,7 @@ def main():
                 raise ValueError(f'crs not defined on {filepath}')
             left, bottom, right, top = transform_bounds(src.crs, 'EPSG:3857', *src.bounds)
 
-            if right - left > 0.9 * 2 * utils.X_MAX_3857:
+            if right - left > 0.9 * 2 * X_MAX_3857:
                 # probably the image crosses the antimeridian
                 # in this case rasterio.warp.transform_bounds mixes up left and right
                 # and we need to flip it back

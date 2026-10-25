@@ -13,6 +13,8 @@ import utils
 
 coverage_index_minzoom = 4
 
+MACROTILE_Z = 12
+
 SILENT = False
 
 def get_coverage_tiles(source):
@@ -52,7 +54,7 @@ def get_coverage_tiles(source):
         data = json.load(f)
 
     print('burning coverage tiles...')
-    tiles = [mercantile.Tile(x=tile[0], y=tile[1], z=tile[2]) for tile in supermercado.burntiles.burn(data['features'], utils.macrotile_z)]
+    tiles = [mercantile.Tile(x=tile[0], y=tile[1], z=tile[2]) for tile in supermercado.burntiles.burn(data['features'], MACROTILE_Z)]
     lines = ['x,y,z']
     for tile in tiles:
         lines.append(f'{tile.x},{tile.y},{tile.z}')
@@ -71,7 +73,7 @@ def get_cached_coverage_tiles(coverage_filepath):
     tiles = []
     for line in lines[1:]:
         x, y, z = [int(a) for a in line.split(',')]
-        if z != utils.macrotile_z:
+        if z != MACROTILE_Z:
             print(feature)
             raise Exception('zooms do not match')
 
@@ -96,9 +98,9 @@ def create_coverage_pmtiles():
             source_to_metadata[source] = json.load(f)
     
     zoom_to_tiles = {}
-    zoom_to_tiles[utils.macrotile_z] = set(tile_to_sources.keys())
+    zoom_to_tiles[MACROTILE_Z] = set(tile_to_sources.keys())
     
-    for parent_z in range(utils.macrotile_z - 1, coverage_index_minzoom - 1, -1):
+    for parent_z in range(MACROTILE_Z - 1, coverage_index_minzoom - 1, -1):
         print(f'getting zoom {parent_z} parent tiles...')
         zoom_to_tiles[parent_z] = set([])
         for tile in zoom_to_tiles[parent_z + 1]:
@@ -134,8 +136,8 @@ def create_coverage_pmtiles():
             {
                 'tile_type': TileType.UNKNOWN, 
                 'tile_compression': Compression.NONE,
-                'min_zoom': utils.macrotile_z,
-                'max_zoom': utils.macrotile_z,
+                'min_zoom': MACROTILE_Z,
+                'max_zoom': MACROTILE_Z,
                 'min_lon_e7': 0,
                 'min_lat_e7': 0,
                 'max_lon_e7': 0,
