@@ -2,6 +2,7 @@ import json
 from glob import glob
 import os
 import shutil
+import subprocess
 
 import mercantile
 import supermercado
@@ -9,13 +10,14 @@ import supermercado
 from pmtiles.tile import zxy_to_tileid, tileid_to_zxy, TileType, Compression
 from pmtiles.writer import Writer
 
-import utils
-
 coverage_index_minzoom = 4
 
 MACROTILE_Z = 12
 
-SILENT = False
+def run_command(command):
+    p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = p.communicate()
+    return stdout.decode(), stderr.decode()
 
 def get_coverage_tiles(source):
     print(f'creating coverage csv for source {source}')
@@ -33,21 +35,21 @@ def get_coverage_tiles(source):
         os.remove(filepath_3857)
     
     command = f'ogr2ogr -t_srs EPSG:3857 -explodecollections {filepath_3857} polygon-store/{source}.gpkg'
-    utils.run_command(command, silent=SILENT)
+    run_command(command)
 
     filepath_buffered = f'{tmp_folder}/buffered.gpkg'
     if os.path.isfile(filepath_buffered):
         os.remove(filepath_buffered)
 
     command = f'ogr2ogr {filepath_buffered} {filepath_3857} -dialect SQLite -sql "SELECT ST_Union(ST_Buffer(ST_Simplify(geom, 100), 1000, 2)) AS geometry, * FROM \\"union\\""'
-    utils.run_command(command, silent=SILENT)
+    run_command(command)
 
     filepath_4326 = f'{tmp_folder}/4326.geojson'
     if os.path.isfile(filepath_4326):
         os.remove(filepath_4326)
 
     command = f'ogr2ogr -t_srs EPSG:4326 -explodecollections {filepath_4326} {filepath_buffered}'
-    utils.run_command(command, silent=SILENT)
+    run_command(command)
 
     data = None
     with open(filepath_4326) as f:

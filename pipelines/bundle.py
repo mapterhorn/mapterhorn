@@ -3,6 +3,7 @@ import math
 import time
 import sys
 import json
+import hashlib
 import os
 from io import BytesIO
 
@@ -11,7 +12,19 @@ from pmtiles.tile import TileType, Compression, deserialize_header, deserialize_
 from pmtiles.reader import Reader, MmapSource
 from pmtiles.writer import Writer, finalize_header
 
-import utils
+class HashWriter:
+    def __init__(self, f):
+        self.f = f
+        self.md5 = hashlib.md5()
+    def write(self, data):
+        self.md5.update(data)
+        return self.f.write(data)
+    def tell(self):
+        return self.f.tell()
+    def flush(self):
+        return self.f.flush()
+    def close(self):
+        return self.f.close()
 
 def get_parent_to_filepaths(num_aggregations):
     filepaths = sorted(glob('pmtiles-store/*.pmtiles') + glob('pmtiles-store/*/*.pmtiles'))
@@ -43,6 +56,17 @@ def get_parent_to_filepaths(num_aggregations):
 
     return parent_to_filepath
 
+def get_dirty_aggregation_filenames(aggregation_id):
+    filepaths = []
+    filepaths += glob(f'aggregation-store/{aggregation_id}/*-aggregation.csv.todo')
+    filepaths += glob(f'aggregation-store/{aggregation_id}/*.aggregation.csv.done')
+    dirty_filenames = []
+    for filepath in filepaths:
+        filename = filepath.replace(f'aggregation-store/{aggregation_id}/', '')
+        filename = filename.replace('.todo', '').replace('.done', '')
+        dirty_filenames.append(filename)
+    return dirty_filenames
+
 def get_dirty_parents(num_aggregations):
     dirty_parents = set([mercantile.Tile(x=0, y=0, z=0)])
 
@@ -51,8 +75,7 @@ def get_dirty_parents(num_aggregations):
 
     for offset in range(num_aggregations):
         current_aggregation_id = aggregation_ids[-1 - offset]
-        last_aggregation_id = None if len(aggregation_ids) == 1 else aggregation_ids[-2 - offset]
-        aggregation_filenames = utils.get_dirty_aggregation_filenames(current_aggregation_id, last_aggregation_id)
+        aggregation_filenames = get_dirty_aggregation_filenames(current_aggregation_id)
         
         for filename in aggregation_filenames:
             z, x, y, child_z = [int(a) for a in filename.replace('-aggregation.csv', '').split('-')]
@@ -153,7 +176,7 @@ def create_archive(filepaths, name):
     with open(out_filepath, 'wb') as f:
 
         print('writing header...')
-        hash_writer = utils.HashWriter(f)
+        hash_writer = HashWriter(f)
         hash_writer.write(header_bytes)
         hash_writer.write(root_bytes)
         hash_writer.write(compressed_metadata)

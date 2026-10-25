@@ -1,10 +1,12 @@
 import json
-
 import requests
+import subprocess
 
-import utils
 
-SILENT = False
+def run_command(command):
+    p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = p.communicate()
+    return stdout.decode(), stderr.decode()
 
 def upload_local_resource_to_s3(directory, filename, bucket, key, region, endpoint):
     '''
@@ -13,7 +15,7 @@ def upload_local_resource_to_s3(directory, filename, bucket, key, region, endpoi
     $ export AWS_SECRET_ACCESS_KEY=MY_SECRET
     '''
     command = f'aws s3 cp {directory}/{filename} s3://{bucket}/{key} --region {region} --endpoint "{endpoint}"'
-    _, err = utils.run_command(command, silent=SILENT)
+    _, err = run_command(command)
     if err != '':
         print('err:', err)
         raise Exception(err)

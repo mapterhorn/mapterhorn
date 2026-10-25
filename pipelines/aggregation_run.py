@@ -7,7 +7,6 @@ import time
 import aggregation_reproject
 import aggregation_merge
 import aggregation_tile
-import utils
 
 def run(filepath):
     filename = filepath.split('/')[-1]

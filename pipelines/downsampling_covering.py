@@ -2,8 +2,6 @@ from glob import glob
 
 import mercantile
 
-import utils
-
 NUM_OVERVIEWS = 6
 
 def get_extents_from_coverings(aggregation_id, zoom):
@@ -53,6 +51,17 @@ def is_parent_of_dirty_aggregation_tile(tile, dirty_aggregation_tiles):
 def not_in_previous_aggregation(filename, aggregation_ids):
     return len(glob(f'aggregation-store/{aggregation_ids[-2]}/{filename}')) == 0
 
+def get_dirty_aggregation_filenames(aggregation_id):
+    filepaths = []
+    filepaths += glob(f'aggregation-store/{aggregation_id}/*-aggregation.csv.todo')
+    filepaths += glob(f'aggregation-store/{aggregation_id}/*.aggregation.csv.done')
+    dirty_filenames = []
+    for filepath in filepaths:
+        filename = filepath.replace(f'aggregation-store/{aggregation_id}/', '')
+        filename = filename.replace('.todo', '').replace('.done', '')
+        dirty_filenames.append(filename)
+    return dirty_filenames
+
 def write_downlsampling_todos():
     print('writing downsampling todos...')
     aggregation_ids = [folder.split('/')[-1] for folder in sorted(glob('aggregation-store/*'))]
@@ -60,7 +69,7 @@ def write_downlsampling_todos():
 
     dirty_aggregation_tiles = []
     if len(aggregation_ids) >= 2:
-        dirty_aggregation_filenames = utils.get_dirty_aggregation_filenames(aggregation_id, aggregation_ids[-2])
+        dirty_aggregation_filenames = get_dirty_aggregation_filenames(aggregation_id)
         for filename in dirty_aggregation_filenames:
             z, x, y, _ = [int(a) for a in filename.replace('-aggregation.csv', '').split('-')]
             dirty_aggregation_tiles.append(mercantile.Tile(x=x, y=y, z=z))
@@ -77,8 +86,9 @@ def write_downsampling_items():
     aggregation_ids = [folder.split('/')[-1] for folder in sorted(glob('aggregation-store/*'))]
     aggregation_id = aggregation_ids[-1]
 
-    command = f'rm aggregation-store/{aggregation_id}/*-downsampling.csv'
-    utils.run_command(command)
+    filepaths = glob(f'aggregation-store/{aggregation_id}/*-downsampling.csv')
+    for filepath in filepaths:
+        os.remove(filepath)
 
     for child_zoom in reversed(range(1, 32)):
         print(f'\nchild_zoom={child_zoom}')

@@ -3,8 +3,6 @@ from datetime import datetime
 import os
 import math
 
-import utils
-
 def count_children(suffix):
     aggregation_id = [folder.split('/')[-1] for folder in sorted(glob('aggregation-store/*'))][-1]
     filepaths = glob(f'aggregation-store/{aggregation_id}/*{suffix}')
