@@ -53,7 +53,7 @@ def not_in_previous_aggregation(filename, aggregation_ids):
 
 def write_downlsampling_todos():
     print('writing downsampling todos...')
-    aggregation_ids = utils.get_aggregation_ids()
+    aggregation_ids = [folder.split('/')[-1] for folder in sorted(glob('aggregation-store/*'))]
     aggregation_id = aggregation_ids[-1]
 
     dirty_aggregation_tiles = []
@@ -72,8 +72,8 @@ def write_downlsampling_todos():
                 f.write('')
     
 def write_downsampling_items():
-    aggregation_ids = utils.get_aggregation_ids()
-    aggregation_id = aggregation_ids[-1]
+    aggregation_folder = sorted(glob('aggregation-store/*'))[-1]
+    aggregation_id = aggregation_folder.split('/')[-1]
 
     command = f'rm aggregation-store/{aggregation_id}/*-downsampling.csv'
     utils.run_command(command)

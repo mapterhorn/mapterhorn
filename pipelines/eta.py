@@ -3,11 +3,9 @@ from datetime import datetime
 import os
 import math
 
-import utils
-
 def count_children(suffix):
-    aggregation_id = utils.get_aggregation_ids()[-1]
-    filepaths = glob(f'aggregation-store/{aggregation_id}/*{suffix}')
+    aggregation_folder = sorted(glob('aggregation-store/*'))[-1]
+    filepaths = glob(f'{aggregation_folder}/*{suffix}')
 
     total_children = 0
     for filepath in filepaths:
@@ -37,7 +35,8 @@ def compute(kind):
     
     print(f'children_done  = {children_done:_}    ({(children_done / children_total):.1%})\nchildren_total = {children_total:_}')
 
-    filepaths = glob(f'aggregation-store/{utils.get_aggregation_ids()[-1]}/*-{kind}.csv.done')
+    aggregation_folder = sorted(glob('aggregation-store/*'))[-1]
+    filepaths = glob(f'{aggregation_folder}/*-{kind}.csv.done')
     if len(filepaths) == 0:
         print('nothing done yet')
     first_timestamp = math.inf
