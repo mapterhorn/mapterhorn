@@ -1,23 +1,26 @@
 from glob import glob
 import sys
 from multiprocessing import Pool
-import utils
+import subprocess
 
-SILENT = False
+def run_command(command):
+    p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = p.communicate()
+    return stdout.decode(), stderr.decode()
 
 def to_cog(filepath):
     filepath_in = None
     filepath_out = None
     if filepath.endswith('.tif'):
-        utils.run_command(f'mv {filepath} {filepath}.bak', silent=SILENT)
+        run_command(f'mv {filepath} {filepath}.bak')
         filepath_in = f'{filepath}.bak'
         filepath_out = filepath
     elif filepath.endswith('.TIF'):
-        utils.run_command(f'mv {filepath} {filepath}.bak', silent=SILENT)
+        run_command(f'mv {filepath} {filepath}.bak')
         filepath_in = f'{filepath}.bak'
         filepath_out = filepath.replace('.TIF', '.tif')
     elif filepath.endswith('.tiff'):
-        utils.run_command(f'mv {filepath} {filepath}.bak', silent=SILENT)
+        run_command(f'mv {filepath} {filepath}.bak')
         filepath_in = f'{filepath}.bak'
         filepath_out = filepath.replace('.tiff', '.tif')
     elif filepath.endswith('.xyz'):
@@ -33,18 +36,10 @@ def to_cog(filepath):
         filepath_in = filepath
         filepath_out = filepath.replace('.txt', '.tif')
     
-    utils.run_command(f'GDAL_CACHEMAX=512 gdal_translate -of COG -co BLOCKSIZE=512 -co OVERVIEWS=NONE -co SPARSE_OK=YES -co BIGTIFF=YES -co COMPRESS=LERC -co MAX_Z_ERROR=0.001 "{filepath_in}" "{filepath_out}"', silent=SILENT)
-    utils.run_command(f'rm "{filepath_in}"', silent=SILENT)
+    run_command(f'GDAL_CACHEMAX=512 gdal_translate -of COG -co BLOCKSIZE=512 -co OVERVIEWS=NONE -co SPARSE_OK=YES -co BIGTIFF=YES -co COMPRESS=LERC -co MAX_Z_ERROR=0.001 "{filepath_in}" "{filepath_out}"')
+    run_command(f'rm "{filepath_in}"')
 
-def main():
-    source = None
-    if len(sys.argv) > 1:
-        source = sys.argv[1]
-        print(f'converting to cog for source={source}...')
-    else:
-        print('source argument missing')
-        exit()
-    
+def main(source):
     filepaths = []
     filepaths += glob(f'source-store/{source}/*.tif')
     filepaths += glob(f'source-store/{source}/*.TIF')
@@ -61,4 +56,11 @@ def main():
         pool.starmap(to_cog, filepaths, chunksize=1)
             
 if __name__ == '__main__':
-    main()
+    source = None
+    if len(sys.argv) > 1:
+        source = sys.argv[1]
+        print(f'converting to cog for source={source}...')
+    else:
+        print('source argument missing')
+        exit()
+    main(source)

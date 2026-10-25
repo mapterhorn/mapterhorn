@@ -3,16 +3,19 @@ import shutil
 from glob import glob
 from multiprocessing import Pool
 import sys
+import subprocess
 
 import mercantile
 import rasterio
 
-import utils
 from aggregation_covering import bounds_intersect, get_intersecting_tiles_dfs
 
 MACROTILE_BUFFER_3857 = 150
 
-SILENT = True
+def run_command(command):
+    p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = p.communicate()
+    return stdout.decode(), stderr.decode()
 
 def get_filled_source(source):
     return f'{source}filled'
@@ -92,7 +95,7 @@ def fill_nodata_single(i, source, filename):
         f.write('\n'.join([f'source-store/{source}/{tif_filename}' for tif_filename in tif_filenames]))
 
     command = f'gdalbuildvrt -overwrite -input_file_list {input_file_list_path} {vrt_filepath}'
-    utils.run_command(command, silent=SILENT)
+    run_command(command)
 
     with rasterio.open(filepath) as src:
         xs, ys = rasterio.warp.transform(src.crs, 'EPSG:3857', [src.bounds.left], [src.bounds.bottom])
@@ -117,24 +120,24 @@ def fill_nodata_single(i, source, filename):
         command += f'-te {left} {bottom} {right} {top} '
         command += '-dstnodata -9999 '
         command += f'{vrt_filepath} {vrt_buffered_filepath}'
-        utils.run_command(command, silent=SILENT)
+        run_command(command)
 
         max_distance = int(min(buffer_pixels_horizontal, buffer_pixels_vertical) * 0.5)
         command = f'gdal_fillnodata.py -overwrite -md {max_distance} {vrt_buffered_filepath} {tif_filled_filepath}'
-        utils.run_command(command, silent=SILENT)
+        run_command(command)
 
         command = 'gdalwarp -of vrt -overwrite '
         command += f'-tr {step_horizontal} {step_vertical} '
         command += f'-te {src.bounds.left} {src.bounds.bottom} {src.bounds.right} {src.bounds.top} '
         command += '-dstnodata -9999 '
         command += f'{tif_filled_filepath} {vrt_cropped_filepath}'
-        utils.run_command(command, silent=SILENT)
+        run_command(command)
 
         command = 'gdal_translate -of COG -co BIGTIFF=IF_NEEDED -co ADD_ALPHA=YES -co OVERVIEWS=NONE '
         command += '-co SPARSE_OK=YES -co BLOCKSIZE=512 -co COMPRESS=LERC -co MAX_Z_ERROR=0.001 '
         command += f'{vrt_cropped_filepath} '
         command += f'{out_filepath}'
-        utils.run_command(command, silent=SILENT)
+        run_command(command)
 
         with open(f'{out_filepath}.done', 'w') as f:
             f.write('')

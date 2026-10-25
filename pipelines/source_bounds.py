@@ -5,19 +5,9 @@ import math
 import rasterio
 from rasterio.warp import transform_bounds
 
-import utils
-
 _, __, X_MAX_3857, ___ = transform_bounds('EPSG:4326', 'EPSG:3857', -180, 0, 180, 0)
 
-def main():
-    source = None
-    if len(sys.argv) > 1:
-        source = sys.argv[1]
-        print(f'creating bounds for {source}...')
-    else:
-        print('source argument missing...')
-        exit()
-    
+def main(source):
     filepaths = sorted(glob(f'source-store/{source}/*.tif'))
 
     bounds_file_lines = ['filename,left,bottom,right,top,width,height\n']
@@ -46,4 +36,12 @@ def main():
         f.writelines(bounds_file_lines)
 
 if __name__ == '__main__':
-    main()
+    source = None
+    if len(sys.argv) > 1:
+        source = sys.argv[1]
+        print(f'creating bounds for {source}...')
+    else:
+        print('source argument missing...')
+        exit()
+
+    main(source)
