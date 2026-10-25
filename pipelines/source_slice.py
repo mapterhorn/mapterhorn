@@ -46,7 +46,14 @@ def slice_tif(filepath, tile_size):
     with Pool() as pool:
         pool.starmap(make_tile, argument_tuples, chunksize=1)
     
-def main():
+def main(source, tile_size):
+    filepaths = sorted(glob(f'source-store/{source}/*.tif'))
+
+    for filepath in filepaths:
+        slice_tif(filepath, tile_size)
+        os.remove(filepath)
+
+if __name__ == '__main__':
     source = None
     tile_size = None
     if len(sys.argv) == 3:
@@ -56,18 +63,5 @@ def main():
     else:
         print('wrong number of arguments: source_slice.py {{source}} {{tile_size}}')
         exit()
-    
-    filepaths = sorted(glob(f'source-store/{source}/*.tif'))
 
-    for filepath in filepaths:
-        slice_tif(filepath, tile_size)
-        os.remove(filepath)
-
-if __name__ == '__main__':
-    main()
-
-
-
-
-
-
+    main(source, tile_size)

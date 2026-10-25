@@ -1,21 +1,18 @@
 import sys
 import shutil
-import utils
 from glob import glob
 import os
+import subprocess
 
-def main():
-    source = None
-    if len(sys.argv) == 2:
-        source = sys.argv[1]
-        print(f'extracting tarball of source {source}...')
-    else:
-        print('Not enough arguments. Usage: source_extract_tarball.py {{source}}')
-        exit()
+def run_command(command):
+    p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = p.communicate()
+    return stdout.decode(), stderr.decode()
 
+def main(source):
     os.makedirs(f'source-store/{source}', exist_ok=True)
     command = f'tar xf tar-store/{source}.tar -C source-store/{source}'
-    utils.run_command(command, silent=False)
+    run_command(command)
 
     tif_filepaths = glob(f'source-store/{source}/files/*.tif')
     for tif_filepath in tif_filepaths:
@@ -27,4 +24,11 @@ def main():
     os.remove(f'source-store/{source}/coverage.gpkg')
 
 if __name__ == '__main__':
-    main()
+    source = None
+    if len(sys.argv) == 2:
+        source = sys.argv[1]
+        print(f'extracting tarball of source {source}...')
+    else:
+        print('Not enough arguments. Usage: source_extract_tarball.py {{source}}')
+        exit()
+    main(source)

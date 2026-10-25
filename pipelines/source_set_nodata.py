@@ -1,15 +1,19 @@
 from glob import glob
 import sys
 from multiprocessing import Pool
+import subprocess
 
 import rasterio
 
-import utils
+def run_command(command):
+    p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = p.communicate()
+    return stdout.decode(), stderr.decode()
 
 def set_nodata(filepath, nodata):
-    utils.run_command(f'mv "{filepath}" "{filepath}.bak"', silent=True)
-    utils.run_command(f'gdal_translate "{filepath}.bak" "{filepath}" -a_nodata {nodata}', silent=True)
-    utils.run_command(f'rm "{filepath}.bak"', silent=True)
+    run_command(f'mv "{filepath}" "{filepath}.bak"')
+    run_command(f'gdal_translate "{filepath}.bak" "{filepath}" -a_nodata {nodata}')
+    run_command(f'rm "{filepath}.bak"')
 
 def main():
     source = None

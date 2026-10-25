@@ -2,15 +2,17 @@ import sys
 import os
 from multiprocessing import Pool
 import shutil
+import subprocess
 
-import utils
-
-SILENT = False
+def run_command(command):
+    p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = p.communicate()
+    return stdout.decode(), stderr.decode()
 
 def polygonize_tif(source, filename):
     mask_filepath = f'polygon-store/{source}/{filename}'
-    utils.run_command(f'GDAL_CACHEMAX=1024 gdal_calc.py -A source-store/{source}/{filename} --outfile={mask_filepath} --calc="A*0+1" --type=Byte --overwrite', silent=SILENT)
-    utils.run_command(f'GDAL_CACHEMAX=1024 gdal_polygonize.py {mask_filepath} -b 1 -f "GPKG" polygon-store/{source}/{filename}.gpkg -overwrite', silent=SILENT)
+    run_command(f'GDAL_CACHEMAX=1024 gdal_calc.py -A source-store/{source}/{filename} --outfile={mask_filepath} --calc="A*0+1" --type=Byte --overwrite')
+    run_command(f'GDAL_CACHEMAX=1024 gdal_polygonize.py {mask_filepath} -b 1 -f "GPKG" polygon-store/{source}/{filename}.gpkg -overwrite')
     os.remove(mask_filepath)
 
 def get_filenames(source):
@@ -36,18 +38,23 @@ def merge_source(source):
     if os.path.isfile(merged_filepath):
         os.remove(merged_filepath)
     command = f'ogr2ogr -f GPKG {merged_filepath} polygon-store/{source}/{filenames[0]}.gpkg'
-    utils.run_command(command, silent=False)
+    run_command(command)
     for j, filename in enumerate(filenames[1:]):
         if j % 100 == 0:
             print(f'{j:_} / {len(filenames):_}')
         command = f'ogr2ogr -f GPKG -update -append {merged_filepath} polygon-store/{source}/{filename}.gpkg -nln out -append -addfields'
-        utils.run_command(command, silent=True)
+        run_command(command)
     union_filepath = f'polygon-store/{source}.gpkg'
     if os.path.isfile(union_filepath):
         os.remove(union_filepath)
-    utils.run_command(f'ogr2ogr -f GPKG {union_filepath} {merged_filepath} -nln union -dialect sqlite -sql "SELECT ST_Union(ST_MakeValid(geom)) AS geom FROM out"', silent=False)
+    run_command(f'ogr2ogr -f GPKG {union_filepath} {merged_filepath} -nln union -dialect sqlite -sql "SELECT ST_Union(ST_MakeValid(geom)) AS geom FROM out"')
 
-def main():
+def main(source, processes):
+    polygonize_source(source, processes)
+    merge_source(source)
+    shutil.rmtree(f'polygon-store/{source}')
+
+if __name__ == '__main__':
     source = None
     processes = None
     if len(sys.argv) == 3:
@@ -57,10 +64,4 @@ def main():
     else:
         print('Not enough arguments. Usage: source_polygonize.py {{source}} {{processes}}')
         exit()
-    polygonize_source(source, processes)
-    merge_source(source)
-    shutil.rmtree(f'polygon-store/{source}')
-
-if __name__ == '__main__':
-    main()
-
+    main(source, processes)

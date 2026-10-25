@@ -4,19 +4,21 @@ import zipfile
 import shutil
 import os
 from multiprocessing import Pool
+import subprocess
 
-import utils
-
-SILENT = False
+def run_command(command):
+    p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = p.communicate()
+    return stdout.decode(), stderr.decode()
 
 def unzip(filepath, source):
     filename = filepath.split('/')[-1]
-    utils.run_command(f'unzip -o "{filepath}" -d "source-store/{source}/{filename}-tmp/"', silent=SILENT)
-    utils.run_command(f'rm "{filepath}"', silent=False)
+    run_command(f'unzip -o "{filepath}" -d "source-store/{source}/{filename}-tmp/"')
+    run_command(f'rm "{filepath}"')
 
 def un7z(filepath, source):
     filename = filepath.split('/')[-1]
-    utils.run_command(f'7z x -osource-store/{source}/{filename}-tmp/ "{filepath}"', silent=SILENT)
+    run_command(f'7z x -osource-store/{source}/{filename}-tmp/ "{filepath}"')
     filepaths_to_remove = None
     if filepath.endswith('.7z'):
         filepaths_to_remove = [filepath]
@@ -24,12 +26,12 @@ def un7z(filepath, source):
         # filepath ends with '.7z.001'
         filepaths_to_remove = [path for path in glob(filepath.replace('.7z.001', '.7z.*')) if not path.endswith('-tmp')]
     for filepath_to_remove in filepaths_to_remove:
-        utils.run_command(f'rm "{filepath_to_remove}"', silent=SILENT)
+        run_command(f'rm "{filepath_to_remove}"')
 
 def translate_image(filepath_in, filepath_out, j, total):
     if j % 1000 == 0:
         print(f'{j} / {total}')
-    utils.run_command(f'gdal_translate -of COG -co BLOCKSIZE=512 -co OVERVIEWS=NONE -co SPARSE_OK=YES -co BIGTIFF=YES -co COMPRESS=LERC -co MAX_Z_ERROR=0.001 "{filepath_in}" "{filepath_out}"', silent=True)
+    run_command(f'gdal_translate -of COG -co BLOCKSIZE=512 -co OVERVIEWS=NONE -co SPARSE_OK=YES -co BIGTIFF=YES -co COMPRESS=LERC -co MAX_Z_ERROR=0.001 "{filepath_in}" "{filepath_out}"')
 
 def translate_images(filepath, source, suffix):
     print(f'translate .{suffix} images...')
@@ -55,15 +57,7 @@ def is_7z_head_file(filepath):
     return filepath.endswith('.7z') or filepath.endswith('.7z.001')
 
 
-def main():
-    source = None
-    if len(sys.argv) > 1:
-        source = sys.argv[1]
-        print(f'unzipping {source}...')
-    else:
-        print('source argument missing...')
-        exit()
-    
+def main(source):
     filepaths = sorted(glob(f'source-store/{source}/*'))
 
     for filepath in filepaths:
@@ -85,4 +79,11 @@ def main():
             shutil.rmtree(tmpdir)
 
 if __name__ == '__main__':
-    main()
+    source = None
+    if len(sys.argv) > 1:
+        source = sys.argv[1]
+        print(f'unzipping {source}...')
+    else:
+        print('source argument missing...')
+        exit()
+    main(source)

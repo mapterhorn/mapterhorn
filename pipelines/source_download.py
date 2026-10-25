@@ -1,6 +1,11 @@
-import utils
 import sys
 import os
+import subprocess
+
+def run_command(command):
+    p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = p.communicate()
+    return stdout.decode(), stderr.decode()
 
 def download_from_internet(source):
     urls = []
@@ -13,7 +18,7 @@ def download_from_internet(source):
             print(f'downloaded {j} / {len(urls)}')
 
         command = f'cd source-store/{source} && wget --no-verbose --continue "{url}"'
-        utils.run_command(command, silent=False)
+        run_command(command)
 
 def main():
     source = None
