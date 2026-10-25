@@ -10,6 +10,8 @@ import rasterio
 import utils
 from aggregation_covering import bounds_intersect, get_intersecting_tiles_dfs
 
+MACROTILE_BUFFER_3857 = 150
+
 SILENT = True
 
 def get_filled_source(source):
@@ -32,7 +34,7 @@ def plan_tasks(source):
         filename, left, bottom, right, top, width, height = line.split(',')
         width, height = [int(a) for a in [width, height]]
         left, bottom, right, top = [float(a) for a in [left, bottom, right, top]]
-        buffer = 2 * utils.macrotile_buffer_3857
+        buffer = 2 * MACROTILE_BUFFER_3857
         bounds = (
             left - buffer,
             bottom - buffer,
@@ -94,7 +96,7 @@ def fill_nodata_single(i, source, filename):
 
     with rasterio.open(filepath) as src:
         xs, ys = rasterio.warp.transform(src.crs, 'EPSG:3857', [src.bounds.left], [src.bounds.bottom])
-        ls, bs = rasterio.warp.transform('EPSG:3857', src.crs, [xs[0] - 2 * utils.macrotile_buffer_3857], [ys[0] - 2 * utils.macrotile_buffer_3857])
+        ls, bs = rasterio.warp.transform('EPSG:3857', src.crs, [xs[0] - 2 * MACROTILE_BUFFER_3857], [ys[0] - 2 * MACROTILE_BUFFER_3857])
 
         buffer_horizontal = src.bounds.left - ls[0]
         buffer_vertical = src.bounds.bottom - bs[0]

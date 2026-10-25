@@ -3,8 +3,15 @@ import os
 
 import mercantile
 from ulid import ULID
+from rasterio.warp import transform_bounds
 
 import utils
+
+NUM_OVERVIEWS = 6
+MACROTILE_BUFFER_3857 = 150
+MACROTILE_Z = 12
+X_MIN_3857, _, X_MAX_3857, __ = transform_bounds('EPSG:4326', 'EPSG:3857', -180, 0, 180, 0)
+
 
 def get_mercator_resolutions(minzoom, maxzoom):
     resolutions = []
@@ -28,8 +35,8 @@ def split_at_antimeridian(bbox):
     left, bottom, right, top = bbox
     if left < right:
         return [bbox]
-    bbox_1 = (left, bottom, utils.X_MAX_3857, top)
-    bbox_2 = (utils.X_MIN_3857, bottom, right, top)
+    bbox_1 = (left, bottom, X_MAX_3857, top)
+    bbox_2 = (X_MIN_3857, bottom, right, top)
     return [bbox_1, bbox_2]
 
 def bounds_intersect(a, b):
@@ -66,7 +73,7 @@ def get_macrotile_map():
                 left, bottom, right, top = [float(a) for a in [left, bottom, right, top]]
 
                 multiplier = 2
-                buffer = multiplier * utils.macrotile_buffer_3857
+                buffer = multiplier * MACROTILE_BUFFER_3857
                 buffered_bounds = (
                     left - buffer,
                     bottom - buffer,
@@ -74,18 +81,18 @@ def get_macrotile_map():
                     top + buffer
                 )
 
-                tiles = get_intersecting_tiles_dfs(buffered_bounds, mercantile.Tile(x=0, y=0, z=0), utils.macrotile_z)
+                tiles = get_intersecting_tiles_dfs(buffered_bounds, mercantile.Tile(x=0, y=0, z=0), MACROTILE_Z)
                 
                 maxzoom = get_smallest_overzoom(left, bottom, right, top, width, height, mercator_resolutions)
 
-                # Use at least a maxzoom of 12 (macrotile_z).
+                # Use at least a maxzoom of 12 (MACROTILE_Z).
                 # Note that glo30 does not everywhere give a maxzoom of 12. Examples:
                 # S79 native maxzoom 9
                 # N66 native maxzoom 10
                 # N50 native maxzoom 11
                 # N49 native maxzoom 12 (group has only ~30 percent of total macrotiles)
                 # Use gdal warp with cubicspline when maxzoom is 12
-                maxzoom = max(maxzoom, utils.macrotile_z)
+                maxzoom = max(maxzoom, MACROTILE_Z)
 
                 for tile in tiles:
                     if (tile.x, tile.y) not in macrotile_map:
@@ -119,9 +126,9 @@ def add_group_ids(macrotile_map):
         macrotile_map[tile_tuple]['group_id'] = group_id
 
 def get_aggregation_tiles_dfs(candidate, macrotile_map):
-    if candidate.z == utils.macrotile_z:
+    if candidate.z == MACROTILE_Z:
         return [candidate]
-    macrotiles = list(mercantile.children(candidate, zoom=utils.macrotile_z))
+    macrotiles = list(mercantile.children(candidate, zoom=MACROTILE_Z))
     group_ids = set({})
     for macrotile in macrotiles:
         tile_tuple = (macrotile.x, macrotile.y)
@@ -134,7 +141,7 @@ def get_aggregation_tiles_dfs(candidate, macrotile_map):
         maxzoom = 0
         for part in group_id:
             maxzoom = max(maxzoom, part[1])
-        if candidate.z >= maxzoom - utils.num_overviews:
+        if candidate.z >= maxzoom - NUM_OVERVIEWS:
             return [candidate]
     result = []
     for child in mercantile.children(candidate, zoom=candidate.z + 1):
@@ -144,7 +151,7 @@ def get_aggregation_tiles_dfs(candidate, macrotile_map):
 def get_aggregation_tiles(macrotile_map):
     candidates = set({})
     for tile_tuple in macrotile_map.keys():
-        candidates.add(mercantile.parent(mercantile.Tile(x=tile_tuple[0], y=tile_tuple[1], z=utils.macrotile_z), zoom=utils.macrotile_z - utils.num_overviews))
+        candidates.add(mercantile.parent(mercantile.Tile(x=tile_tuple[0], y=tile_tuple[1], z=MACROTILE_Z), zoom=MACROTILE_Z - NUM_OVERVIEWS))
     aggregation_tiles = []
     for candidate in candidates:
         aggregation_tiles += get_aggregation_tiles_dfs(candidate, macrotile_map)
@@ -154,7 +161,7 @@ def write_aggregation_items(macrotile_map, aggregation_tiles, aggregation_id):
     folder = f'aggregation-store/{aggregation_id}'
     os.makedirs(folder, exist_ok=True)
     for aggregation_tile in aggregation_tiles:
-        macrotiles = list(mercantile.children(aggregation_tile, zoom=utils.macrotile_z))
+        macrotiles = list(mercantile.children(aggregation_tile, zoom=MACROTILE_Z))
         lines = ['source,filename,maxzoom\n']
         line_tuples = set({})
         child_z = 0
