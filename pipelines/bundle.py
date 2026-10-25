@@ -46,7 +46,7 @@ def get_parent_to_filepaths(num_aggregations):
 def get_dirty_parents(num_aggregations):
     dirty_parents = set([mercantile.Tile(x=0, y=0, z=0)])
 
-    aggregation_ids = utils.get_aggregation_ids()
+    aggregation_ids = [folder.split('/')[-1] for folder in sorted(glob('aggregation-store/*'))]
     assert len(aggregation_ids) >= num_aggregations
 
     for offset in range(num_aggregations):

@@ -34,12 +34,6 @@ def run_command(command, silent=True, env=None):
         print(out)
     return out, err
 
-def get_aggregation_ids():
-    '''
-    returns aggregation ids ordered from oldest to newest
-    '''
-    return list(sorted([path.split('/')[-1] for path in glob('aggregation-store/*')]))
-
 def get_vertical_rounding_multiplier(z):
     return int(2 ** ((10 - z) / 2) / (1 / 256))
 

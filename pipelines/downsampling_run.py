@@ -131,7 +131,7 @@ def downsample_multiple(filepaths):
 
 def get_child_zoom_to_filepaths():
     child_zoom_to_filepaths = {}
-    aggregation_ids = utils.get_aggregation_ids()
+    aggregation_ids = [folder.split('/')[-1] for folder in sorted(glob('aggregation-store/*'))]
     aggregation_id = aggregation_ids[-1]
     for todo_filepath in sorted(glob(f'aggregation-store/{aggregation_id}/*-downsampling.csv.todo')):
         filename = todo_filepath.split('/')[-1]

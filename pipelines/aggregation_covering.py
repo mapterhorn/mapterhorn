@@ -179,7 +179,7 @@ def write_aggregation_items(macrotile_map, aggregation_tiles, aggregation_id):
             f.writelines(lines)
 
 def write_aggregation_todos():
-    aggregation_ids = utils.get_aggregation_ids()
+    aggregation_ids = [folder.split('/')[-1] for folder in sorted(glob('aggregation-store/*'))]
     aggregation_id = aggregation_ids[-1]
 
     dirty_filepaths = None
