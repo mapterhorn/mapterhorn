@@ -1,3 +1,14 @@
+# /// script
+# requires-python = ">=3.13"
+# dependencies = [
+#   "numpy>=1.24.4",
+#   "rasterio>=1.3.11",
+# ]
+#
+# [tool.pixi.workspace]
+# channels = ["conda-forge"]
+# ///
+
 from glob import glob
 import sys
 import os

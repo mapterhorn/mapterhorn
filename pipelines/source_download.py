@@ -1,3 +1,12 @@
+# /// script
+# requires-python = ">=3.13"
+# dependencies = [
+# ]
+#
+# [tool.pixi.workspace]
+# channels = ["conda-forge"]
+# ///
+
 import sys
 import os
 import subprocess

@@ -1,3 +1,18 @@
+# /// script
+# requires-python = ">=3.13"
+# dependencies = [
+#   "mercantile>=1.2.1",
+#   "python-ulid>=1.1.0",
+#   "rasterio>=1.3.11",
+# ]
+#
+# [tool.pixi.workspace]
+# channels = ["conda-forge"]
+#
+# [tool.pixi.dependencies]
+# gdal = "==3.13.3"
+# ///
+
 import os
 import shutil
 from glob import glob

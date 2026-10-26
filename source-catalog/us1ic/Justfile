@@ -2,8 +2,8 @@
 
 [no-cd]
 default:
-    uv run python source_download.py us1ic
-    uv run python source_to_cog.py us1ic
-    uv run python source_bounds.py us1ic
-    uv run python source_polygonize.py us1ic 32
-    uv run python source_create_tarball.py us1ic
+    pixi run --script source_download.py us1ic
+    pixi run --script source_to_cog.py us1ic
+    pixi run --script source_bounds.py us1ic
+    pixi run --script source_polygonize.py us1ic 32
+    pixi run --script source_create_tarball.py us1ic

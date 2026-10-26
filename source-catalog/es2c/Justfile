@@ -1,6 +1,6 @@
 # Source preparation pipeline to be run from mapterhorn/pipelines folder
 [no-cd]
 default:
-    uv run python source_bounds.py es2c
-    uv run python source_polygonize.py es2c 32
-    uv run python source_create_tarball.py es2c
+    pixi run --script source_bounds.py es2c
+    pixi run --script source_polygonize.py es2c 32
+    pixi run --script source_create_tarball.py es2c

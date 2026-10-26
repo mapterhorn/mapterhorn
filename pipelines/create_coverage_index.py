@@ -1,3 +1,15 @@
+# /// script
+# requires-python = ">=3.13"
+# dependencies = [
+#   "mercantile>=1.2.1",
+#   "pmtiles>=3.4.1",
+#   "supermercado>=0.2.0",
+# ]
+#
+# [tool.pixi.workspace]
+# channels = ["conda-forge"]
+# ///
+
 import json
 from glob import glob
 import os
@@ -6,7 +18,6 @@ import subprocess
 
 import mercantile
 import supermercado
-
 from pmtiles.tile import zxy_to_tileid, tileid_to_zxy, TileType, Compression
 from pmtiles.writer import Writer
 

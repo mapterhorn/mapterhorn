@@ -1,7 +1,18 @@
+# /// script
+# requires-python = ">=3.13"
+# dependencies = [
+#   "requests>=2.32.4",
+# ]
+#
+# [tool.pixi.workspace]
+# channels = ["conda-forge"]
+# ///
+
 import json
-import requests
 from multiprocessing import Pool
 import subprocess
+
+import requests
 
 PROCESSES = 32
 

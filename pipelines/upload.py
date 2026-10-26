@@ -1,6 +1,20 @@
+# /// script
+# requires-python = ">=3.13"
+# dependencies = [
+#   "requests>=2.32.4",
+# ]
+#
+# [tool.pixi.workspace]
+# channels = ["conda-forge"]
+#
+# [tool.pixi.dependencies]
+# awscli = "*"
+# ///
+
 import json
-import requests
 import subprocess
+
+import requests
 
 
 def run_command(command):

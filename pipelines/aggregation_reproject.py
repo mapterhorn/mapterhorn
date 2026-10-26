@@ -1,3 +1,18 @@
+# /// script
+# requires-python = ">=3.13"
+# dependencies = [
+#   "rasterio>=1.3.11",
+#   "mercantile>=1.2.1",
+#   "numpy>=1.24.4",
+# ]
+#
+# [tool.pixi.workspace]
+# channels = ["conda-forge"]
+#
+# [tool.pixi.dependencies]
+# gdal = "==3.13.3"
+# ///
+
 import json
 import os
 import subprocess
