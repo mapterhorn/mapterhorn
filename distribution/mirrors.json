@@ -2,5 +2,9 @@
     "Source Coop (US)": {
         "homepage": "https://source.coop/mapterhorn/mapterhorn",
         "base_url": "https://data.source.coop/mapterhorn/mapterhorn/"
+    },
+    "Transitous (EU)": {
+        "homepage": "https://transitous.org/sources/",
+        "base_url": "https://mirror.transitous.org/mapterhorn/"
     }
 }
