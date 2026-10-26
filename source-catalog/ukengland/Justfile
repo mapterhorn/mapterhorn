@@ -4,7 +4,7 @@ default:
     rm source-store/ukengland/*.tfw
     rm source-store/ukengland/*.xml
     rm source-store/ukengland/*.ovr
-    uv run python source_to_cog.py ukengland
-    uv run python source_bounds.py ukengland
-    uv run python source_polygonize.py ukengland 32
-    uv run python source_create_tarball.py ukengland
+    pixi run --script source_to_cog.py ukengland
+    pixi run --script source_bounds.py ukengland
+    pixi run --script source_polygonize.py ukengland 32
+    pixi run --script source_create_tarball.py ukengland

@@ -1,11 +1,11 @@
 # Source preparation pipeline to be run from mapterhorn/pipelines folder
 [no-cd]
 default:
-    uv run python source_download.py sk
-    uv run python source_unzip.py sk
-    uv run python source_set_crs.py sk EPSG:5514
-    uv run python source_slice.py sk 16384
-    uv run python source_to_cog.py sk
-    uv run python source_bounds.py sk
-    uv run python source_polygonize.py sk 32
-    uv run python source_create_tarball.py sk
+    pixi run --script source_download.py sk
+    pixi run --script source_unzip.py sk
+    pixi run --script source_set_crs.py sk EPSG:5514
+    pixi run --script source_slice.py sk 16384
+    pixi run --script source_to_cog.py sk
+    pixi run --script source_bounds.py sk
+    pixi run --script source_polygonize.py sk 32
+    pixi run --script source_create_tarball.py sk

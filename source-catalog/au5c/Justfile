@@ -2,10 +2,10 @@
 
 [no-cd]
 default:
-    uv run python source_download.py au5c
-    uv run python source_unzip.py au5c
-    uv run python source_slice.py au5c 16384
-    uv run python source_to_cog.py au5c
-    uv run python source_bounds.py au5c
-    uv run python source_polygonize.py au5c 32
-    uv run python source_create_tarball.py au5c
+    pixi run --script source_download.py au5c
+    pixi run --script source_unzip.py au5c
+    pixi run --script source_slice.py au5c 16384
+    pixi run --script source_to_cog.py au5c
+    pixi run --script source_bounds.py au5c
+    pixi run --script source_polygonize.py au5c 32
+    pixi run --script source_create_tarball.py au5c

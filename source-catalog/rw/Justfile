@@ -1,8 +1,8 @@
 # Source preparation pipeline to be run from mapterhorn/pipelines folder
 [no-cd]
 default:
-    uv run python source_download.py rw
-    uv run python source_to_cog.py rw
-    uv run python source_bounds.py rw
-    uv run python source_polygonize.py rw 32
-    uv run python source_create_tarball.py rw
+    pixi run --script source_download.py rw
+    pixi run --script source_to_cog.py rw
+    pixi run --script source_bounds.py rw
+    pixi run --script source_polygonize.py rw 32
+    pixi run --script source_create_tarball.py rw

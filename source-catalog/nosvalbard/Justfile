@@ -1,7 +1,7 @@
 # Source preparation pipeline to be run from mapterhorn/pipelines folder
 [no-cd]
 default:
-    uv run python source_unzip.py nosvalbard
-    uv run python source_bounds.py nosvalbard
-    uv run python source_polygonize.py nosvalbard 32
-    uv run python source_create_tarball.py nosvalbard
+    pixi run --script source_unzip.py nosvalbard
+    pixi run --script source_bounds.py nosvalbard
+    pixi run --script source_polygonize.py nosvalbard 32
+    pixi run --script source_create_tarball.py nosvalbard

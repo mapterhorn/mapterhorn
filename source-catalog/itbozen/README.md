@@ -6,7 +6,7 @@ To fix those to files, we run the following commands:
 
 
 ```bash
-uv run python source_set_nodata.py itbozen -99999 --force
+pixi run --script source_set_nodata.py itbozen -99999 --force
 
 gdal_translate \
   -a_srs EPSG:25832 \
@@ -58,7 +58,7 @@ gdal_calc.py \
 
 rm source-store/itbozen/DigitalTerrainModel-2_5m_1.tif
 
-uv run python source_set_nodata.py itbozen -9999 --force
+pixi run --script source_set_nodata.py itbozen -9999 --force
 
-uv run python source_to_cog.py itbozen
+pixi run --script source_to_cog.py itbozen
 ```
