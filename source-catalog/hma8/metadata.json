@@ -1,0 +1,9 @@
+{
+    "name": "High Mountain Asia 8-meter DEM Mosaics Derived from Optical Imagery V001",
+    "website": "https://www.earthdata.nasa.gov/data/catalog/nsidc-cprd-hma-dem8m-mos-1",
+    "license": "Creative Commons Zero (CC0)",
+    "producer": "NASA National Snow and Ice Data Center DAAC (NSIDC DAAC)",
+    "citation": "Shean,  David. “High Mountain Asia 8-Meter DEM Mosaics Derived from Optical Imagery, Version 1.” NASA National Snow and Ice Data Center Distributed Active Archive Center, 2017. doi:10.5067/KXOVQ9L172S2. Date Accessed: 2026-01-14",
+    "resolution": 8.0,
+    "access_year": 2026
+}
