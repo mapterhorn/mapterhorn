@@ -3,7 +3,6 @@ import os
 
 import time
 
-import utils
 import downsampling_run
 
 def distribute_tasks(item_filepaths):

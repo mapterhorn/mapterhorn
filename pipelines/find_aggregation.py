@@ -1,5 +1,3 @@
-import utils
-
 from glob import glob
 import mercantile
 

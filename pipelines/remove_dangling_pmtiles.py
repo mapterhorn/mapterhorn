@@ -1,8 +1,6 @@
 from glob import glob
 import os
 
-import utils
-
 def main():
     aggregation_id = [folder.split('/')[-1] for folder in sorted(glob('aggregation-store/*'))][-1]
 

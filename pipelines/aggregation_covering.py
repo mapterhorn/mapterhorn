@@ -5,8 +5,6 @@ import mercantile
 from ulid import ULID
 from rasterio.warp import transform_bounds
 
-import utils
-
 NUM_OVERVIEWS = 6
 MACROTILE_BUFFER_3857 = 150
 MACROTILE_Z = 12
@@ -185,6 +183,32 @@ def write_aggregation_items(macrotile_map, aggregation_tiles, aggregation_id):
         with open(f'{folder}/{aggregation_tile.z}-{aggregation_tile.x}-{aggregation_tile.y}-{child_z}-aggregation.csv', 'w') as f:
             f.writelines(lines)
 
+def get_aggregation_item_string(aggregation_id, filename):
+    result = ''
+    filepath = f'aggregation-store/{aggregation_id}/{filename}'
+    if not os.path.isfile(filepath):
+        return None
+    
+    with open(filepath) as f:
+        result = ''.join([l.strip() for l in f.readlines()])
+    
+    return result.strip()
+
+def get_dirty_aggregation_filenames(current_aggregation_id, last_aggregation_id):
+    filepaths = sorted(glob(f'aggregation-store/{current_aggregation_id}/*-aggregation.csv'))
+
+    if last_aggregation_id is None:
+        return [filepath.split('/')[-1] for filepath in filepaths]
+
+    dirty_filenames = []
+    for filepath in filepaths:
+        filename = filepath.split('/')[-1]
+        current = get_aggregation_item_string(current_aggregation_id, filename)
+        last = get_aggregation_item_string(last_aggregation_id, filename)
+        if current != last:
+            dirty_filenames.append(filename)
+    return dirty_filenames
+
 def write_aggregation_todos():
     aggregation_ids = [folder.split('/')[-1] for folder in sorted(glob('aggregation-store/*'))]
     aggregation_id = aggregation_ids[-1]
@@ -194,7 +218,7 @@ def write_aggregation_todos():
         dirty_filepaths = sorted(glob(f'aggregation-store/{aggregation_id}/*-aggregation.csv'))
     else:
         last_aggregation_id = aggregation_ids[-2]
-        dirty_filepaths = [f'aggregation-store/{aggregation_id}/{filename}' for filename in utils.get_dirty_aggregation_filenames(aggregation_id, last_aggregation_id)]
+        dirty_filepaths = [f'aggregation-store/{aggregation_id}/{filename}' for filename in get_dirty_aggregation_filenames(aggregation_id, last_aggregation_id)]
     
     for dirty_filepath in dirty_filepaths:
         with open(f'{dirty_filepath}.todo', 'w') as f:

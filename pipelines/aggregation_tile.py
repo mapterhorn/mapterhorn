@@ -74,4 +74,5 @@ def main(filepath, tmp_folder):
     merged_filepath = f'{tmp_folder}/merged-3857.tiff'
     create_tiles(tmp_folder, aggregation_tile, merged_filepath, buffer_pixels)
     utils.create_archive(tmp_folder, out_filepath)
-    utils.run_command(f'touch {pmtiles_done_filepath}')
+    with open(pmtiles_done_filepath, 'w') as f:
+        f.write('')

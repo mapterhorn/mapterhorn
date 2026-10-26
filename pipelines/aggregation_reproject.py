@@ -1,16 +1,19 @@
 import json
 import os
+import subprocess
 
 import rasterio
 import mercantile
 import numpy as np
 
-import utils
-
 MACROTILE_BUFFER_3857 = 150
 
-SILENT = True
 FAIL_ON_WARNING = False
+
+def run_command(command):
+    p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = p.communicate()
+    return stdout.decode(), stderr.decode()
 
 def create_virtual_raster(tmp_folder, i, source_items):
     source = source_items[0]['source']
@@ -20,13 +23,11 @@ def create_virtual_raster(tmp_folder, i, source_items):
         for source_item in source_items:
             f.write(f'tmp-store/source/{source}/{source_item["filename"]}\n')
     command = f'gdalbuildvrt -overwrite -input_file_list {input_file_list_path} {vrt_filepath}'
-    out, err = utils.run_command(command, silent=SILENT)
+    out, err = run_command(command)
 
     if 'heterogeneous projection' in err:
         raise Exception(f'heterogenous projection found in {tmp_folder}')
 
-    if not SILENT:
-        print(out, err)
     return vrt_filepath
 
 def get_resolution(zoom):
@@ -48,7 +49,7 @@ def create_warp(vrt_filepath, vrt_3857_filepath, zoom, aggregation_tile, buffer)
     command += '-r cubicspline '
     command += '-dstnodata -9999 '
     command += f'{vrt_filepath} {vrt_3857_filepath}'
-    out, err = utils.run_command(command, silent=SILENT)
+    out, err = run_command(command)
     if err.strip() != '' and FAIL_ON_WARNING:
         raise Exception(f'gdalwarp failed for {vrt_filepath}:\n{out}\n{err}')
 
@@ -58,7 +59,7 @@ def translate(in_filepath, out_filepath):
     command += '-co SPARSE_OK=YES -co BLOCKSIZE=512 -co COMPRESS=LERC -co MAX_Z_ERROR=0.001 '
     command += f'{in_filepath} '
     command += f'{out_filepath}'
-    out, err = utils.run_command(command, silent=SILENT)
+    out, err = run_command(command)
     if err.strip() != '' and FAIL_ON_WARNING:
         raise Exception(f'gdal_translate failed for {in_filepath}:\n{out}\n{err}')
 
@@ -79,6 +80,45 @@ def contains_nodata_pixels(filepath):
                         return True
     return False
 
+# group source items by maxzoom and source
+def get_grouped_source_items(filepath):
+    lines = []
+    with open(filepath) as f:
+        lines = f.readlines()
+    lines = lines[1:] # skip header
+    line_tuples = []
+    for line in lines:
+        source, filename, maxzoom = line.strip().split(',')
+        maxzoom = int(maxzoom)
+        line_tuples.append((
+            -maxzoom,
+            source,
+            filename
+        ))
+    line_tuples = sorted(line_tuples)
+    grouped_source_items = []
+
+    first_line_tuple = line_tuples[0]
+    last_group_signature = (first_line_tuple[0], first_line_tuple[1])
+    current_group = [{
+        'maxzoom': -first_line_tuple[0],
+        'source': first_line_tuple[1],
+        'filename': first_line_tuple[2],
+    }]
+    for line_tuple in line_tuples[1:]:
+        current_group_signature = (line_tuple[0], line_tuple[1])
+        if current_group_signature != last_group_signature:
+            grouped_source_items.append(current_group)
+            current_group = []
+            last_group_signature = current_group_signature
+        current_group.append({
+            'maxzoom': -line_tuple[0],
+            'source': line_tuple[1],
+            'filename': line_tuple[2],
+        })
+    grouped_source_items.append(current_group)
+    return grouped_source_items
+
 def reproject(filepath, tmp_folder):
     filename = filepath.split('/')[-1]
 
@@ -91,7 +131,7 @@ def reproject(filepath, tmp_folder):
         print(f'reproject {filename} already done...')
         return
 
-    grouped_source_items = utils.get_grouped_source_items(filepath)
+    grouped_source_items = get_grouped_source_items(filepath)
     maxzoom = grouped_source_items[0][0]['maxzoom']
     resolution = get_resolution(maxzoom)
 

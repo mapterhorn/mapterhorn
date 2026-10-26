@@ -1,32 +1,14 @@
-import subprocess
 from pathlib import Path
 from glob import glob
 import math
 import os
-import hashlib
 
 import numpy as np
-
 from rasterio.warp import transform_bounds
 import mercantile
 import imagecodecs
 from pmtiles.tile import zxy_to_tileid, tileid_to_zxy, TileType, Compression
 from pmtiles.writer import Writer
-
-def run_command(command, silent=True, env=None):
-    if env is None:
-        env = os.environ.copy()
-    if not silent:
-        print(command)
-    p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
-    stdout, stderr = p.communicate()
-    err = stderr.decode()
-    if err != '' and not silent:
-        print(err)
-    out = stdout.decode()
-    if out != '' and not silent:
-        print(out)
-    return out, err
 
 def get_vertical_rounding_multiplier(z):
     return int(2 ** ((10 - z) / 2) / (1 / 256))
@@ -114,32 +96,6 @@ def create_archive(tmp_folder, out_filepath):
             },
         )
 
-def get_aggregation_item_string(aggregation_id, filename):
-    result = ''
-    filepath = f'aggregation-store/{aggregation_id}/{filename}'
-    if not os.path.isfile(filepath):
-        return None
-    
-    with open(filepath) as f:
-        result = ''.join([l.strip() for l in f.readlines()])
-    
-    return result.strip()
-
-def get_dirty_aggregation_filenames(current_aggregation_id, last_aggregation_id):
-    filepaths = sorted(glob(f'aggregation-store/{current_aggregation_id}/*-aggregation.csv'))
-
-    if last_aggregation_id is None:
-        return [filepath.split('/')[-1] for filepath in filepaths]
-
-    dirty_filenames = []
-    for filepath in filepaths:
-        filename = filepath.split('/')[-1]
-        current = get_aggregation_item_string(current_aggregation_id, filename)
-        last = get_aggregation_item_string(last_aggregation_id, filename)
-        if current != last:
-            dirty_filenames.append(filename)
-    return dirty_filenames
-
 def get_pmtiles_folder(x, y, z):
     if z < 7:
         return 'pmtiles-store'
@@ -148,56 +104,3 @@ def get_pmtiles_folder(x, y, z):
     else:
         parent = mercantile.parent(mercantile.Tile(x=x, y=y, z=z), zoom=7)
         return f'pmtiles-store/{parent.z}-{parent.x}-{parent.y}'
-
-# group source items by maxzoom and source
-def get_grouped_source_items(filepath):
-    lines = []
-    with open(filepath) as f:
-        lines = f.readlines()
-    lines = lines[1:] # skip header
-    line_tuples = []
-    for line in lines:
-        source, filename, maxzoom = line.strip().split(',')
-        maxzoom = int(maxzoom)
-        line_tuples.append((
-            -maxzoom,
-            source,
-            filename
-        ))
-    line_tuples = sorted(line_tuples)
-    grouped_source_items = []
-
-    first_line_tuple = line_tuples[0]
-    last_group_signature = (first_line_tuple[0], first_line_tuple[1])
-    current_group = [{
-        'maxzoom': -first_line_tuple[0],
-        'source': first_line_tuple[1],
-        'filename': first_line_tuple[2],
-    }]
-    for line_tuple in line_tuples[1:]:
-        current_group_signature = (line_tuple[0], line_tuple[1])
-        if current_group_signature != last_group_signature:
-            grouped_source_items.append(current_group)
-            current_group = []
-            last_group_signature = current_group_signature
-        current_group.append({
-            'maxzoom': -line_tuple[0],
-            'source': line_tuple[1],
-            'filename': line_tuple[2],
-        })
-    grouped_source_items.append(current_group)
-    return grouped_source_items
-
-class HashWriter:
-    def __init__(self, f):
-        self.f = f
-        self.md5 = hashlib.md5()
-    def write(self, data):
-        self.md5.update(data)
-        return self.f.write(data)
-    def tell(self):
-        return self.f.tell()
-    def flush(self):
-        return self.f.flush()
-    def close(self):
-        return self.f.close()

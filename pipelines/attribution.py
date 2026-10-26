@@ -1,7 +1,15 @@
 from glob import glob
 import json
 
-import utils
+def get_sources(filepath):
+    lines = []
+    with open(filepath) as f:
+        lines = f.readlines()
+    sources = set({})
+    for line in lines[1:]:
+        source, _, __ = line.split(',')
+        sources.add(source)
+    return sources
 
 def main():
     aggregation_id = [folder.split('/')[-1] for folder in sorted(glob('aggregation-store/*'))][-1]
@@ -9,10 +17,8 @@ def main():
 
     sources = set({})
     for filepath in filepaths:
-        grouped_source_items = utils.get_grouped_source_items(filepath)
-        for source_items in grouped_source_items:
-            for source_item in source_items:
-                sources.add(source_item['source'])
+        for source in get_sources(filepath):
+            sources.add(source)
 
     sources = sorted(list(sources))
     data = []
