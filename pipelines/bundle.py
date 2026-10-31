@@ -70,7 +70,7 @@ def get_parent_to_filepaths(num_aggregations):
 def get_dirty_aggregation_filenames(aggregation_id):
     filepaths = []
     filepaths += glob(f'aggregation-store/{aggregation_id}/*-aggregation.csv.todo')
-    filepaths += glob(f'aggregation-store/{aggregation_id}/*.aggregation.csv.done')
+    filepaths += glob(f'aggregation-store/{aggregation_id}/*-aggregation.csv.done')
     dirty_filenames = []
     for filepath in filepaths:
         filename = filepath.replace(f'aggregation-store/{aggregation_id}/', '')
