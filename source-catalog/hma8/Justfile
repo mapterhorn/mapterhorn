@@ -1,0 +1,12 @@
+# Source preparation pipeline to be run from mapterhorn/pipelines folder
+
+[no-cd]
+default:
+    uv run python source_download.py hma8 EARTHDATA_TOKEN
+    uv run python source_unzip.py hma8
+    uv run python source_verify_crs.py hma8
+    uv run python source_slice.py hma8 16384
+    uv run python source_to_cog.py hma8
+    uv run python source_bounds.py hma8
+    uv run python source_polygonize.py hma8 32
+    uv run python source_create_tarball.py hma8
