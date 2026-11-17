@@ -1,3 +1,15 @@
+# /// script
+# requires-python = ">=3.13"
+# dependencies = [
+#   "rasterio>=1.3.11",
+#   "numpy>=1.24.4",
+#   "scipy>=1.10.1",
+# ]
+#
+# [tool.pixi.workspace]
+# channels = ["conda-forge"]
+# ///
+
 from glob import glob
 import os
 import time
@@ -6,8 +18,6 @@ import json
 import rasterio
 import numpy as np
 from scipy import ndimage
-
-import utils
 
 
 def merge(filepath, tmp_folder):
@@ -33,8 +43,8 @@ def merge(filepath, tmp_folder):
     output_path = f'{tmp_folder}/merged-3857.tiff'
     if num_tiff_files == 1:
         os.rename(f'{tmp_folder}/0-3857.tiff', output_path)
-        command = f'touch {done_filepath}'
-        utils.run_command(command)
+        with open(done_filepath, 'w') as f:
+            f.write('')
         return
 
     tiff_filepaths = [f'{tmp_folder}/{i}-3857.tiff' for i in range(num_tiff_files)]
@@ -128,8 +138,8 @@ def merge(filepath, tmp_folder):
     for tiff_filepath in tiff_filepaths:
         os.remove(tiff_filepath)
 
-    command = f'touch {done_filepath}'
-    utils.run_command(command)
+    with open(done_filepath, 'w') as f:
+        f.write('')
 
 if __name__ == '__main__':
     filepath = 'aggregation-store/01K7M3DMZF4RFVFYDWN9KF1Q4N/12-2130-1459-17-aggregation.csv'

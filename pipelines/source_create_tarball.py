@@ -1,25 +1,39 @@
+# /// script
+# requires-python = ">=3.13"
+# dependencies = [
+# ]
+#
+# [tool.pixi.workspace]
+# channels = ["conda-forge"]
+# ///
+
 from glob import glob
 import sys
 import tarfile
 import os
 import json
+import hashlib
 
-import utils
+class HashWriter:
+    def __init__(self, f):
+        self.f = f
+        self.md5 = hashlib.md5()
+    def write(self, data):
+        self.md5.update(data)
+        return self.f.write(data)
+    def tell(self):
+        return self.f.tell()
+    def flush(self):
+        return self.f.flush()
+    def close(self):
+        return self.f.close()
 
-def main():
-    source = None
-    if len(sys.argv) == 2:
-        source = sys.argv[1]
-        print(f'creating tarball for {source}...')
-    else:
-        print('Not enough arguments. Usage: source_create_tarball.py {{source}}')
-        exit()
-
-    utils.create_folder('tar-store/')
+def main(source):
+    os.makedirs('tar-store/', exist_ok=True)
     checksum = None
     out_filepath = f'tar-store/{source}.tar'
     with open(out_filepath, 'wb') as f:
-        writer = utils.HashWriter(f)
+        writer = HashWriter(f)
         with tarfile.open(fileobj=writer, mode='w') as tar:
             tar.add(f'../source-catalog/{source}/LICENSE.pdf', 'LICENSE.pdf')
             tar.add(f'../source-catalog/{source}/metadata.json', 'metadata.json')
@@ -34,7 +48,7 @@ def main():
         checksum = writer.md5.hexdigest()
 
     out_filesize = os.path.getsize(out_filepath)
-    utils.create_folder('meta-store/tar/')
+    os.makedirs('meta-store/tar/', exist_ok=True)
     with open(f'meta-store/tar/{source}.json', 'w') as f:
         json.dump({
             'size': out_filesize,
@@ -42,5 +56,11 @@ def main():
         }, f, indent=2)
 
 if __name__ == '__main__':
-    main()
-
+    source = None
+    if len(sys.argv) == 2:
+        source = sys.argv[1]
+        print(f'creating tarball for {source}...')
+    else:
+        print('Not enough arguments. Usage: source_create_tarball.py {{source}}')
+        exit()
+    main(source)

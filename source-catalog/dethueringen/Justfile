@@ -1,10 +1,10 @@
 # Source preparation pipeline to be run from mapterhorn/pipelines folder
 [no-cd]
 default:
-    uv run python source_download.py dethueringen
-    uv run python source_unzip.py dethueringen
-    uv run python source_set_crs.py dethueringen EPSG:25832
-    uv run python source_set_nodata.py dethueringen 0.0
-    uv run python source_bounds.py dethueringen
-    uv run python source_polygonize.py dethueringen 32
-    uv run python source_create_tarball.py dethueringen
+    pixi run --script source_download.py dethueringen
+    pixi run --script source_unzip.py dethueringen
+    pixi run --script source_set_crs.py dethueringen EPSG:25832
+    pixi run --script source_set_nodata.py dethueringen 0.0
+    pixi run --script source_bounds.py dethueringen
+    pixi run --script source_polygonize.py dethueringen 32
+    pixi run --script source_create_tarball.py dethueringen

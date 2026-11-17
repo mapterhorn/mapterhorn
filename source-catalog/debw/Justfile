@@ -1,11 +1,11 @@
 # Source preparation pipeline to be run from mapterhorn/pipelines folder
 [no-cd]
 default:
-    uv run python source_download.py debw
-    uv run python source_unzip.py debw # translate only the .xyz files
-    uv run python source_set_crs.py debw EPSG:25832
-    uv run python source_set_nodata.py debw 0.0
-    uv run python source_fix_orientation.py debw
-    uv run python source_bounds.py debw
-    uv run python source_polygonize.py debw 32
-    uv run python source_create_tarball.py debw
+    pixi run --script source_download.py debw
+    pixi run --script source_unzip.py debw # translate only the .xyz files
+    pixi run --script source_set_crs.py debw EPSG:25832
+    pixi run --script source_set_nodata.py debw 0.0
+    pixi run --script source_fix_orientation.py debw
+    pixi run --script source_bounds.py debw
+    pixi run --script source_polygonize.py debw 32
+    pixi run --script source_create_tarball.py debw

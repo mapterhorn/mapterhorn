@@ -1,8 +1,22 @@
+# /// script
+# requires-python = ">=3.13"
+# dependencies = [
+# ]
+#
+# [tool.pixi.workspace]
+# channels = ["conda-forge"]
+# ///
+
 import sys
 from glob import glob
 import os
 
-def main():
+def main(source):
+    filepaths = glob(f'source-store/{source}/*.tif')
+    for filepath in filepaths:
+        os.remove(filepath)
+
+if __name__ == '__main__':
     source = None
     if len(sys.argv) == 2:
         source = sys.argv[1]
@@ -10,10 +24,4 @@ def main():
     else:
         print('Not enough arguments. Usage: source_remove_tifs.py {{source}}')
         exit()
-
-    filepaths = glob(f'source-store/{source}/*.tif')
-    for filepath in filepaths:
-        os.remove(filepath)
-
-if __name__ == '__main__':
-    main()
+    main(source)

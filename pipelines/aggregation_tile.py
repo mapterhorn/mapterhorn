@@ -1,3 +1,17 @@
+# /// script
+# requires-python = ">=3.13"
+# dependencies = [
+#   "imagecodecs>=2023.3.16",
+#   "mercantile>=1.2.1",
+#   "numpy>=1.24.4",
+#   "pmtiles>=3.4.1",
+#   "rasterio>=1.3.11",
+# ]
+#
+# [tool.pixi.workspace]
+# channels = ["conda-forge"]
+# ///
+
 from glob import glob
 import math
 import os
@@ -69,9 +83,10 @@ def main(filepath, tmp_folder):
 
     aggregation_tile = mercantile.Tile(x=x, y=y, z=z)
     out_folder = utils.get_pmtiles_folder(x, y, z)
-    utils.create_folder(out_folder)
+    os.makedirs(out_folder, exist_ok=True)
     out_filepath = f'{out_folder}/{z}-{x}-{y}-{child_z}.pmtiles'
     merged_filepath = f'{tmp_folder}/merged-3857.tiff'
     create_tiles(tmp_folder, aggregation_tile, merged_filepath, buffer_pixels)
     utils.create_archive(tmp_folder, out_filepath)
-    utils.run_command(f'touch {pmtiles_done_filepath}')
+    with open(pmtiles_done_filepath, 'w') as f:
+        f.write('')

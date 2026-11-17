@@ -1,19 +1,34 @@
+# /// script
+# requires-python = ">=3.13"
+# dependencies = [
+#   "mercantile>=1.2.1",
+#   "pmtiles>=3.4.1",
+#   "supermercado>=0.2.0",
+# ]
+#
+# [tool.pixi.workspace]
+# channels = ["conda-forge"]
+# ///
+
 import json
 from glob import glob
 import os
 import shutil
+import subprocess
 
 import mercantile
 import supermercado
-
 from pmtiles.tile import zxy_to_tileid, tileid_to_zxy, TileType, Compression
 from pmtiles.writer import Writer
 
-import utils
-
 coverage_index_minzoom = 4
 
-SILENT = False
+MACROTILE_Z = 12
+
+def run_command(command):
+    p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = p.communicate()
+    return stdout.decode(), stderr.decode()
 
 def get_coverage_tiles(source):
     print(f'creating coverage csv for source {source}')
@@ -31,28 +46,28 @@ def get_coverage_tiles(source):
         os.remove(filepath_3857)
     
     command = f'ogr2ogr -t_srs EPSG:3857 -explodecollections {filepath_3857} polygon-store/{source}.gpkg'
-    utils.run_command(command, silent=SILENT)
+    run_command(command)
 
     filepath_buffered = f'{tmp_folder}/buffered.gpkg'
     if os.path.isfile(filepath_buffered):
         os.remove(filepath_buffered)
 
     command = f'ogr2ogr {filepath_buffered} {filepath_3857} -dialect SQLite -sql "SELECT ST_Union(ST_Buffer(ST_Simplify(geom, 100), 1000, 2)) AS geometry, * FROM \\"union\\""'
-    utils.run_command(command, silent=SILENT)
+    run_command(command)
 
     filepath_4326 = f'{tmp_folder}/4326.geojson'
     if os.path.isfile(filepath_4326):
         os.remove(filepath_4326)
 
     command = f'ogr2ogr -t_srs EPSG:4326 -explodecollections {filepath_4326} {filepath_buffered}'
-    utils.run_command(command, silent=SILENT)
+    run_command(command)
 
     data = None
     with open(filepath_4326) as f:
         data = json.load(f)
 
     print('burning coverage tiles...')
-    tiles = [mercantile.Tile(x=tile[0], y=tile[1], z=tile[2]) for tile in supermercado.burntiles.burn(data['features'], utils.macrotile_z)]
+    tiles = [mercantile.Tile(x=tile[0], y=tile[1], z=tile[2]) for tile in supermercado.burntiles.burn(data['features'], MACROTILE_Z)]
     lines = ['x,y,z']
     for tile in tiles:
         lines.append(f'{tile.x},{tile.y},{tile.z}')
@@ -71,7 +86,7 @@ def get_cached_coverage_tiles(coverage_filepath):
     tiles = []
     for line in lines[1:]:
         x, y, z = [int(a) for a in line.split(',')]
-        if z != utils.macrotile_z:
+        if z != MACROTILE_Z:
             print(feature)
             raise Exception('zooms do not match')
 
@@ -96,9 +111,9 @@ def create_coverage_pmtiles():
             source_to_metadata[source] = json.load(f)
     
     zoom_to_tiles = {}
-    zoom_to_tiles[utils.macrotile_z] = set(tile_to_sources.keys())
+    zoom_to_tiles[MACROTILE_Z] = set(tile_to_sources.keys())
     
-    for parent_z in range(utils.macrotile_z - 1, coverage_index_minzoom - 1, -1):
+    for parent_z in range(MACROTILE_Z - 1, coverage_index_minzoom - 1, -1):
         print(f'getting zoom {parent_z} parent tiles...')
         zoom_to_tiles[parent_z] = set([])
         for tile in zoom_to_tiles[parent_z + 1]:
@@ -134,8 +149,8 @@ def create_coverage_pmtiles():
             {
                 'tile_type': TileType.UNKNOWN, 
                 'tile_compression': Compression.NONE,
-                'min_zoom': utils.macrotile_z,
-                'max_zoom': utils.macrotile_z,
+                'min_zoom': MACROTILE_Z,
+                'max_zoom': MACROTILE_Z,
                 'min_lon_e7': 0,
                 'min_lat_e7': 0,
                 'max_lon_e7': 0,

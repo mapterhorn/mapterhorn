@@ -1,5 +1,20 @@
-import utils
+# /// script
+# requires-python = ">=3.13"
+# dependencies = [
+# ]
+#
+# [tool.pixi.workspace]
+# channels = ["conda-forge"]
+# ///
+
 import sys
+import os
+import subprocess
+
+def run_command(command):
+    p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = p.communicate()
+    return stdout.decode(), stderr.decode()
 
 def download_from_internet(source):
     urls = []
@@ -12,7 +27,7 @@ def download_from_internet(source):
             print(f'downloaded {j} / {len(urls)}')
 
         command = f'cd source-store/{source} && wget --no-verbose --continue "{url}"'
-        utils.run_command(command, silent=False)
+        run_command(command)
 
 def main():
     source = None
@@ -23,7 +38,7 @@ def main():
         print('source argument missing...')
         exit()
 
-    utils.create_folder( f'source-store/{source}/')
+    os.makedirs( f'source-store/{source}/', exist_ok=True)
     download_from_internet(source)
 
 if __name__ == '__main__':

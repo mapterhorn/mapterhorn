@@ -1,3 +1,18 @@
+# /// script
+# requires-python = ">=3.13"
+# dependencies = [
+#   "imagecodecs>=2023.3.16",
+#   "mercantile>=1.2.1",
+#   "numpy>=1.24.4",
+#   "pillow>=10.4.0",
+#   "pmtiles>=3.4.1",
+#   "rasterio>=1.3.11",
+# ]
+#
+# [tool.pixi.workspace]
+# channels = ["conda-forge"]
+# ///
+
 from glob import glob
 import io
 from multiprocessing import Pool
@@ -91,7 +106,7 @@ def downsample_single(filepath):
     extent_z, extent_x, extent_y, parent_zoom = [int(a) for a in parts[:4]]
 
     out_folder = utils.get_pmtiles_folder(extent_x, extent_y, extent_z)
-    utils.create_folder(out_folder)
+    os.makedirs(out_folder, exist_ok=True)
     out_filepath = f'{out_folder}/{extent_z}-{extent_x}-{extent_y}-{parent_zoom}.pmtiles'
 
     extent = mercantile.Tile(x=extent_x, y=extent_y, z=extent_z)
@@ -131,7 +146,7 @@ def downsample_multiple(filepaths):
 
 def get_child_zoom_to_filepaths():
     child_zoom_to_filepaths = {}
-    aggregation_ids = utils.get_aggregation_ids()
+    aggregation_ids = [folder.split('/')[-1] for folder in sorted(glob('aggregation-store/*'))]
     aggregation_id = aggregation_ids[-1]
     for todo_filepath in sorted(glob(f'aggregation-store/{aggregation_id}/*-downsampling.csv.todo')):
         filename = todo_filepath.split('/')[-1]

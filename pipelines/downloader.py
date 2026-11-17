@@ -1,3 +1,17 @@
+# /// script
+# requires-python = ">=3.13"
+# dependencies = [
+#   "imagecodecs>=2023.3.16",
+#   "mercantile>=1.2.1",
+#   "numpy>=1.24.4",
+#   "pmtiles>=3.4.1",
+#   "rasterio>=1.3.11",
+# ]
+#
+# [tool.pixi.workspace]
+# channels = ["conda-forge"]
+# ///
+
 from glob import glob
 import shutil
 import os

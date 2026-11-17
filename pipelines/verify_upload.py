@@ -1,11 +1,25 @@
+# /// script
+# requires-python = ">=3.13"
+# dependencies = [
+#   "requests>=2.32.4",
+# ]
+#
+# [tool.pixi.workspace]
+# channels = ["conda-forge"]
+# ///
+
 import json
-import requests
 from multiprocessing import Pool
+import subprocess
 
-import utils
+import requests
 
-SILENT=True
 PROCESSES = 32
+
+def run_command(command):
+    p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = p.communicate()
+    return stdout.decode(), stderr.decode()
 
 def has_expected_size(url, expected_size):
     r = requests.head(url)
@@ -14,7 +28,7 @@ def has_expected_size(url, expected_size):
 
 def has_expected_md5sum(url, expected_md5sum):
     command = f'wget {url} -O - | md5sum'
-    out, _ = utils.run_command(command, silent=SILENT)
+    out, _ = run_command(command)
     parts = out.split(' ')
     assert len(parts) > 0
     return parts[0] == expected_md5sum

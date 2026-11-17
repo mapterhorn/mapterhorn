@@ -1,3 +1,21 @@
+# /// script
+# requires-python = ">=3.13"
+# dependencies = [
+#   "imagecodecs>=2023.3.16",
+#   "mercantile>=1.2.1",
+#   "numpy>=1.24.4",
+#   "pmtiles>=3.4.1",
+#   "rasterio>=1.3.11",
+#   "scipy>=1.10.1",
+# ]
+#
+# [tool.pixi.workspace]
+# channels = ["conda-forge"]
+#
+# [tool.pixi.dependencies]
+# gdal = "==3.13.3"
+# ///
+
 from glob import glob
 import shutil
 import os
@@ -7,7 +25,6 @@ import time
 import aggregation_reproject
 import aggregation_merge
 import aggregation_tile
-import utils
 
 def run(filepath):
     filename = filepath.split('/')[-1]
@@ -51,7 +68,7 @@ def run(filepath):
 
 def main():
     
-    aggregation_ids = utils.get_aggregation_ids()
+    aggregation_ids = [folder.split('/')[-1] for folder in sorted(glob('aggregation-store/*'))]
     aggregation_id = aggregation_ids[-1]
 
     dirty_filepaths = [filepath.replace('.todo', '') for filepath in glob(f'aggregation-store/{aggregation_id}/*-aggregation.csv.todo')]

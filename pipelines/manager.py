@@ -1,9 +1,22 @@
+# /// script
+# requires-python = ">=3.13"
+# dependencies = [
+#   "imagecodecs>=2023.3.16",
+#   "mercantile>=1.2.1",
+#   "numpy>=1.24.4",
+#   "pillow>=10.4.0",
+#   "pmtiles>=3.4.1",
+#   "rasterio>=1.3.11",
+# ]
+#
+# [tool.pixi.workspace]
+# channels = ["conda-forge"]
+# ///
+
 from glob import glob
 import os
-
 import time
 
-import utils
 import downsampling_run
 
 def distribute_tasks(item_filepaths):
@@ -43,7 +56,7 @@ def distribute_tasks(item_filepaths):
 def manage_aggregation():
     print('manage aggregation...')
 
-    aggregation_ids = utils.get_aggregation_ids()
+    aggregation_ids = [folder.split('/')[-1] for folder in sorted(glob('aggregation-store/*'))]
     aggregation_id = aggregation_ids[-1]
 
     item_filepaths = [filepath.replace('.todo', '') for filepath in glob(f'aggregation-store/{aggregation_id}/*-aggregation.csv.todo')]

@@ -1,3 +1,13 @@
+# /// script
+# requires-python = ">=3.13"
+# dependencies = [
+#   "rasterio>=1.3.11",
+# ]
+#
+# [tool.pixi.workspace]
+# channels = ["conda-forge"]
+# ///
+
 from glob import glob
 import sys
 import math
@@ -5,17 +15,9 @@ import math
 import rasterio
 from rasterio.warp import transform_bounds
 
-import utils
+_, __, X_MAX_3857, ___ = transform_bounds('EPSG:4326', 'EPSG:3857', -180, 0, 180, 0)
 
-def main():
-    source = None
-    if len(sys.argv) > 1:
-        source = sys.argv[1]
-        print(f'creating bounds for {source}...')
-    else:
-        print('source argument missing...')
-        exit()
-    
+def main(source):
     filepaths = sorted(glob(f'source-store/{source}/*.tif'))
 
     bounds_file_lines = ['filename,left,bottom,right,top,width,height\n']
@@ -26,7 +28,7 @@ def main():
                 raise ValueError(f'crs not defined on {filepath}')
             left, bottom, right, top = transform_bounds(src.crs, 'EPSG:3857', *src.bounds)
 
-            if right - left > 0.9 * 2 * utils.X_MAX_3857:
+            if right - left > 0.9 * 2 * X_MAX_3857:
                 # probably the image crosses the antimeridian
                 # in this case rasterio.warp.transform_bounds mixes up left and right
                 # and we need to flip it back
@@ -44,4 +46,12 @@ def main():
         f.writelines(bounds_file_lines)
 
 if __name__ == '__main__':
-    main()
+    source = None
+    if len(sys.argv) > 1:
+        source = sys.argv[1]
+        print(f'creating bounds for {source}...')
+    else:
+        print('source argument missing...')
+        exit()
+
+    main(source)

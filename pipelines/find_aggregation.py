@@ -1,9 +1,18 @@
-import utils
+# /// script
+# requires-python = ">=3.13"
+# dependencies = [
+#   "mercantile>=1.2.1",
+# ]
+#
+# [tool.pixi.workspace]
+# channels = ["conda-forge"]
+# ///
 
 from glob import glob
+
 import mercantile
 
-aggregation_id = utils.get_aggregation_ids()[-1]
+aggregation_id = [folder.split('/')[-1] for folder in sorted(glob('aggregation-store/*'))][-1]
 
 filepaths = glob(f'aggregation-store/{aggregation_id}/*-aggregation.csv')
 
