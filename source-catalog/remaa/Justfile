@@ -1,0 +1,10 @@
+# Source preparation pipeline to be run from mapterhorn/pipelines folder
+
+[no-cd]
+default:
+    uv run python source_download.py remaa
+    uv run python source_to_cog.py remaa
+    uv run python source_to_egm2008.py remaa
+    uv run python source_bounds.py remaa
+    uv run python source_polygonize.py remaa 32
+    uv run python source_create_tarball.py remaa
