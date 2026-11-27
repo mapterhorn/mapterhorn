@@ -1,9 +1,9 @@
 {
     "name": "ÍslandsDEM útgáfa 1.0",
-    "website": "https://gatt.lmi.is/geonetwork/srv/eng/catalog.search#/metadata/e6712430-a63c-4ae5-9158-c89d16da6361",
+    "website": "https://gatt.natt.is/geonetwork/srv/eng/catalog.search#/metadata/e6712430-a63c-4ae5-9158-c89d16da6361",
     "license": "CC BY 4.0",
     "producer": "Natural Science Institute of Iceland",
     "producer_short": "Náttúrufræðistofnun",
-    "resolution": 10.0,
-    "access_year": 2025
+    "resolution": 2.0,
+    "access_year": 2026
 }
