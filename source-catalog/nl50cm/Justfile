@@ -1,0 +1,17 @@
+# Source preparation pipeline to be run from mapterhorn/pipelines folder
+[no-cd]
+default:
+    # Run only once, the file_list.txt is checked in.
+    # IMPORTANT: currently (nov 2026) AHN5+AHN6 overlap,
+    # for now remove the first 499 files (AHN5 from year 2023).
+    # pixi run --script source_get_file_list.py nl50cm
+
+    pixi run --script source_download.py nl50cm
+    pixi run --script source_to_cog.py nl50cm
+    # also fix compound CRS EPSG:28992
+    pixi run --script source_set_crs.py nl50cm EPSG:28992
+    pixi run --script source_bounds.py nl50cm
+    # fill holes
+    pixi run --script source_fill_nodata.py nl50cm
+    pixi run --script source_polygonize.py nl50cm 32
+    pixi run --script source_create_tarball.py nl50cm

@@ -1,0 +1,6 @@
+{
+    "collections": [
+      "https://dgm.stac.lgln.niedersachsen.de/collections/dgm1/items?limit=1000"
+    ],
+    "property": "assets/dgm1-tif/href"
+}
