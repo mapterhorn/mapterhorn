@@ -3,6 +3,7 @@
 # dependencies = ["requests"]
 # ///
 
+import re
 import sys
 import json
 import requests
@@ -22,7 +23,8 @@ def error_exit(msg):
     exit(1)
 
 
-def download_files(url, property):
+def download_files(url, file_list_spec):
+
     print(f'downloading {url}...')
     r = requests.get(url)
     if r.status_code != 200:
@@ -34,21 +36,31 @@ def download_files(url, property):
         print(f'no features - TIFF_URLS count={len(TIFF_URLS)} - ALL DONE')
         return
 
+    property = file_list_spec['property']
+    skip_url_pattern = file_list_spec.get('skip_url_pattern', None)
+    url = None
+    skipped = 0
     for feature in features:
         if '/' in property:
             attrs = property.split('/')
             if len(attrs) == 3:
-                TIFF_URLS.append(feature[attrs[0]][attrs[1]][attrs[2]])
+                url = feature[attrs[0]][attrs[1]][attrs[2]]
         else:
-            TIFF_URLS.append(feature['properties'][property])
+            url = feature['properties'][property]
 
-    print(f'TIFF_URLS count={len(TIFF_URLS)}...')
+        # Mainly AHN NL: skip older, overlapping URLs
+        if skip_url_pattern and re.search(skip_url_pattern, url):
+            skipped += 1
+            continue
+        TIFF_URLS.append(url)
+
+    print(f'TIFF_URLS count={len(TIFF_URLS)} skipped={skipped}...')
 
     # We may have paged responses: check the link elemments
     links = feat_collection.get('links', [])
     for link in links:
         if link.get('rel', None) == 'next':
-            download_files(link.get('href'), property)
+            download_files(link.get('href'), file_list_spec)
 
 
 def main():
@@ -66,7 +78,7 @@ def main():
 
     file_list_spec_file = f'../source-catalog/{source}/file_list_spec.json'
     file_list_spec = json.load(open(file_list_spec_file))
-    property = file_list_spec['property']
+
     urls = file_list_spec['collections']
     for url in urls:
         print(f'TIFF_URLS count={len(TIFF_URLS)} - START: {url}')
@@ -79,7 +91,7 @@ def main():
 
             url = f'{url}bbox={bbox}'
 
-        download_files(url, property)
+        download_files(url, file_list_spec)
 
     if len(TIFF_URLS) == 0:
         error_exit('NO TIFF_URLS found')
