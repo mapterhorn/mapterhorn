@@ -14,6 +14,10 @@ Public terrain tiles for interactive web map visualizations
 
 [https://mapterhorn.com/examples](https://mapterhorn.com/examples)
 
+## FAQ
+
+[https://mapterhorn.com/faq](https://mapterhorn.com/faq)
+
 ## Migrate from AWS Elevation Tiles (Tilezen Joerd)
 
 ```diff
